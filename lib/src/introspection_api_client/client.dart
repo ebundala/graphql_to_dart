@@ -18,7 +18,7 @@ class LocalGraphQLClient {
 
   Future<GraphQLSchema> fetchTypes() async {
     final queryResult =
-        await client.query(QueryOptions(documentNode: gql(Queries.types)));
+        await client.query(QueryOptions(document: gql(Queries.types)));
     if (queryResult.hasException) throw queryResult.exception.toString();
     return GraphQLSchema.fromJson(queryResult.data["__schema"]);
   }
