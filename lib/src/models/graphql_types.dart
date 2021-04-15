@@ -93,12 +93,13 @@ class Fields {
 
 class Type {
   String kind;
-  String name;
+  String name;  
   Type ofType;
 
   Type({this.kind, this.name, this.ofType});
 
   Type.fromJson(Map<String, dynamic> json) {
+
     kind = json['kind'];
     name = json['name'];
     ofType = json['ofType'] != null ? Type.fromJson(json['ofType']) : null;
