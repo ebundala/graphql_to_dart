@@ -1,5 +1,7 @@
 package_name: example
-graphql_endpoint: https://graphql-pokemon.now.sh/
+graphql_endpoint: http://localhost:3000/graphql
 models_directory_path: lib/graphql/models/
+to_json_exclude_null_field: true
+use_equatable: true
 type_override:
-  id: int
+  Upload: MultpartFile

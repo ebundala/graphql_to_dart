@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:graphql_to_dart/src/constants/files.dart';
@@ -27,7 +28,6 @@ class TypeBuilder {
     }
     if (type.kind == 'ENUM') {
       _addEnumValues();
-
     } else {
       _addConstructor();
       _addFromJson();
@@ -66,24 +66,28 @@ class TypeBuilder {
     StringBuffer toJsonBuilder = StringBuffer();
     toJsonBuilder.writeln("Map _data = {};");
     localFields.forEach((field) {
+      if (config.toJsonExcludeNullField) {
+        toJsonBuilder.writeln("if(${_to$(field.name)}!=null)");
+      }
       if (field.list == true) {
         if (field.type == "DateTime") {
           toJsonBuilder.writeln(
-              "_data['${field.name}'] = List.generate(${field.name}?.length ?? 0, (index)=> ${field.name}[index].toString());");
+              "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}[index].toString());");
         } else if (field.object == true) {
           toJsonBuilder.writeln(
-              "_data['${field.name}'] = List.generate(${field.name}?.length ?? 0, (index)=> ${field.name}[index].toJson());");
+              "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}[index].toJson());");
         } else {
-          toJsonBuilder.writeln("_data['${field.name}'] = ${field.name};");
+          toJsonBuilder
+              .writeln("_data['${field.name}'] = ${_to$(field.name)};");
         }
       } else if (field.object == true) {
         toJsonBuilder
-            .writeln("_data['${field.name}'] = ${field.name}?.toJson();");
+            .writeln("_data['${field.name}'] = ${_to$(field.name)}?.toJson();");
       } else if (field.type == "DateTime") {
-        toJsonBuilder
-            .writeln("_data['${field.name}'] = ${field.name}?.toString();");
+        toJsonBuilder.writeln(
+            "_data['${field.name}'] = ${_to$(field.name)}?.toString();");
       } else {
-        toJsonBuilder.writeln("_data['${field.name}'] = ${field.name};");
+        toJsonBuilder.writeln("_data['${field.name}'] = ${_to$(field.name)};");
       }
     });
     stringBuffer.writeln();
@@ -98,27 +102,24 @@ class TypeBuilder {
     localFields.forEach((field) {
       if (field.list == true) {
         fromJsonBuilder.write("""
-${field.name} = json['${field.name}']!=null ?
-${field.object == true ?
-        "List.generate(json['${field.name}'].length, (index)=> ${field.type}.fromJson(json['${field.name}'][index]))"
-            : field.type == "DateTime" ?
-                          "List.generate(json['${field.name}'].length, (index)=> DateTime.parse(json['${field.name}'][index]))"
-                              : "json['${field.name}'].map<${field.type}>((o)=>o.to${field.type}()).toList()"}: null;
+${_to$(field.name)} = json['${field.name}']!=null ?
+${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> ${field.type}.fromJson(json['${field.name}'][index]))" : field.type == "DateTime" ? "List.generate(json['${field.name}'].length, (index)=> DateTime.parse(json['${field.name}'][index]))" : "json['${field.name}'].map<${field.type}>((o)=>o.to${field.type}()).toList()"}: null;
         """);
-      } else if (field.isEnum){
+      } else if (field.isEnum) {
         // fromJsonBuilder.writeln("${field.name} = json['${field.name}'];");
       } else if (field.object == true) {
         fromJsonBuilder.writeln(
-            "${field.name} = json['${field.name}']!=null ? ${field.type}.fromJson(json['${field.name}']) : null;");
+            "${_to$(field.name)} = json['${field.name}']!=null ? ${field.type}.fromJson(json['${field.name}']) : null;");
       } else if (field.type == "DateTime") {
         fromJsonBuilder.writeln(
-            "${field.name} = json['${field.name}']!=null ? DateTime.parse(json['${field.name}']) : null;");
+            "${_to$(field.name)} = json['${field.name}']!=null ? DateTime.parse(json['${field.name}']) : null;");
       } else {
-        if(field.type=='double'){
-          fromJsonBuilder.writeln("${field.name} = json['${field.name}']?.toDouble();");
-
-        }else{
-          fromJsonBuilder.writeln("${field.name} = json['${field.name}'];");
+        if (field.type == 'double') {
+          fromJsonBuilder.writeln(
+              "${_to$(field.name)} = json['${field.name}']?.toDouble();");
+        } else {
+          fromJsonBuilder
+              .writeln("${_to$(field.name)} = json['${field.name}'];");
         }
       }
     });
@@ -152,8 +153,8 @@ ${field.object == true ?
 
   _addEnumValues() {
     // stringBuffer.writeln("import 'package:flutter/foundation.dart';");
-    stringBuffer
-        .writeln('enum ${type.name}{\n${type.enumValues.map((e) => e.name).join(',\n')}\n}');
+    stringBuffer.writeln(
+        'enum ${type.name}{\n${type.enumValues.map((e) => e.name).join(',\n')}\n}');
 //     stringBuffer.writeln('''
 //     extension ${type.name}Index on ${type.name} {
 //   // Overload the [] getter to get the name of the fruit.
@@ -170,7 +171,7 @@ ${field.object == true ?
   _addConstructor() {
     StringBuffer constructorBuffer = StringBuffer();
     for (int i = 0; i < localFields.length; i++) {
-      constructorBuffer.write("this.${localFields[i].name}");
+      constructorBuffer.write("this.${_to$(localFields[i].name)}");
       if (i < localFields.length - 1) {
         constructorBuffer.write(",");
       }
@@ -201,11 +202,12 @@ ${field.object == true ?
       localFields.add(localField);
     } else if (type.kind == 'ENUM') {
       localField = LocalField(
-          name: fieldName,
-          list: list,
-          type: TypeConverters().nonObjectTypes['string'],
-          object: false,
-          /*isEnum: true*/);
+        name: fieldName,
+        list: list,
+        type: TypeConverters().nonObjectTypes['string'],
+        object: false,
+        /*isEnum: true*/
+      );
       localFields.add(localField);
     } else {
       localField = LocalField(
@@ -236,7 +238,7 @@ class LocalField {
       {this.name, this.list, this.type, this.object, this.isEnum = false});
 
   String toDeclarationStatement() {
-    return "${list ? "List<" : ""}${type ?? "var"}${list ? ">" : ""} $name;";
+    return "${list ? "List<" : ""}${type ?? "var"}${list ? ">" : ""} ${_to$(name)};";
   }
 
   @override
@@ -244,4 +246,25 @@ class LocalField {
     // TODO: implement toString
     return type;
   }
+}
+
+//helpers to rename fields starting with underscore
+_to$(String name) {
+  return name.replaceAll(
+      RegExp(
+        r'_',
+        multiLine: true,
+      ),
+      r"$");
+}
+
+$to_(String name) {
+  if (name == "_all") {}
+  var str = name.replaceAll(
+      RegExp(
+        r'$',
+        multiLine: true,
+      ),
+      r"_");
+  return str;
 }
