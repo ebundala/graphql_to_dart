@@ -102,6 +102,7 @@ class AstGenerator implements Builder {
     //   url: buildStep.inputId.path,
     // );
     final doc = gql(allContent);
+    
     final definitions = doc.definitions.map(
       (def) => fromNode(def).assignConst(_getName(def)).statement,
     );

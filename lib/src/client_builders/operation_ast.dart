@@ -223,3 +223,111 @@ class ArgFieldInfo {
   ArgFieldInfo(
       {this.name, this.isNonNull, this.isList, this.isScalar, this.type});
 }
+
+class OperationAstInfo {
+  final String name;
+  final String operationName;
+  final String returnType;
+  final List<VariableInfo> variables;
+
+  OperationAstInfo(
+      {this.name, this.returnType, this.operationName, this.variables});
+}
+
+class VariableInfo {
+  final String name;
+  final bool isNonNull;
+  final bool isScalar;
+  final bool isList;
+  final String type;
+  final List<ArgFieldInfo> fields;
+
+  VariableInfo(
+      {this.name,
+      this.isNonNull,
+      this.isScalar,
+      this.isList,
+      this.type,
+      this.fields});
+}
+
+class OperationDefinitionASTVisitor
+    extends AccumulatingVisitor<OperationAstInfo> {
+  final List<OperationInfo> schemaInfo;
+  final List<String> scalars;
+  final Map<String, InputObjectTypeDefinitionNode> inputs;
+  OperationDefinitionASTVisitor({this.schemaInfo, this.scalars, this.inputs});
+  String getOperationName(OperationDefinitionNode node) {
+    FieldNode field = node.selectionSet?.selections?.firstWhere((v) {
+      if (v is FieldNode) {
+        if (v.selectionSet != null) {
+          return true;
+        }
+      }
+      return false;
+    });
+    var fieldName = field?.name?.value;
+    return fieldName;
+  }
+
+  String getReturnType(String operationName) {
+    var info = schemaInfo.firstWhere((v) {
+      return v.name == operationName;
+    });
+    return info?.returnType;
+  }
+
+  @override
+  void visitOperationDefinitionNode(OperationDefinitionNode node) {
+    var name = node.name.value;
+    var operationName = getOperationName(node);
+    var returnType = getReturnType(operationName);
+    var vs = VariableVisitor(inputs: inputs, scalars: scalars);
+    node.visitChildren(vs);
+    var variables = vs.accumulator;
+
+    accumulator.add(OperationAstInfo(
+        name: name,
+        returnType: returnType,
+        operationName: operationName,
+        variables: variables));
+    super.visitOperationDefinitionNode(node);
+  }
+}
+
+class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
+  final List<String> scalars;
+  final Map<String, InputObjectTypeDefinitionNode> inputs;
+  VariableVisitor({this.inputs, this.scalars});
+
+  @override
+  void visitVariableDefinitionNode(VariableDefinitionNode node) {
+    var name = node.variable.name.value;
+    var type = nodeType(node.type);
+    var _isScalar = isScalar(type, scalars);
+    var _isNonNull = isNonNull(node.type);
+    var _isList = isList(node.type);
+    var fv = ArgFieldInfoVisitor(scalars);
+    var inputAst = inputs[type];
+    inputAst?.visitChildren(fv);
+    accumulator.add(VariableInfo(
+        name: name,
+        isList: _isList,
+        isScalar: _isScalar,
+        isNonNull: _isNonNull,
+        type: type,
+        fields: fv.accumulator));
+    super.visitVariableDefinitionNode(node);
+  }
+}
+
+List<OperationAstInfo> getOperationInfoFromAst(
+    {DocumentNode document,
+    List<String> scalars,
+    List<OperationInfo> info,
+    Map<String, InputObjectTypeDefinitionNode> inputs}) {
+  var vs = OperationDefinitionASTVisitor(
+      inputs: inputs, scalars: scalars, schemaInfo: info);
+  document.visitChildren(vs);
+  return vs.accumulator;
+}
