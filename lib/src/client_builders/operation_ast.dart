@@ -59,6 +59,7 @@ class OperationInfoVisitor extends AccumulatingVisitor<OperationInfo> {
     var type = opType;
     var returnType = nodeType(node.type);
     var _isScalar = isScalar(returnType, scalars);
+    returnType = convertScalarsToDartTypes(_isScalar,returnType);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
     var args = ArgsInfoVisitor(scalars: scalars, inputs: inputs);
@@ -84,6 +85,14 @@ String nodeType(TypeNode node) {
   return (node as NamedTypeNode).name.value;
 }
 
+String convertScalarsToDartTypes(isScalar, type) {
+  var types = {"Int": 'int', "Float": 'double', 'ID': 'String'};
+  if (types[type] != null) {
+    return types[type];
+  }
+  return type;
+}
+
 bool isList(TypeNode node) {
   if (node is ListTypeNode) {
     return true;
@@ -92,10 +101,10 @@ bool isList(TypeNode node) {
 }
 
 bool isNonNull(TypeNode node) {
+  // if (node is ListTypeNode) {
+  //   return (node.type as NamedTypeNode).isNonNull;
+  // }
   if (node.isNonNull) return true;
-  if (node is ListTypeNode) {
-    return (node.type as NamedTypeNode).isNonNull;
-  }
   return false;
 }
 
@@ -139,6 +148,8 @@ class ArgsInfoVisitor extends AccumulatingVisitor<ArgsInfo> {
     var _isScalar = isScalar(type, scalars);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
+        type = convertScalarsToDartTypes(_isScalar,type);
+
     var fv = ArgFieldInfoVisitor(scalars);
     var inputAst = inputs[type];
 
@@ -166,6 +177,7 @@ class ArgFieldInfoVisitor extends AccumulatingVisitor<ArgFieldInfo> {
     var _isScalar = isScalar(type, scalars);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
+    type = convertScalarsToDartTypes(_isScalar,type);
 
     accumulator.add(ArgFieldInfo(
         name: name,
@@ -307,6 +319,8 @@ class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
     var _isScalar = isScalar(type, scalars);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
+        type = convertScalarsToDartTypes(_isScalar,type);
+
     var fv = ArgFieldInfoVisitor(scalars);
     var inputAst = inputs[type];
     inputAst?.visitChildren(fv);
