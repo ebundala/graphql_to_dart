@@ -11,7 +11,7 @@ import 'package:graphql_to_dart/src/parsers/config_parser.dart';
 
 class GraphQlToDart {
   final String yamlFilePath;
-  GraphQlToDart(this.yamlFilePath);
+  GraphQlToDart([this.yamlFilePath]);
   static const List<String> ignoreFields = [
     "rootquerytype",
     "rootsubscriptiontype",
@@ -21,17 +21,21 @@ class GraphQlToDart {
     "subscription"
   ];
 
-  init() async {
-    Config config = await ConfigParser.parse(yamlFilePath);
-    ValidationResult result = await config.validate();
-    if (result.hasError) {
-      throw result.errorMessage;
+  Future<Map<String, String>> init({Config conf}) async {
+    Config config = conf;
+    if (config == null) {
+      config = await ConfigParser.parse(yamlFilePath);
+      ValidationResult result = await config.validate();
+      if (result.hasError) {
+        throw result.errorMessage;
+      }
     }
     LocalGraphQLClient localGraphQLClient = LocalGraphQLClient();
     localGraphQLClient.init(config);
     final schema = await localGraphQLClient.fetchTypes();
     TypeConverters converters = TypeConverters();
     converters.overrideTypes(config.typeOverride);
+    final Map<String, String> outputs = {};
     await Future.forEach(schema.types, (Types type) async {
       if (type.fields != null &&
           type.inputFields == null &&
@@ -40,26 +44,37 @@ class GraphQlToDart {
         print("Creating model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
+        if (conf == null)
+        await builder.saveToFiles();
+        outputs.addAll(builder.outputs);
       }
-      if(type.kind=='INPUT_OBJECT'&&
-          type.fields==null&&
-          type.inputFields!=null){
+      if (type.kind == 'INPUT_OBJECT' &&
+          type.fields == null &&
+          type.inputFields != null) {
         print("Creating input model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
+        if (conf == null)
+        await builder.saveToFiles();
+        outputs.addAll(builder.outputs);
       }
-      if(type.kind=='ENUM'&&
-          type.fields==null&&
+      if (type.kind == 'ENUM' &&
+          type.fields == null &&
           !type.name.startsWith("__") &&
-          type.inputFields==null){
+          type.inputFields == null) {
         print("Creating enum model from: ${type.name}");
-        TypeBuilder builder = TypeBuilder(type,config);
+        TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
+        if (conf == null)
+        await builder.saveToFiles();
+        outputs.addAll(builder.outputs);
       }
     });
     print("Formatting Generated Files");
-    await runFlutterFormat();
-    return;
+    if (conf == null) {
+      await runFlutterFormat();
+    }
+    return outputs;
   }
 
   Future runFlutterFormat() async {

@@ -15,7 +15,7 @@ class TypeBuilder {
   final Config config;
   final StringBuffer stringBuffer = StringBuffer();
   List<LocalField> localFields = [];
-
+  Map<String, String> outputs = {};
   TypeBuilder(this.type, this.config);
 
   Future build() async {
@@ -41,27 +41,29 @@ class TypeBuilder {
       }
       String current = stringBuffer.toString();
       stringBuffer.clear();
+      if (config.useEquatable) {
+        stringBuffer.writeln('import "package:equatable/equatable.dart";');
+      }
+      if (config.requiredInputField) {
+        stringBuffer.writeln('import "package:meta/meta.dart";');
+      }
+      var imports = stringBuffer.toString();
+      stringBuffer.clear();
       current = _wrapWith(
           current,
-          "class ${type.name} ${config.useEquatable ? "extends Equatable" : ""} {",
+          "${imports}class ${type.name} ${config.useEquatable ? "extends Equatable" : ""} {",
           "}");
       stringBuffer.write(current.toString());
       _addImports();
     }
-
-    await _saveToFile();
+    var path = "/${pascalToSnake(type.name)}.dart".replaceAll(r"//", r"/");
+    outputs[path] = stringBuffer.toString();
+    //await saveToFile();
   }
 
   _addImports() {
     StringBuffer importBuffer = StringBuffer();
     localFields.unique<String>((field) => field.type).forEach((field) {
-      if (config.useEquatable) {
-        importBuffer.writeln('import "package:equatable/equatable.dart";');
-      }
-      if(config.requiredInputField){
-      importBuffer.writeln('import "package:meta/meta.dart";');
-      }
-
       if (field.object == true) {
         if (config.dynamicImportPath) {
           importBuffer.writeln(
@@ -149,13 +151,14 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         "${type.name}.fromJson(Map<String, dynamic> json){", "}"));
   }
 
-  _saveToFile() async {
-    File file = File(FileConstants().modelsDirectory.path +
-        "/${pascalToSnake(type.name)}.dart".replaceAll(r"//", r"/"));
-    if (!(await file.exists())) {
-      await file.create();
-    }
-    await file.writeAsString(stringBuffer.toString());
+  saveToFiles() async {
+    outputs.forEach((k, v) async {
+      File file = File(FileConstants().modelsDirectory.path + k);
+      if (!(await file.exists())) {
+        await file.create();
+      }
+      await file.writeAsString(stringBuffer.toString());
+    });
     return null;
   }
 

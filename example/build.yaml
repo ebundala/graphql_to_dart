@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      ast_generator:
+      graphql_to_dart:
+      ast_builder:
+        enabled: false
