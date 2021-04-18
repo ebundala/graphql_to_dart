@@ -1,7 +1,7 @@
 import 'package:graphql_to_dart/src/client_builders/events_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_definitions.dart';
-
+import 'package:recase/recase.dart';
 import '../../graphql_to_dart.dart';
 import './events_definitions.dart';
 
@@ -145,12 +145,12 @@ String buildConstructorArguments(
 
 String buildBloc(OperationAstInfo operation) {}
 
-List<String> getVariablesImports(
-    OperationAstInfo operation, String modelsPath) {
+List<String> getModelsImports(OperationAstInfo operation, String modelsPath) {
   return operation.variables.fold<List<String>>([], (v, i) {
-    if (!i.isScalar) v.add("import '${modelsPath}/${i.type}.dart';");
+    if (!i.isScalar) v.add("import '${modelsPath}/${i.type.snakeCase}.dart';");
     return v;
-  });
+  })
+    ..add("import '${modelsPath}/${operation.returnType.snakeCase}.dart';");
 }
 
 String buildGraphqlClientExtension(OperationAstInfo operation) {
@@ -158,7 +158,7 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
 
   fn.writeln('extension on GraphQLClient {');
   fn.writeln(
-      "Future<OperationResult> ${operation.name}(${buildFnArguments(operation.variables)}) async {");
+      "Future<OperationResult<${operation.returnType}>> ${operation.name}(${buildFnArguments(operation.variables)}) async {");
   var variables = operation.variables.map((v) {
     return """if(${v.name} != null){
       vars["${v.name}"]=${v.isScalar ? '${v.name}' : '${v.isList ? "${v.name}.map((v)=>v.toJson())" : '${v.name}.toJson()'};'}
@@ -167,12 +167,12 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
   fn.write("""
   final vars={};
   ${variables}
-  final result = await runObservableOperation(document:document,variables:vars);
+  final result = await runObservableOperation(this,document:document,variables:vars);
   var stream = result.stream.map((res) {
-      return ${operation.returnType}.fromJson(res);
+      return ${operation.returnType}.fromJson(getDataFromField('${operation.operationName}',res));
     });
-    return OperationResult(
-        isObservable: true, result.observableQuery: result, stream: stream);
+    return OperationResult<${operation.returnType}>(
+        isObservable: true, observableQuery: result, stream: stream);
   """);
   fn.writeln("}");
   fn.writeln('}');
@@ -197,7 +197,7 @@ StringBuffer wrapWith(String begin, StringBuffer content, String end) {
   return wrapped;
 }
 
-String buildCommonGraphQLClientExtensions() {
+String buildCommonGraphQLClientHelpers() {
   return r"""
 import 'package:gql/ast.dart';
 import 'package:graphql/client.dart';
@@ -209,11 +209,11 @@ class OperationRuntimeInfo {
   const OperationRuntimeInfo({this.operationName, this.fieldName, this.type});
 }
 
-class OperationResult {
+class OperationResult<T> {
   final bool isStream;
   final bool isObservable;
   final Map<String, dynamic> result;
-  final Stream<Map<String, dynamic>> stream;
+  final Stream<T> stream;
   final ObservableQuery observableQuery;
 
   const OperationResult(
@@ -224,8 +224,8 @@ class OperationResult {
       this.isObservable = false});
 }
 
-extension on GraphQLClient {
-  Future<OperationResult> runOperation(
+
+  Future<OperationResult> runOperation(GraphQLClient client,
       {DocumentNode document,
       Map<String, dynamic> variables,
       FetchPolicy fetchPolicy,
@@ -284,7 +284,7 @@ extension on GraphQLClient {
     return OperationResult(result: data);
   }
 
-  Future<ObservableQuery> runObservableOperation({
+  Future<ObservableQuery> runObservableOperation(GraphQLClient client,{
     DocumentNode document,
     Map<String, dynamic> variables,
     FetchPolicy fetchPolicy,
@@ -393,6 +393,5 @@ extension on GraphQLClient {
     }
     return null;
   }
-}
   """;
 }

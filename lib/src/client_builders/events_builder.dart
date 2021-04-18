@@ -23,7 +23,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -46,7 +46,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -70,7 +70,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -94,7 +94,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -118,7 +118,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -142,7 +142,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -166,7 +166,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -190,7 +190,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -214,7 +214,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);
@@ -242,7 +242,7 @@ class EventsBuilder {
           return classWithVariables(e);
         case 'Reseted':
           return generic(e);
-        case 'DatasetChanged':
+        case 'Refreshed':
           return classWithData(e);
         case 'Errored':
           return classWithMessage(e);

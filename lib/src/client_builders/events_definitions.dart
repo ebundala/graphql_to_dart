@@ -5,7 +5,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "createOne": [
@@ -14,7 +14,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "createMany": [
@@ -23,7 +23,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "updateOne": [
@@ -32,7 +32,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "updateMany": [
@@ -41,7 +41,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "deleteOne": [
@@ -50,7 +50,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "deleteMany": [
@@ -59,7 +59,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "findUnique": [
@@ -68,7 +68,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored'
   ],
   "findMany": [
@@ -77,7 +77,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored',
     'MoreLoaded',
     'StreamEnded'
@@ -88,7 +88,7 @@ const Map<String, List<String>> events = {
     'Aborted',
     'Retried',
     'Reseted',
-    'DatasetChanged',
+    'Refreshed',
     'Errored',
     'MoreLoaded',
     'StreamEnded'
