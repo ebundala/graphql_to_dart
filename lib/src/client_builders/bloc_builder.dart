@@ -1,7 +1,13 @@
+import 'package:gql/ast.dart';
+import 'package:gql_code_gen/gql_code_gen.dart';
 import 'package:graphql_to_dart/src/client_builders/events_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_definitions.dart';
+import "package:code_builder/code_builder.dart";
+import "package:dart_style/dart_style.dart";
+
 import 'package:recase/recase.dart';
+import 'package:meta/meta.dart';
 import '../../graphql_to_dart.dart';
 import './events_definitions.dart';
 
@@ -120,8 +126,58 @@ List<String> getPropsList(List<VariableInfo> variables) {
   }).toList();
 }
 
+String _getName(DefinitionNode def) {
+  if (def.name != null && def.name.value != null) return def.name.value;
+
+  if (def is SchemaDefinitionNode) return "schema";
+
+  if (def is OperationDefinitionNode) {
+    if (def.type == OperationType.query) return "query";
+    if (def.type == OperationType.mutation) return "mutation";
+    if (def.type == OperationType.subscription) return "subscription";
+  }
+
+  return null;
+}
+
+String getOperationCodeFromAstNode(DocumentNode doc) {
+  final definitions = doc.definitions.map(
+    (def) => fromNode(def).assignConst(_getName(def)).statement,
+  );
+
+  final document = refer(
+    "DocumentNode",
+    "package:gql/ast.dart",
+  )
+      .call(
+        [],
+        {
+          "definitions": literalList(
+            doc.definitions.map(
+              (def) => refer(
+                _getName(def),
+              ),
+            ),
+          ),
+        },
+      )
+      .assignConst("document")
+      .statement;
+
+  final library = Library(
+    (b) => b.body
+      ..addAll(definitions)
+      ..add(document),
+  );
+
+  return "${library.accept(
+    DartEmitter.scoped(),
+  )}";
+}
+
 List<String> getClassVariables(OperationAstInfo operation,
     [String prefix = '', bool makeFinal = true]) {
+  if (operation.variables.isEmpty) return [];
   return operation.variables.map((v) {
     var isFinal = "${makeFinal ? 'final' : ''}";
     var isList = "${v.isList ? 'List<${v.type}>' : v.type}";
@@ -134,6 +190,9 @@ String buildConstructorArguments(
   prefix = '',
   useThis = true,
 ]) {
+  if (operation.variables.isEmpty) {
+    return '';
+  }
   var vr = StringBuffer();
   var joinedVars = operation.variables.map((v) {
     var isNonNull = "${v.isNonNull ? '@required' : ''}";
@@ -143,7 +202,80 @@ String buildConstructorArguments(
   return wrapWith('{', vr, '}').toString();
 }
 
-String buildBloc(OperationAstInfo operation) {}
+List<List<String>> buildBloc(
+    {@required List<OperationInfo> info,
+    @required DocumentNode operationAst,
+    @required String package,
+    @required Map<String, InputObjectTypeDefinitionNode> inputs,
+    @required String modelsPath,
+    @required String outDir,
+    @required List<String> scalars,
+    @required String helperPath}) {
+  var operations = getOperationInfoFromAst(
+      document: operationAst, scalars: scalars, info: info, inputs: inputs);
+  List<List<String>> content = [];
+  for (var i in operations) {
+    final ext = buildGraphqlClientExtension(i);
+    final events = buildEvents(i);
+    final states = buildStates(i);
+    final ast = getOperationCodeFromAstNode(operationAst);
+    final imports = (getModelsImports(i, 'package:${package}/${modelsPath}')
+          ..insertAll(0, [
+            "import 'package:equatable/equatable.dart';",
+            "import 'package:meta/meta.dart';",
+            "import 'package:graphql/client.dart';",
+            "import 'package:bloc/bloc.dart';",
+            "import 'package:${package}/${helperPath}/common_client_helpers.dart';",
+            "import '${i.name.snakeCase}_ast.dart' show document;"
+          ]))
+        .join('\n');
+
+    var bloc = """
+       ${imports}
+
+       part "${i.name.snakeCase}_extensions.dart";
+       part "${i.name.snakeCase}_events.dart";
+       part "${i.name.snakeCase}_states.dart";
+
+       enum ${i.operationName.pascalCase}BlocHookStage { before, after }
+
+      class ${i.operationName.pascalCase}Bloc extends Bloc<${i.operationName.pascalCase}Event, ${i.operationName.pascalCase}State> {
+        final Stream<${i.operationName.pascalCase}State> Function(
+            ${i.operationName.pascalCase}Bloc context, ${i.operationName.pascalCase}Event event, ${i.operationName.pascalCase}BlocHookStage stage) hook;
+        final GraphQLClient client;
+       ${i.operationName.pascalCase}Bloc({@required this.client,this.hook}) : super(${i.operationName.pascalCase}Initial());
+        @override
+        Stream<${i.operationName.pascalCase}State> mapEventToState(${i.operationName.pascalCase}Event event) async* {
+          if (hook != null) {
+            yield* hook(this, event, ${i.operationName.pascalCase}BlocHookStage.before);
+          }
+          // TODO: implement mapEventToState
+
+          if (hook != null) {
+            yield* hook(this, event, ${i.operationName.pascalCase}BlocHookStage.after);
+          }
+        }
+      }
+     """;
+    final stateFile = fileName("${outDir}/${i.name.snakeCase}", 'states');
+    final eventFile = fileName("${outDir}/${i.name.snakeCase}", 'events');
+    final extFile = fileName("${outDir}/${i.name.snakeCase}", 'extensions');
+    final blocFile = fileName("${outDir}/${i.name.snakeCase}", 'bloc');
+    final astFile = fileName("${outDir}/${i.name.snakeCase}", "ast");
+    content.add([astFile, ast]);
+    content.add(
+        [stateFile, "part of '${i.name.snakeCase}_bloc.dart';\n${states}"]);
+    content.add(
+        [eventFile, "part of '${i.name.snakeCase}_bloc.dart';\n${events}"]);
+    content.add([extFile, "part of '${i.name.snakeCase}_bloc.dart';\n${ext}"]);
+    content.add([blocFile, bloc]);
+  }
+  return content;
+}
+
+String fileName(String operationName, String name, [String ext = '.dart']) {
+  return "/${operationName}_$name$ext";
+}
 
 List<String> getModelsImports(OperationAstInfo operation, String modelsPath) {
   return operation.variables.fold<List<String>>([], (v, i) {
@@ -161,7 +293,7 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
       "Future<OperationResult<${operation.returnType}>> ${operation.name}(${buildFnArguments(operation.variables)}) async {");
   var variables = operation.variables.map((v) {
     return """if(${v.name} != null){
-      vars["${v.name}"]=${v.isScalar ? '${v.name}' : '${v.isList ? "${v.name}.map((v)=>v.toJson())" : '${v.name}.toJson()'};'}
+      vars["${v.name}"]=${v.isScalar ? '${v.name};' : '${v.isList ? "${v.name}.map((v)=>v.toJson())" : '${v.name}.toJson()'};'}
     }""";
   }).join('\n');
   fn.write("""
@@ -180,14 +312,17 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
 }
 
 String buildFnArguments(List<VariableInfo> variables) {
-  var vr = StringBuffer();
-  var joinedVars = variables.map((v) {
-    var isNonNull = "${v.isNonNull ? '@required' : ''}";
-    var isList = "${v.isList ? 'List<${v.type}>' : v.type}";
-    return "${isNonNull} ${isList} ${v.name}";
-  }).join(',');
-  vr.write(joinedVars);
-  return wrapWith('{', vr, '}').toString();
+  if (variables.isNotEmpty) {
+    var vr = StringBuffer();
+    var joinedVars = variables.map((v) {
+      var isNonNull = "${v.isNonNull ? '@required' : ''}";
+      var isList = "${v.isList ? 'List<${v.type}>' : v.type}";
+      return "${isNonNull} ${isList} ${v.name}";
+    }).join(',');
+    vr.write(joinedVars);
+    return wrapWith('{', vr, '}').toString();
+  }
+  return '';
 }
 
 StringBuffer wrapWith(String begin, StringBuffer content, String end) {

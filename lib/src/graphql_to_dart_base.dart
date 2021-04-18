@@ -10,8 +10,9 @@ import 'package:graphql_to_dart/src/models/graphql_types.dart';
 import 'package:graphql_to_dart/src/parsers/config_parser.dart';
 
 class GraphQlToDart {
-  final String yamlFilePath;
-  GraphQlToDart([this.yamlFilePath]);
+  //final String yamlFilePath;
+  final Config config;
+  GraphQlToDart(this.config);
   static const List<String> ignoreFields = [
     "rootquerytype",
     "rootsubscriptiontype",
@@ -20,16 +21,16 @@ class GraphQlToDart {
     "query",
     "subscription"
   ];
-
-  Future<Map<String, String>> init({Config conf}) async {
-    Config config = conf;
-    if (config == null) {
-      config = await ConfigParser.parse(yamlFilePath);
+  
+  Future<Map<String, String>> init({save:true}) async {
+   // config = conf;
+   // if (config == null) {
+     // config = await ConfigParser.parse(yamlFilePath);
       ValidationResult result = await config.validate();
       if (result.hasError) {
         throw result.errorMessage;
       }
-    }
+    
     LocalGraphQLClient localGraphQLClient = LocalGraphQLClient();
     localGraphQLClient.init(config);
     final schema = await localGraphQLClient.fetchTypes();
@@ -44,8 +45,7 @@ class GraphQlToDart {
         print("Creating model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
-        if (conf == null)
-        await builder.saveToFiles();
+        if (save) await builder.saveToFiles();
         outputs.addAll(builder.outputs);
       }
       if (type.kind == 'INPUT_OBJECT' &&
@@ -54,8 +54,7 @@ class GraphQlToDart {
         print("Creating input model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
-        if (conf == null)
-        await builder.saveToFiles();
+        if (save) await builder.saveToFiles();
         outputs.addAll(builder.outputs);
       }
       if (type.kind == 'ENUM' &&
@@ -65,22 +64,21 @@ class GraphQlToDart {
         print("Creating enum model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
-        if (conf == null)
-        await builder.saveToFiles();
+        if (save) await builder.saveToFiles();
         outputs.addAll(builder.outputs);
       }
     });
     print("Formatting Generated Files");
-    if (conf == null) {
+    if (save) {
       await runFlutterFormat();
     }
     return outputs;
   }
 
-  Future runFlutterFormat() async {
+  Future runFlutterFormat([String path]) async {
     Process.runSync(
       "flutter",
-      ["format", FileConstants().modelsDirectory.path],
+      ["format", path??FileConstants().modelsDirectory.path],
       runInShell: true,
     );
     print("Formatted Generated Files");

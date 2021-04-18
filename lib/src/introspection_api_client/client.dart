@@ -8,18 +8,21 @@ class LocalGraphQLClient {
 
   init(Config config) {
     final HttpLink _httpLink = HttpLink(
-       config.graphQLEndpoint,
+      config.graphQLEndpoint,
     );
     client = GraphQLClient(
-      cache: GraphQLCache(store:InMemoryStore()),
+      cache: GraphQLCache(store: InMemoryStore()),
       link: _httpLink,
     );
   }
+
+  Map<String, dynamic> schema;
 
   Future<GraphQLSchema> fetchTypes() async {
     final queryResult =
         await client.query(QueryOptions(document: gql(Queries.types)));
     if (queryResult.hasException) throw queryResult.exception.toString();
+    schema = queryResult.data["__schema"];
     return GraphQLSchema.fromJson(queryResult.data["__schema"]);
   }
 }

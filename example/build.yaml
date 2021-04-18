@@ -2,6 +2,7 @@ targets:
   $default:
     builders:
       ast_generator:
-      graphql_to_dart:
-      ast_builder:
-        enabled: false
+      # graphql_to_dart:
+      #    enabled: false
+      # ast_builder:
+      #   enabled: false

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:graphql_to_dart/src/builders/keywords.dart';
 import 'package:graphql_to_dart/src/constants/files.dart';
 import 'package:graphql_to_dart/src/constants/type_converters.dart';
 import 'package:graphql_to_dart/src/models/config.dart';
@@ -296,8 +297,11 @@ class LocalField {
   }
 }
 
-//helpers to rename fields starting with underscore
+//helpers to rename fields starting with underscore/keywords
 _to$(String name) {
+  if (keywords[name] == true) {
+    return "${name}\$";
+  }
   return name.replaceAll(
       RegExp(
         r'_',

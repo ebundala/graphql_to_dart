@@ -13,9 +13,11 @@ class Config {
   bool dynamicImportPath;
   bool toJsonExcludeNullField;
   bool useEquatable;
-  YamlMap typeOverride;
-
+  Map<String, String> typeOverride;
   bool requiredInputField;
+  String schemaPath;
+  String helperPath;
+  String modelsImportPath;
   Config({this.modelsDirectoryPath});
   Config.fromJson(Map map) {
     graphQLEndpoint = map['graphql_endpoint']?.toString();
@@ -27,10 +29,14 @@ class Config {
         map['dynamic_import_path']?.toString() == 'false' ? false : true;
     toJsonExcludeNullField =
         map['to_json_exclude_null_field']?.toString() == 'false' ? false : true;
-    useEquatable= map['use_equatable']?.toString() == 'false' ? false : true;
-   requiredInputField= map['required_input_field']?.toString() == 'false' ? false : true;
+    useEquatable = map['use_equatable']?.toString() == 'false' ? false : true;
+    requiredInputField =
+        map['required_input_field']?.toString() == 'false' ? false : true;
     packageName = map['package_name'];
     typeOverride = map['type_override'];
+    schemaPath = map['schema_path'];
+    helperPath = map['helper_path'];
+    modelsImportPath = map["models_import_path"];
   }
   Future<ValidationResult> validate() async {
 //    File queriesFile = File(queriesFilePath);

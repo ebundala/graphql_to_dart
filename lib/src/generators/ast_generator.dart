@@ -1,5 +1,7 @@
 import "dart:async";
+import 'dart:io';
 import 'package:graphql/client.dart';
+import 'package:graphql_to_dart/src/models/config.dart';
 import "package:path/path.dart" as p;
 import "package:glob/glob.dart";
 
@@ -10,6 +12,7 @@ import "package:gql/ast.dart";
 //import "package:gql/language.dart";
 import "package:gql_code_gen/gql_code_gen.dart";
 import "package:pedantic/pedantic.dart";
+import '../../graphql_to_dart.dart';
 
 const graphqlExtension = ".graphql";
 const astExtension = ".ast.g.dart";
@@ -87,7 +90,44 @@ String _getName(DefinitionNode def) {
 }
 
 class AstGenerator implements Builder {
-  final DartFormatter _dartfmt = DartFormatter();
+  //final DartFormatter _dartfmt = DartFormatter();
+  Map<String, InputObjectTypeDefinitionNode> inputs;
+  List<String> scalars;
+  List<OperationInfo> info;
+  DocumentNode schema;
+  GraphQlToDart graphQlToDart;
+  final BuilderOptions options;
+  Config config;
+  AstGenerator(this.options) {
+    config = Config.fromJson(options.config);
+
+    final file = File(config.schemaPath);
+
+    graphQlToDart = GraphQlToDart(config);
+    graphQlToDart.init();
+
+    if (file.existsSync()) {
+      var schemaStr = file.readAsStringSync();
+      schema = gql(schemaStr);
+      inputs = getInputsDef(schema);
+      scalars = getScalarsAndEnums(schema);
+      info = getOperationsInfo(schema);
+    } else {
+      throw Exception("Schema not found");
+    }
+  }
+  saveFile(
+    String fileName,
+    String content,
+  ) async {
+    Directory current = Directory.current;
+    File file = File(current.path + fileName);
+    if (!(await file.exists())) {
+      await file.create();
+    }
+    await file.writeAsString(content);
+    return null;
+  }
 
   @override
   Map<String, List<String>> get buildExtensions => {
@@ -96,52 +136,71 @@ class AstGenerator implements Builder {
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
-    final allContent = await inlineImportsRecursively(buildStep);
-    // final doc = parseString(
-    //   allContent,
-    //   url: buildStep.inputId.path,
+    final package = buildStep.inputId.package;
+    final outDIR =
+        p.normalize(p.joinAll(buildStep.inputId.pathSegments..removeLast()));
+    final str = await buildStep.readAsString(buildStep.inputId);
+    var operationAst = gql(str);
+   
+    var content = buildBloc(
+        info: info,
+        scalars: scalars,
+        inputs: inputs,
+        operationAst: operationAst,
+        package: package,
+        outDir: outDIR,
+        modelsPath: config.modelsImportPath,
+        helperPath: config.helperPath);
+    await content.forEach((v) async {
+      await saveFile(v[0], v[1]);
+    });
+    await graphQlToDart.runFlutterFormat(outDIR);
+    // final allContent = await inlineImportsRecursively(buildStep);
+    // // final doc = parseString(
+    // //   allContent,
+    // //   url: buildStep.inputId.path,
+    // // );
+    // final doc = gql(allContent);
+
+    // final definitions = doc.definitions.map(
+    //   (def) => fromNode(def).assignConst(_getName(def)).statement,
     // );
-    final doc = gql(allContent);
-    
-    final definitions = doc.definitions.map(
-      (def) => fromNode(def).assignConst(_getName(def)).statement,
-    );
 
-    final document = refer(
-      "DocumentNode",
-      "package:gql/ast.dart",
-    )
-        .call(
-          [],
-          {
-            "definitions": literalList(
-              doc.definitions.map(
-                (def) => refer(
-                  _getName(def),
-                ),
-              ),
-            ),
-          },
-        )
-        .assignConst("document")
-        .statement;
+    // final document = refer(
+    //   "DocumentNode",
+    //   "package:gql/ast.dart",
+    // )
+    //     .call(
+    //       [],
+    //       {
+    //         "definitions": literalList(
+    //           doc.definitions.map(
+    //             (def) => refer(
+    //               _getName(def),
+    //             ),
+    //           ),
+    //         ),
+    //       },
+    //     )
+    //     .assignConst("document")
+    //     .statement;
 
-    final library = Library(
-      (b) => b.body
-        ..addAll(definitions)
-        ..add(document),
-    );
+    // final library = Library(
+    //   (b) => b.body
+    //     ..addAll(definitions)
+    //     ..add(document),
+    // );
 
-    final genSrc = _dartfmt.format("${library.accept(
-      DartEmitter.scoped(),
-    )}");
+    // final genSrc = _dartfmt.format("${library.accept(
+    //   DartEmitter.scoped(),
+    // )}");
 
-    unawaited(
-      buildStep.writeAsString(
-        buildStep.inputId.changeExtension(astExtension),
-        genSrc,
-      ),
-    );
+    // unawaited(
+    //   buildStep.writeAsString(
+    //     buildStep.inputId.changeExtension(astExtension),
+    //     genSrc,
+    //   ),
+    // );
   }
 }
 

@@ -1,15 +1,20 @@
+targets:
+  $default:
+    builders:     
+      ast_builder:
+        enabled: false
 # Read about `build.yaml` at https://pub.dev/packages/build_config
 builders:
   # name of the builder
-  graphql_to_dart:
-    # library URI containing the builder - maps to `lib/member_count_library_generator.dart`
-    import: "package:graphql_to_dart/src/generators/builder.dart"
-    # Name of the function in the above library to call.
-    builder_factories: ["graphQlTypesBuilder"]
-    build_extensions: {".graphql": [".model.dart"]}
-    auto_apply: dependents
-    build_to: source
-    applies_builders: ["source_gen|combining_builder"]
+  # graphql_to_dart:
+  #   # library URI containing the builder - maps to `lib/member_count_library_generator.dart`
+  #   import: "package:graphql_to_dart/src/generators/builder.dart"
+  #   # Name of the function in the above library to call.
+  #   builder_factories: ["graphQlTypesBuilder"]
+  #   build_extensions: {".graphql": [".model.dart"]}
+  #   auto_apply: dependents
+  #   build_to: source
+  #   applies_builders: ["source_gen|combining_builder"]
   ast_generator:
     # library URI containing the builder - maps to `lib/member_count_library_generator.dart`
     import: "package:graphql_to_dart/src/generators/builder.dart"
@@ -22,36 +27,18 @@ builders:
     # Generate the output directly into the package, not to a hidden cache dir
     build_to: source
     applies_builders: ["source_gen|combining_builder"]
+    defaults:
+       options:
+         schema_path: "lib/schema.graphql"
+         helper_path: 'graphql/common'
+         models_import_path: 'graphql/models'
+         package_name: example
+         graphql_endpoint: http://localhost:3000/graphql
+         models_directory_path: lib/graphql/models/
+         to_json_exclude_null_field: true
+         use_equatable: true
+         required_input_field: true
+         type_override:
+          Upload: String
 
-  # The next three builders are `SharedPartBuilder` instances.
-  # Notice they each have
-  # `build_extensions` set to a `NAME.g.part` file.
-  #    NAME corresponds to the second argument to the SharedPartBuilder ctor.
-  #    `.g.part` is the extension expected of SharedPartBuilder.
-  # `build_to: cache` - the output is not put directly into the project
-  # `applies_builders` - uses the `combining_builder` from `source_gen` to
-  #   combine the parts from each builder into one part file.
-
-  # property_product:
-  #   import: "package:source_gen_example/builder.dart"
-  #   builder_factories: ["productBuilder"]
-  #   build_extensions: {".dart": ["product.g.part"]}
-  #   auto_apply: dependents
-  #   build_to: cache
-  #   applies_builders: ["source_gen|combining_builder"]
-
-  # property_sum:
-  #   import: "package:source_gen_example/builder.dart"
-  #   builder_factories: ["sumBuilder"]
-  #   build_extensions: {".dart": ["sum.g.part"]}
-  #   auto_apply: dependents
-  #   build_to: cache
-  #   applies_builders: ["source_gen|combining_builder"]
-
-  # property_multiply:
-  #   import: "package:source_gen_example/builder.dart"
-  #   builder_factories: ["multiplyBuilder"]
-  #   build_extensions: {".dart": ["multiply.g.part"]}
-  #   auto_apply: dependents
-  #   build_to: cache
-  #   applies_builders: ["source_gen|combining_builder"]
+ 
