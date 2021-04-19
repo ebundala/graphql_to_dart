@@ -229,7 +229,7 @@ List<List<String>> buildBloc(
             "import '${i.name.snakeCase}_ast.dart' show document;"
           ]))
         .join('\n');
-
+    final libname = i.operationName.pascalCase;
     var bloc = """
        ${imports}
 
@@ -237,24 +237,129 @@ List<List<String>> buildBloc(
        part "${i.name.snakeCase}_events.dart";
        part "${i.name.snakeCase}_states.dart";
 
-       enum ${i.operationName.pascalCase}BlocHookStage { before, after }
+       enum ${libname}BlocHookStage { before, after }
 
-      class ${i.operationName.pascalCase}Bloc extends Bloc<${i.operationName.pascalCase}Event, ${i.operationName.pascalCase}State> {
-        final Stream<${i.operationName.pascalCase}State> Function(
-            ${i.operationName.pascalCase}Bloc context, ${i.operationName.pascalCase}Event event, ${i.operationName.pascalCase}BlocHookStage stage) hook;
-        final GraphQLClient client;
-       ${i.operationName.pascalCase}Bloc({@required this.client,this.hook}) : super(${i.operationName.pascalCase}Initial());
+      class ${libname}Bloc extends Bloc<${libname}Event, ${libname}State> {
+           final GraphQLClient client;
+          final Stream<${libname}State> Function(
+      ${libname}Bloc context, ${libname}Event event, ${libname}BlocHookStage stage) hook;
+      OperationResult resultWrapper;
+       ${libname}Bloc({@required this.client,this.hook}) : super(${libname}Initial());
         @override
-        Stream<${i.operationName.pascalCase}State> mapEventToState(${i.operationName.pascalCase}Event event) async* {
+        Stream<${libname}State> mapEventToState(${libname}Event event) async* {
           if (hook != null) {
-            yield* hook(this, event, ${i.operationName.pascalCase}BlocHookStage.before);
+            yield* hook(this, event, ${libname}BlocHookStage.before);
           }
-          // TODO: implement mapEventToState
+         if (event is ${libname}Started) {
+              yield ${libname}Initial();
+            }
+            if (event is ${libname}Excuted) {
+              //start main excution 
+              yield* ${i.name}(event);
+            } else if (event is ${libname}IsLoading) {
+              // emit loading state
+              yield ${libname}InProgress(data: event.data);
+            } else if (event is ${libname}IsOptimistic) {
+              // emit optimistic result state
+              yield ${libname}Optimistic(data: event.data);
+            } else if (event is ${libname}IsConcrete) {
+              // emit completed result
+              yield ${libname}Success(data: event.data);
+            } else if (event is ${libname}Refreshed) {
+              //emit dataset changed
+              yield event.data;
+            } else if (event is ${libname}Failed) {
+              // emit failure state
+              yield ${libname}Failure(data: event.data, message: event.message);
+            } else if (event is ${libname}Errored) {
+              //emit error case
+              yield ${libname}Error(message: event.message);
+            }
 
           if (hook != null) {
-            yield* hook(this, event, ${i.operationName.pascalCase}BlocHookStage.after);
+            yield* hook(this, event, ${libname}BlocHookStage.after);
           }
         }
+
+      
+        Stream<${libname}State> ${i.name}(${libname}Excuted event) async* {
+          
+          //validate all required fields of required args and emit relevant events
+           ${buildInputsValidations()}
+            {
+            try {
+              await closeResultWrapper();
+              resultWrapper = await client.${i.name}(${buildOperationParams()});
+              //listen for changes 
+              resultWrapper.stream.listen((result) {
+                //reset events before starting to emit new ones
+                add(${libname}Reseted());
+                Map<String, dynamic> errors = {};
+                //collect errors/exceptions
+                if (result.hasException) {
+                  errors['status'] = false;
+                  var message = 'Error';
+                  if (result.exception.linkException != null) {
+                    //link exception means complete failure possibly throw here
+                    message =
+                        result.exception.linkException.originalException?.message;
+                  } else if (result.exception.graphqlErrors?.isNotEmpty == true) {
+                    // failure but migth have data available
+                    message = result.exception.graphqlErrors.map((e) {
+                      return e.message;
+                    }).join('\\n');
+                  }
+                  errors['message'] = message;
+                }
+                // convert result to data type expected by listeners
+                ${i.returnType} data;
+                if (result.data != null) {
+                  //add errors encountered to result
+                  result.data.addAll(errors);
+                  data = ${i.returnType}.fromJson(result.data);
+                } else if (errors.isNotEmpty) {
+                // errors['data'] = null;
+                  data = ${i.returnType}.fromJson(errors);
+                }
+                if (result.hasException) {
+                  if (result.exception.linkException != null) {
+                    //emit error event
+                    add(${libname}Errored(data: data, message: data.message));
+                  } else if (result.exception.graphqlErrors?.isNotEmpty == true) {
+                    //emit failure event
+                    add(${libname}Failed(data: data, message: data.message));
+                  }
+                } else if (result.isLoading) {
+                  //emit loading event
+                  add(${libname}IsLoading(data: data));
+                } else if (result.isOptimistic) {
+                  //emit optimistic event
+                  add(${libname}IsOptimistic(data: data));
+                } else if (result.isConcrete) {
+                  //emit completed event
+                  add(${libname}IsConcrete(data: data));
+                }
+              });
+              resultWrapper.observableQuery.fetchResults();
+            } catch (e) {
+              //emit complete failure state;
+              yield ${libname}Error(message: e.toString());
+            }
+          }
+        }
+
+        closeResultWrapper() async {
+          if (resultWrapper != null) {
+            await resultWrapper.observableQuery.close();
+          }
+        }
+
+        @override
+        Future<void> close() async {
+          await closeResultWrapper();
+          return super.close();
+        }
+
       }
      """;
     final stateFile = fileName("${outDir}/${i.name.snakeCase}", 'states');
@@ -271,6 +376,14 @@ List<List<String>> buildBloc(
     content.add([blocFile, bloc]);
   }
   return content;
+}
+
+buildOperationParams() {
+  return '';
+}
+
+buildInputsValidations() {
+  return '';
 }
 
 String fileName(String operationName, String name, [String ext = '.dart']) {
@@ -290,20 +403,22 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
 
   fn.writeln('extension on GraphQLClient {');
   fn.writeln(
-      "Future<OperationResult<${operation.returnType}>> ${operation.name}(${buildFnArguments(operation.variables)}) async {");
+      "Future<OperationResult> ${operation.name}(${buildFnArguments(operation.variables)}) async {");
   var variables = operation.variables.map((v) {
     return """if(${v.name} != null){
       vars["${v.name}"]=${v.isScalar ? '${v.name};' : '${v.isList ? "${v.name}.map((v)=>v.toJson())" : '${v.name}.toJson()'};'}
     }""";
   }).join('\n');
   fn.write("""
-  final vars={};
+  final Map<String, dynamic> vars = {};
   ${variables}
   final result = await runObservableOperation(this,document:document,variables:vars);
-  var stream = result.stream.map((res) {
-      return ${operation.returnType}.fromJson(getDataFromField('${operation.operationName}',res));
+     var stream = result.stream.map((res) {
+      var data = getDataFromField('${operation.operationName}', res);
+      res.data = data;
+      return res;
     });
-    return OperationResult<${operation.returnType}>(
+    return OperationResult(
         isObservable: true, observableQuery: result, stream: stream);
   """);
   fn.writeln("}");
@@ -344,11 +459,11 @@ class OperationRuntimeInfo {
   const OperationRuntimeInfo({this.operationName, this.fieldName, this.type});
 }
 
-class OperationResult<T> {
+class OperationResult {
   final bool isStream;
   final bool isObservable;
   final Map<String, dynamic> result;
-  final Stream<T> stream;
+  final Stream<QueryResult> stream;
   final ObservableQuery observableQuery;
 
   const OperationResult(
@@ -359,174 +474,177 @@ class OperationResult<T> {
       this.isObservable = false});
 }
 
-
-  Future<OperationResult> runOperation(GraphQLClient client,
-      {DocumentNode document,
-      Map<String, dynamic> variables,
-      FetchPolicy fetchPolicy,
-      ErrorPolicy errorPolicy,
-      CacheRereadPolicy cacheRereadPolicy,
-      Context context,
-      Object optimisticResult,
-      void Function(dynamic) onCompleted,
-      void Function(GraphQLDataProxy, QueryResult) update,
-      void Function(OperationException) onError}) async {
-    var info = getOperationInfo(document);
-
-    var result;
-    switch (info.type) {
-      case OperationType.query:
-        result = await query(QueryOptions(
-          document: document,
-          variables: variables,
-          fetchPolicy: fetchPolicy,
-          errorPolicy: errorPolicy,
-          cacheRereadPolicy: cacheRereadPolicy,
-          context: context,
-          optimisticResult: optimisticResult,
-        ));
-        break;
-      case OperationType.mutation:
-        result = await mutate(MutationOptions(
-            document: document,
-            variables: variables,
-            fetchPolicy: fetchPolicy,
-            errorPolicy: errorPolicy,
-            cacheRereadPolicy: cacheRereadPolicy,
-            context: context,
-            optimisticResult: optimisticResult,
-            onCompleted: onCompleted,
-            update: update,
-            onError: onError));
-        break;
-      case OperationType.subscription:
-        var subscription = await subscribe(SubscriptionOptions(
-          document: document,
-          variables: variables,
-          fetchPolicy: fetchPolicy,
-          errorPolicy: errorPolicy,
-          cacheRereadPolicy: cacheRereadPolicy,
-          context: context,
-          optimisticResult: optimisticResult,
-        ));
-        var data = subscription.map((result) {
-          return getDataFromField(info.fieldName, result);
-        });
-        return OperationResult(isStream: true, stream: data);
-        break;
-    }
-    var data = getDataFromField(info.fieldName, result);
-    return OperationResult(result: data);
-  }
-
-  Future<ObservableQuery> runObservableOperation(GraphQLClient client,{
-    DocumentNode document,
+Future<OperationResult> runOperation(GraphQLClient client,
+    {DocumentNode document,
     Map<String, dynamic> variables,
     FetchPolicy fetchPolicy,
     ErrorPolicy errorPolicy,
     CacheRereadPolicy cacheRereadPolicy,
     Context context,
     Object optimisticResult,
-    Duration pollInterval,
-    bool fetchResults = false,
-    bool carryForwardDataOnException = true,
-    bool eagerlyFetchResults,
-  }) async {
-    var info = getOperationInfo(document);
+    void Function(dynamic) onCompleted,
+    void Function(GraphQLDataProxy, QueryResult) update,
+    void Function(OperationException) onError}) async {
+  var info = getOperationInfo(document);
 
-    ObservableQuery result;
-    switch (info.type) {
-      case OperationType.query:
-        result = watchQuery(WatchQueryOptions(
-            document: document,
-            variables: variables,
-            fetchPolicy: fetchPolicy,
-            errorPolicy: errorPolicy,
-            cacheRereadPolicy: cacheRereadPolicy,
-            context: context,
-            optimisticResult: optimisticResult,
-            fetchResults: fetchResults,
-            eagerlyFetchResults: eagerlyFetchResults,
-            pollInterval: pollInterval,
-            carryForwardDataOnException: carryForwardDataOnException));
-        break;
-      case OperationType.mutation:
-        result = await watchMutation(WatchQueryOptions(
-            document: document,
-            variables: variables,
-            fetchPolicy: fetchPolicy,
-            errorPolicy: errorPolicy,
-            cacheRereadPolicy: cacheRereadPolicy,
-            context: context,
-            optimisticResult: optimisticResult,
-            fetchResults: fetchResults,
-            eagerlyFetchResults: eagerlyFetchResults,
-            pollInterval: pollInterval,
-            carryForwardDataOnException: carryForwardDataOnException));
-        break;
-      case OperationType.subscription:
-      default:
-        // var subscription = await subscribe(SubscriptionOptions(
-        //   document: document,
-        //   variables: variables,
-        //   fetchPolicy: fetchPolicy,
-        //   errorPolicy: errorPolicy,
-        //   cacheRereadPolicy: cacheRereadPolicy,
-        //   context: context,
-        //   optimisticResult: optimisticResult,
-
-        // ));
-        // var data = subscription.map((result) {
-        //   return getDataFromField(info.fieldName, result);
-        // });
-        // return OperationResult(isStream: true, stream: data);
-        throw UnsupportedError(
-            "Subscription observable query is not supported");
-        break;
-    }
-   
-    return result;
-  }
-
-  Map<String, dynamic> getDataFromField(fieldName, QueryResult result) {
-    if (!result.hasException) {
-      if (result.data != null) return result.data['${fieldName}'];
-      return null;
-    } else {
-      //handle errors here
-      throw OperationException(
-          linkException: result.exception.linkException,
-          graphqlErrors: result.exception.graphqlErrors);
-    }
-  }
-
-  OperationRuntimeInfo getOperationInfo(DocumentNode document) {
-    var defs = document.definitions;
-    if (defs?.isNotEmpty == true) {
-      var predicate = (DefinitionNode v) {
-        if (v is OperationDefinitionNode) {
-          if (v.selectionSet != null) {
-            return true;
-          }
+  var result;
+  switch (info.type) {
+    case OperationType.query:
+      result = await client.query(QueryOptions(
+        document: document,
+        variables: variables,
+        fetchPolicy: fetchPolicy,
+        errorPolicy: errorPolicy,
+        cacheRereadPolicy: cacheRereadPolicy,
+        context: context,
+        optimisticResult: optimisticResult,
+      ));
+      break;
+    case OperationType.mutation:
+      result = await client.mutate(MutationOptions(
+          document: document,
+          variables: variables,
+          fetchPolicy: fetchPolicy,
+          errorPolicy: errorPolicy,
+          cacheRereadPolicy: cacheRereadPolicy,
+          context: context,
+          optimisticResult: optimisticResult,
+          onCompleted: onCompleted,
+          update: update,
+          onError: onError));
+      break;
+    case OperationType.subscription:
+      var subscription = await client.subscribe(SubscriptionOptions(
+        document: document,
+        variables: variables,
+        fetchPolicy: fetchPolicy,
+        errorPolicy: errorPolicy,
+        cacheRereadPolicy: cacheRereadPolicy,
+        context: context,
+        optimisticResult: optimisticResult,
+      ));
+      var data = subscription.map((result) {
+        var res = getDataFromField(info.fieldName, result);
+        if (res != null) {
+          result.data = res;
         }
-        return false;
-      };
-      OperationDefinitionNode op = defs.firstWhere(predicate);
-      var type = op.type;
-      var name = op?.name?.value;
-      FieldNode field = op.selectionSet?.selections?.firstWhere((v) {
-        if (v is FieldNode) {
-          if (v.selectionSet != null) {
-            return true;
-          }
-        }
-        return false;
+        return result;
       });
-      var fieldName = field?.name?.value;
-      return OperationRuntimeInfo(
-          fieldName: fieldName, operationName: name, type: type);
-    }
-    return null;
+      return OperationResult(isStream: true, stream: data);
+      break;
   }
+  var data = getDataFromField(info.fieldName, result);
+  return OperationResult(result: data);
+}
+
+Future<ObservableQuery> runObservableOperation(
+  GraphQLClient client, {
+  DocumentNode document,
+  Map<String, dynamic> variables,
+  FetchPolicy fetchPolicy,
+  ErrorPolicy errorPolicy,
+  CacheRereadPolicy cacheRereadPolicy,
+  Context context,
+  Object optimisticResult,
+  Duration pollInterval,
+  bool fetchResults = false,
+  bool carryForwardDataOnException = true,
+  bool eagerlyFetchResults,
+}) async {
+  var info = getOperationInfo(document);
+
+  ObservableQuery result;
+  switch (info.type) {
+    case OperationType.query:
+      result = client.watchQuery(WatchQueryOptions(
+          document: document,
+          variables: variables,
+          fetchPolicy: fetchPolicy,
+          errorPolicy: errorPolicy,
+          cacheRereadPolicy: cacheRereadPolicy,
+          context: context,
+          optimisticResult: optimisticResult,
+          fetchResults: fetchResults,
+          eagerlyFetchResults: eagerlyFetchResults,
+          pollInterval: pollInterval,
+          carryForwardDataOnException: carryForwardDataOnException));
+      break;
+    case OperationType.mutation:
+      result = await client.watchMutation(WatchQueryOptions(
+          document: document,
+          variables: variables,
+          fetchPolicy: fetchPolicy,
+          errorPolicy: errorPolicy,
+          cacheRereadPolicy: cacheRereadPolicy,
+          context: context,
+          optimisticResult: optimisticResult,
+          fetchResults: fetchResults,
+          eagerlyFetchResults: eagerlyFetchResults,
+          pollInterval: pollInterval,
+          carryForwardDataOnException: carryForwardDataOnException));
+      break;
+    case OperationType.subscription:
+    default:
+      // var subscription = await subscribe(SubscriptionOptions(
+      //   document: document,
+      //   variables: variables,
+      //   fetchPolicy: fetchPolicy,
+      //   errorPolicy: errorPolicy,
+      //   cacheRereadPolicy: cacheRereadPolicy,
+      //   context: context,
+      //   optimisticResult: optimisticResult,
+
+      // ));
+      // var data = subscription.map((result) {
+      //   return getDataFromField(info.fieldName, result);
+      // });
+      // return OperationResult(isStream: true, stream: data);
+      throw UnsupportedError("Subscription observable query is not supported");
+      break;
+  }
+
+  return result;
+}
+
+Map<String, dynamic> getDataFromField(fieldName, QueryResult result) {
+  // if (!result.hasException&&) {
+  if (result.data != null) return result.data['${fieldName}'];
+  return null;
+  // } else {
+  //   //handle errors here
+  //   throw OperationException(
+  //       linkException: result.exception.linkException,
+  //       graphqlErrors: result.exception.graphqlErrors);
+  // }
+}
+
+OperationRuntimeInfo getOperationInfo(DocumentNode document) {
+  var defs = document.definitions;
+  if (defs?.isNotEmpty == true) {
+    var predicate = (DefinitionNode v) {
+      if (v is OperationDefinitionNode) {
+        if (v.selectionSet != null) {
+          return true;
+        }
+      }
+      return false;
+    };
+    OperationDefinitionNode op = defs.firstWhere(predicate);
+    var type = op.type;
+    var name = op?.name?.value;
+    FieldNode field = op.selectionSet?.selections?.firstWhere((v) {
+      if (v is FieldNode) {
+        if (v.selectionSet != null) {
+          return true;
+        }
+      }
+      return false;
+    });
+    var fieldName = field?.name?.value;
+    return OperationRuntimeInfo(
+        fieldName: fieldName, operationName: name, type: type);
+  }
+  return null;
+}
   """;
 }

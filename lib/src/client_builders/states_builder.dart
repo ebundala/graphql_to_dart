@@ -1,4 +1,4 @@
-import 'package:graphql_to_dart/src/client_builders/bloc_builder.dart';
+import 'package:graphql_to_dart/src/client_builders/client_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/operation_ast.dart';
 import 'package:recase/recase.dart';
 
@@ -20,7 +20,7 @@ class StatesBuilder {
         case 'Success':
         case 'Failure':
         case 'InProgress':
-        case 'DatasetChanged':
+        case 'Optimistic':
         default:
           return classWithDataAndMessage(e);
       }
@@ -30,140 +30,35 @@ class StatesBuilder {
   }
 
   List<String> createOne() {
-    return states.map((e) {
-      switch (e) {
-        case 'Error':
-          return classWithMessage(e);
-        case 'Initial':
-          return generic(e);
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-        default:
-          return classWithDataAndMessage(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+    return genericOperation();
   }
 
   List<String> createMany() {
-    return states.map((e) {
-      switch (e) {
-        case 'Error':
-          return classWithMessage(e);
-        case 'Initial':
-          return generic(e);
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-        default:
-          return classWithDataAndMessage(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+   return genericOperation();
   }
 
   List<String> updateOne() {
-    return states.map((e) {
-      switch (e) {
-        case 'Error':
-          return classWithMessage(e);
-        case 'Initial':
-          return generic(e);
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-        default:
-          return classWithDataAndMessage(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+    return genericOperation();
   }
 
   List<String> updateMany() {
-    return states.map((e) {
-      switch (e) {
-        case 'Error':
-          return classWithMessage(e);
-        case 'Initial':
-          return generic(e);
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-        default:
-          return classWithDataAndMessage(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+   return genericOperation();
   }
 
   List<String> deleteOne() {
-    return states.map((e) {
-      switch (e) {
-        case 'Error':
-          return classWithMessage(e);
-        case 'Initial':
-          return generic(e);
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-        default:
-          return classWithDataAndMessage(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+   return genericOperation();
   }
 
   List<String> deleteMany() {
-    return states.map((e) {
-      switch (e) {
-        case 'Error':
-          return classWithMessage(e);
-        case 'Initial':
-          return generic(e);
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-        default:
-          return classWithDataAndMessage(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+    return genericOperation();
   }
 
   List<String> findUnique() {
-    return states.map((e) {
-      switch (e) {
-        case 'Error':
-          return classWithMessage(e);
-        case 'Initial':
-          return generic(e);
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-        default:
-          return classWithDataAndMessage(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+   return genericOperation();
   }
 
   List<String> findMany() {
-    return states.map((e) {
+   return states.map((e) {
       switch (e) {
         case 'Error':
           return classWithMessage(e);
@@ -172,11 +67,9 @@ class StatesBuilder {
         case 'Success':
         case 'Failure':
         case 'InProgress':
-        case 'DatasetChanged':
-        case 'MoreLoadedSuccess':
-        case 'StreamEndedSuccess':
-        case 'MoreLoadedFailure':
-        case 'StreamEndedFailure':
+        case 'Optimistic':
+        case 'LoadMoreInProgress':
+        case 'AllDataLoaded':
         default:
           return classWithDataAndMessage(e);
       }
@@ -260,12 +153,13 @@ class StatesBuilder {
   }
 
   String classWithVariablesMessageAndData(e) {
-    final variables = getClassVariables(operation,r'$');
+    final variables = getClassVariables(operation, r'$');
     final construct =
-        "this.message, this.data,${buildConstructorArguments(operation,r"$")}";
+        "this.message, this.data,${buildConstructorArguments(operation, r"$")}";
 
     final name = '${ReCase(operation.operationName).pascalCase}${e}';
-    final props = getPropsList(operation.variables).map((v)=>"\$$v").join(',');
+    final props =
+        getPropsList(operation.variables).map((v) => "\$$v").join(',');
     return """
     class ${name} extends ${base}{
       ${variables.join('\n')}

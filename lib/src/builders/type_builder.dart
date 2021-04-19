@@ -179,7 +179,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addEnumValues() {
     // stringBuffer.writeln("import 'package:flutter/foundation.dart';");
     stringBuffer.writeln(
-        'enum ${type.name}{\n${type.enumValues.map((e) => e.name).join(',\n')}\n}');
+        'enum ${type.name}{\n${type.enumValues.map((e) => _to$(e.name)).join(',\n')}\n}');
 //     stringBuffer.writeln('''
 //     extension ${type.name}Index on ${type.name} {
 //   // Overload the [] getter to get the name of the fruit.

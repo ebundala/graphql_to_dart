@@ -7,7 +7,7 @@ import 'package:graphql_to_dart/src/constants/type_converters.dart';
 import 'package:graphql_to_dart/src/introspection_api_client/client.dart';
 import 'package:graphql_to_dart/src/models/config.dart';
 import 'package:graphql_to_dart/src/models/graphql_types.dart';
-import 'package:graphql_to_dart/src/parsers/config_parser.dart';
+//import 'package:graphql_to_dart/src/parsers/config_parser.dart';
 
 class GraphQlToDart {
   //final String yamlFilePath;
@@ -21,16 +21,16 @@ class GraphQlToDart {
     "query",
     "subscription"
   ];
-  
-  Future<Map<String, String>> init({save:true}) async {
-   // config = conf;
-   // if (config == null) {
-     // config = await ConfigParser.parse(yamlFilePath);
-      ValidationResult result = await config.validate();
-      if (result.hasError) {
-        throw result.errorMessage;
-      }
-    
+
+  Future<Map<String, String>> init({save: true}) async {
+    // config = conf;
+    // if (config == null) {
+    // config = await ConfigParser.parse(yamlFilePath);
+    ValidationResult result = await config.validate();
+    if (result.hasError) {
+      throw result.errorMessage;
+    }
+
     LocalGraphQLClient localGraphQLClient = LocalGraphQLClient();
     localGraphQLClient.init(config);
     final schema = await localGraphQLClient.fetchTypes();
@@ -76,9 +76,13 @@ class GraphQlToDart {
   }
 
   Future runFlutterFormat([String path]) async {
+    var dir;
+    if (path != null) {
+      dir = Directory.current.path + path;
+    }
     Process.runSync(
       "flutter",
-      ["format", path??FileConstants().modelsDirectory.path],
+      ["format", dir ?? FileConstants().modelsDirectory.path],
       runInShell: true,
     );
     print("Formatted Generated Files");

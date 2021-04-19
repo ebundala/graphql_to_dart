@@ -1,0 +1,6398 @@
+directive @file(path: String) on INPUT_FIELD_DEFINITION
+
+directive @auth on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+input AuthInput {
+  email: String
+  password: String
+  displayName: String
+  phoneNumber: String
+  avator: Upload
+  mode: AuthMode
+}
+
+enum AuthMode {
+  EMAIL
+  PHONE
+  OAUTH
+}
+
+type AuthResult {
+  token: String
+  error: Boolean!
+  message: String!
+  user: User
+}
+
+type SignOutResult {
+  status: Boolean
+  message: String
+}
+
+type Mutation {
+  signup(credentials: AuthInput!, organization: OrganizationCreateWithoutOwnerInput): AuthResult!
+  signin(credentials: AuthInput!): AuthResult!
+  recoverAccount(email: String!): AuthResult!
+  signout: SignOutResult!
+  createOneOrder(data: OrderCreateInput!): OrderResponse!
+  updateOneOrder(where: OrderWhereUniqueInput!, data: OrderUpdateInput!): OrderResponse!
+  deleteOneOrder(where: OrderWhereUniqueInput!): OrderResponse!
+  createOneOrganization(data: OrganizationCreateInput!): OrganizationResponse!
+  updateOneOrganization(where: OrganizationWhereUniqueInput!, data: OrganizationUpdateInput!): OrganizationResponse!
+  deleteOneOrganization(where: OrganizationWhereUniqueInput!): OrganizationResponse!
+  createOneRating(data: RatingCreateInput!): RatingResponse!
+  updateOneRating(where: RatingWhereUniqueInput!, data: RatingUpdateInput!): RatingResponse!
+  deleteOneRating(where: RatingWhereUniqueInput!): RatingResponse!
+  createOneService(data: ServiceCreateInput!): ServiceResponse!
+  updateOneService(where: ServiceWhereUniqueInput!, data: ServiceUpdateInput!): ServiceResponse!
+  deleteOneService(where: ServiceWhereUniqueInput!): ServiceResponse!
+  createOneServiceCategory(data: ServiceCategoryCreateInput!): ServiceCategoryResponse!
+  updateOneServiceCategory(where: ServiceCategoryWhereUniqueInput!, data: ServiceCategoryUpdateInput!): ServiceCategoryResponse!
+  deleteOneServiceCategory(where: ServiceCategoryWhereUniqueInput!): ServiceCategoryResponse!
+  updateOneUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): UserResponse!
+  deleteOneUser(where: UserWhereUniqueInput!): UserResponse!
+  version: String
+}
+
+scalar Upload
+
+input AttachmentCreateInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserCreateNestedManyWithoutAvatorInput
+  services: ServiceCreateNestedManyWithoutImageInput
+  organizations: OrganizationCreateNestedManyWithoutLogoInput
+  orders: OrderCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedCreateInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserUncheckedCreateNestedManyWithoutAvatorInput
+  services: ServiceUncheckedCreateNestedManyWithoutImageInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutLogoInput
+  orders: OrderUncheckedCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentCreateManyInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input AttachmentCreateWithoutUsersInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  services: ServiceCreateNestedManyWithoutImageInput
+  organizations: OrganizationCreateNestedManyWithoutLogoInput
+  orders: OrderCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedCreateWithoutUsersInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  services: ServiceUncheckedCreateNestedManyWithoutImageInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutLogoInput
+  orders: OrderUncheckedCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentCreateWithoutOrganizationsInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserCreateNestedManyWithoutAvatorInput
+  services: ServiceCreateNestedManyWithoutImageInput
+  orders: OrderCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedCreateWithoutOrganizationsInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserUncheckedCreateNestedManyWithoutAvatorInput
+  services: ServiceUncheckedCreateNestedManyWithoutImageInput
+  orders: OrderUncheckedCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentCreateWithoutServicesInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserCreateNestedManyWithoutAvatorInput
+  organizations: OrganizationCreateNestedManyWithoutLogoInput
+  orders: OrderCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedCreateWithoutServicesInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserUncheckedCreateNestedManyWithoutAvatorInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutLogoInput
+  orders: OrderUncheckedCreateNestedManyWithoutReceiptInput
+}
+
+input AttachmentCreateWithoutOrdersInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserCreateNestedManyWithoutAvatorInput
+  services: ServiceCreateNestedManyWithoutImageInput
+  organizations: OrganizationCreateNestedManyWithoutLogoInput
+}
+
+input AttachmentUncheckedCreateWithoutOrdersInput {
+  path: Upload!
+  id: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int
+  size: Int
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserUncheckedCreateNestedManyWithoutAvatorInput
+  services: ServiceUncheckedCreateNestedManyWithoutImageInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutLogoInput
+}
+
+type Attachment {
+  id: String!
+  path: String!
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int!
+  size: Int!
+  attachmentType: AttachmentType!
+  downloadable: Boolean!
+  placement: String!
+  users(where: UserWhereInput, orderBy: [UserOrderByInput!], cursor: UserWhereUniqueInput, take: Int, skip: Int, distinct: [UserScalarFieldEnum!]): [User!]!
+  services(where: ServiceWhereInput, orderBy: [ServiceOrderByInput!], cursor: ServiceWhereUniqueInput, take: Int, skip: Int, distinct: [ServiceScalarFieldEnum!]): [Service!]!
+  organizations(where: OrganizationWhereInput, orderBy: [OrganizationOrderByInput!], cursor: OrganizationWhereUniqueInput, take: Int, skip: Int, distinct: [OrganizationScalarFieldEnum!]): [Organization!]!
+  orders(where: OrderWhereInput, orderBy: [OrderOrderByInput!], cursor: OrderWhereUniqueInput, take: Int, skip: Int, distinct: [OrderScalarFieldEnum!]): [Order!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type AttachmentListResponse {
+  status: Boolean!
+  data: [Attachment!]
+  message: String!
+}
+
+type AttachmentResponse {
+  status: Boolean!
+  data: Attachment
+  message: String!
+}
+
+type AttachmentBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateAttachmentResponse {
+  status: Boolean!
+  data: AggregateAttachment
+  message: String!
+}
+
+type AttachmentCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type CasbinRule {
+  id: Int!
+  ptype: String!
+  v0: String
+  v1: String
+  v2: String
+  v3: String
+  v4: String
+  v5: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CasbinRuleListResponse {
+  status: Boolean!
+  data: [CasbinRule!]
+  message: String!
+}
+
+type CasbinRuleResponse {
+  status: Boolean!
+  data: CasbinRule
+  message: String!
+}
+
+type CasbinRuleBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateCasbinRuleResponse {
+  status: Boolean!
+  data: AggregateCasbinRule
+  message: String!
+}
+
+type CasbinRuleCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type Location {
+  id: String!
+  name: String!
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  organizations(where: OrganizationWhereInput, orderBy: [OrganizationOrderByInput!], cursor: OrganizationWhereUniqueInput, take: Int, skip: Int, distinct: [OrganizationScalarFieldEnum!]): [Organization!]!
+  users(where: UserWhereInput, orderBy: [UserOrderByInput!], cursor: UserWhereUniqueInput, take: Int, skip: Int, distinct: [UserScalarFieldEnum!]): [User!]!
+}
+
+type LocationListResponse {
+  status: Boolean!
+  data: [Location!]
+  message: String!
+}
+
+type LocationResponse {
+  status: Boolean!
+  data: Location
+  message: String!
+}
+
+type LocationBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateLocationResponse {
+  status: Boolean!
+  data: AggregateLocation
+  message: String!
+}
+
+type LocationCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type Order {
+  id: String!
+  quantity: Int!
+  service: Service!
+  organization: Organization!
+  owner: User!
+  state: State!
+  receipt: Attachment
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  serviceId: String!
+  organizationId: String!
+  ownerId: String!
+  receiptId: String
+}
+
+type OrderListResponse {
+  status: Boolean!
+  data: [Order!]
+  message: String!
+}
+
+type OrderResponse {
+  status: Boolean!
+  data: Order
+  message: String!
+}
+
+type OrderBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateOrderResponse {
+  status: Boolean!
+  data: AggregateOrder
+  message: String!
+}
+
+type OrderCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type Query {
+  findUniqueOrder(where: OrderWhereUniqueInput!): OrderResponse!
+  findFirstOrder(where: OrderWhereInput, orderBy: [OrderOrderByInput!], cursor: OrderWhereUniqueInput, distinct: [OrderScalarFieldEnum!], skip: Int, take: Int): OrderResponse!
+  findManyOrder(where: OrderWhereInput, orderBy: [OrderOrderByInput!], cursor: OrderWhereUniqueInput, distinct: [OrderScalarFieldEnum!], skip: Int, take: Int): OrderListResponse!
+  findUniqueOrganization(where: OrganizationWhereUniqueInput!): OrganizationResponse!
+  findFirstOrganization(where: OrganizationWhereInput, orderBy: [OrganizationOrderByInput!], cursor: OrganizationWhereUniqueInput, distinct: [OrganizationScalarFieldEnum!], skip: Int, take: Int): OrganizationResponse!
+  findManyOrganization(where: OrganizationWhereInput, orderBy: [OrganizationOrderByInput!], cursor: OrganizationWhereUniqueInput, distinct: [OrganizationScalarFieldEnum!], skip: Int, take: Int): OrganizationListResponse!
+  findUniqueRating(where: RatingWhereUniqueInput!): RatingResponse!
+  findFirstRating(where: RatingWhereInput, orderBy: [RatingOrderByInput!], cursor: RatingWhereUniqueInput, distinct: [RatingScalarFieldEnum!], skip: Int, take: Int): RatingResponse!
+  findManyRating(where: RatingWhereInput, orderBy: [RatingOrderByInput!], cursor: RatingWhereUniqueInput, distinct: [RatingScalarFieldEnum!], skip: Int, take: Int): RatingListResponse!
+  findUniqueService(where: ServiceWhereUniqueInput!): ServiceResponse!
+  findFirstService(where: ServiceWhereInput, orderBy: [ServiceOrderByInput!], cursor: ServiceWhereUniqueInput, distinct: [ServiceScalarFieldEnum!], skip: Int, take: Int): ServiceResponse!
+  findManyService(where: ServiceWhereInput, orderBy: [ServiceOrderByInput!], cursor: ServiceWhereUniqueInput, distinct: [ServiceScalarFieldEnum!], skip: Int, take: Int): ServiceListResponse!
+  findUniqueServiceCategory(where: ServiceCategoryWhereUniqueInput!): ServiceCategoryResponse!
+  findFirstServiceCategory(where: ServiceCategoryWhereInput, orderBy: [ServiceCategoryOrderByInput!], cursor: ServiceCategoryWhereUniqueInput, distinct: [ServiceCategoryScalarFieldEnum!], skip: Int, take: Int): ServiceCategoryResponse!
+  findManyServiceCategory(where: ServiceCategoryWhereInput, orderBy: [ServiceCategoryOrderByInput!], cursor: ServiceCategoryWhereUniqueInput, distinct: [ServiceCategoryScalarFieldEnum!], skip: Int, take: Int): ServiceCategoryListResponse!
+  findUniqueUser(where: UserWhereUniqueInput!): UserResponse!
+  findFirstUser(where: UserWhereInput, orderBy: [UserOrderByInput!], cursor: UserWhereUniqueInput, distinct: [UserScalarFieldEnum!], skip: Int, take: Int): UserResponse!
+  findManyUser(where: UserWhereInput, orderBy: [UserOrderByInput!], cursor: UserWhereUniqueInput, distinct: [UserScalarFieldEnum!], skip: Int, take: Int): UserListResponse!
+  version: String
+}
+
+type Organization {
+  id: String!
+  name: String!
+  description: String
+  logo: Attachment!
+  services(where: ServiceWhereInput, orderBy: [ServiceOrderByInput!], cursor: ServiceWhereUniqueInput, take: Int, skip: Int, distinct: [ServiceScalarFieldEnum!]): [Service!]!
+  orders(where: OrderWhereInput, orderBy: [OrderOrderByInput!], cursor: OrderWhereUniqueInput, take: Int, skip: Int, distinct: [OrderScalarFieldEnum!]): [Order!]!
+  staffs(where: UserWhereInput, orderBy: [UserOrderByInput!], cursor: UserWhereUniqueInput, take: Int, skip: Int, distinct: [UserScalarFieldEnum!]): [User!]!
+  location: Location!
+  offers(where: ServiceCategoryWhereInput, orderBy: [ServiceCategoryOrderByInput!], cursor: ServiceCategoryWhereUniqueInput, take: Int, skip: Int, distinct: [ServiceCategoryScalarFieldEnum!]): [ServiceCategory!]!
+  ratings(where: RatingWhereInput, orderBy: [RatingOrderByInput!], cursor: RatingWhereUniqueInput, take: Int, skip: Int, distinct: [RatingScalarFieldEnum!]): [Rating!]!
+  owner: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+}
+
+type OrganizationListResponse {
+  status: Boolean!
+  data: [Organization!]
+  message: String!
+}
+
+type OrganizationResponse {
+  status: Boolean!
+  data: Organization
+  message: String!
+}
+
+type OrganizationBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateOrganizationResponse {
+  status: Boolean!
+  data: AggregateOrganization
+  message: String!
+}
+
+type OrganizationCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type Rating {
+  id: String!
+  value: Int!
+  comment: String
+  organization: Organization!
+  owner: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  ownerId: String!
+  organizationId: String!
+}
+
+type RatingListResponse {
+  status: Boolean!
+  data: [Rating!]
+  message: String!
+}
+
+type RatingResponse {
+  status: Boolean!
+  data: Rating
+  message: String!
+}
+
+type RatingBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateRatingResponse {
+  status: Boolean!
+  data: AggregateRating
+  message: String!
+}
+
+type RatingCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type Service {
+  id: String!
+  name: String!
+  description: String
+  price: Float!
+  state: State!
+  organization: Organization!
+  image: Attachment!
+  category: ServiceCategory!
+  orders(where: OrderWhereInput, orderBy: [OrderOrderByInput!], cursor: OrderWhereUniqueInput, take: Int, skip: Int, distinct: [OrderScalarFieldEnum!]): [Order!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  organizationId: String!
+  imageId: String!
+  serviceCategoryId: String!
+}
+
+type ServiceListResponse {
+  status: Boolean!
+  data: [Service!]
+  message: String!
+}
+
+type ServiceResponse {
+  status: Boolean!
+  data: Service
+  message: String!
+}
+
+type ServiceBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateServiceResponse {
+  status: Boolean!
+  data: AggregateService
+  message: String!
+}
+
+type ServiceCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type ServiceCategory {
+  id: String!
+  name: String!
+  state: State!
+  organizations(where: OrganizationWhereInput, orderBy: [OrganizationOrderByInput!], cursor: OrganizationWhereUniqueInput, take: Int, skip: Int, distinct: [OrganizationScalarFieldEnum!]): [Organization!]!
+  services(where: ServiceWhereInput, orderBy: [ServiceOrderByInput!], cursor: ServiceWhereUniqueInput, take: Int, skip: Int, distinct: [ServiceScalarFieldEnum!]): [Service!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ServiceCategoryListResponse {
+  status: Boolean!
+  data: [ServiceCategory!]
+  message: String!
+}
+
+type ServiceCategoryResponse {
+  status: Boolean!
+  data: ServiceCategory
+  message: String!
+}
+
+type ServiceCategoryBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateServiceCategoryResponse {
+  status: Boolean!
+  data: AggregateServiceCategory
+  message: String!
+}
+
+type ServiceCategoryCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+type User {
+  id: String!
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean!
+  disabled: Boolean!
+  avator: Attachment
+  role: Role!
+  state: State!
+  orders(where: OrderWhereInput, orderBy: [OrderOrderByInput!], cursor: OrderWhereUniqueInput, take: Int, skip: Int, distinct: [OrderScalarFieldEnum!]): [Order!]!
+  ratings(where: RatingWhereInput, orderBy: [RatingOrderByInput!], cursor: RatingWhereUniqueInput, take: Int, skip: Int, distinct: [RatingScalarFieldEnum!]): [Rating!]!
+  location: Location
+  organizations(where: OrganizationWhereInput, orderBy: [OrganizationOrderByInput!], cursor: OrganizationWhereUniqueInput, take: Int, skip: Int, distinct: [OrganizationScalarFieldEnum!]): [Organization!]!
+  staffOf(where: OrganizationWhereInput, orderBy: [OrganizationOrderByInput!], cursor: OrganizationWhereUniqueInput, take: Int, skip: Int, distinct: [OrganizationScalarFieldEnum!]): [Organization!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  avatorId: String
+  locationId: String
+}
+
+type UserListResponse {
+  status: Boolean!
+  data: [User!]
+  message: String!
+}
+
+type UserResponse {
+  status: Boolean!
+  data: User
+  message: String!
+}
+
+type UserBatchResponse {
+  status: Boolean!
+  data: BatchPayload
+  message: String!
+}
+
+type AggregateUserResponse {
+  status: Boolean!
+  data: AggregateUser
+  message: String!
+}
+
+type UserCountResponse {
+  status: Boolean!
+  data: Int
+  message: String!
+}
+
+scalar DateTime
+
+type BatchPayload {
+  count: Int!
+}
+
+enum CasbinRuleScalarFieldEnum {
+  id
+  ptype
+  v0
+  v1
+  v2
+  v3
+  v4
+  v5
+  createdAt
+  updatedAt
+}
+
+enum UserScalarFieldEnum {
+  id
+  email
+  displayName
+  phoneNumber
+  emailVerified
+  disabled
+  role
+  state
+  createdAt
+  updatedAt
+  avatorId
+  locationId
+}
+
+enum AttachmentScalarFieldEnum {
+  id
+  path
+  filename
+  mimetype
+  encoding
+  duration
+  size
+  attachmentType
+  downloadable
+  placement
+  createdAt
+  updatedAt
+}
+
+enum OrganizationScalarFieldEnum {
+  id
+  name
+  description
+  createdAt
+  updatedAt
+  logoId
+  locationId
+  ownerId
+}
+
+enum ServiceScalarFieldEnum {
+  id
+  name
+  description
+  price
+  state
+  createdAt
+  updatedAt
+  organizationId
+  imageId
+  serviceCategoryId
+}
+
+enum OrderScalarFieldEnum {
+  id
+  quantity
+  state
+  createdAt
+  updatedAt
+  serviceId
+  organizationId
+  ownerId
+  receiptId
+}
+
+enum ServiceCategoryScalarFieldEnum {
+  id
+  name
+  state
+  createdAt
+  updatedAt
+}
+
+enum RatingScalarFieldEnum {
+  id
+  value
+  comment
+  createdAt
+  updatedAt
+  ownerId
+  organizationId
+}
+
+enum LocationScalarFieldEnum {
+  id
+  name
+  lat
+  lon
+  createdAt
+  updatedAt
+}
+
+enum SortOrder {
+  asc
+  desc
+}
+
+enum QueryMode {
+  default
+  insensitive
+}
+
+enum Role {
+  ANONYMOUS
+  CONSUMER
+  PROVIDER
+  MANAGER
+  SUPERUSER
+}
+
+enum State {
+  PENDING
+  REVIEW
+  REJECTED
+  APPROVED
+  COMPLETED
+  ARCHIVED
+}
+
+enum AttachmentType {
+  AUDIO
+  VIDEO
+  DOCUMENT
+  IMAGE
+}
+
+input CasbinRuleWhereInput {
+  AND: [CasbinRuleWhereInput!]
+  OR: [CasbinRuleWhereInput!]
+  NOT: [CasbinRuleWhereInput!]
+  id: IntFilter
+  ptype: StringFilter
+  v0: StringNullableFilter
+  v1: StringNullableFilter
+  v2: StringNullableFilter
+  v3: StringNullableFilter
+  v4: StringNullableFilter
+  v5: StringNullableFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input CasbinRuleOrderByInput {
+  id: SortOrder
+  ptype: SortOrder
+  v0: SortOrder
+  v1: SortOrder
+  v2: SortOrder
+  v3: SortOrder
+  v4: SortOrder
+  v5: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input CasbinRuleWhereUniqueInput {
+  id: Int
+}
+
+input CasbinRuleScalarWhereWithAggregatesInput {
+  AND: [CasbinRuleScalarWhereWithAggregatesInput!]
+  OR: [CasbinRuleScalarWhereWithAggregatesInput!]
+  NOT: [CasbinRuleScalarWhereWithAggregatesInput!]
+  id: IntWithAggregatesFilter
+  ptype: StringWithAggregatesFilter
+  v0: StringNullableWithAggregatesFilter
+  v1: StringNullableWithAggregatesFilter
+  v2: StringNullableWithAggregatesFilter
+  v3: StringNullableWithAggregatesFilter
+  v4: StringNullableWithAggregatesFilter
+  v5: StringNullableWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+}
+
+input UserWhereInput {
+  AND: [UserWhereInput!]
+  OR: [UserWhereInput!]
+  NOT: [UserWhereInput!]
+  id: StringFilter
+  email: StringFilter
+  displayName: StringFilter
+  phoneNumber: StringNullableFilter
+  emailVerified: BoolFilter
+  disabled: BoolFilter
+  avator: AttachmentWhereInput
+  role: EnumRoleFilter
+  state: EnumStateFilter
+  orders: OrderListRelationFilter
+  ratings: RatingListRelationFilter
+  location: LocationWhereInput
+  organizations: OrganizationListRelationFilter
+  staffOf: OrganizationListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  avatorId: StringNullableFilter
+  locationId: StringNullableFilter
+}
+
+input UserOrderByInput {
+  id: SortOrder
+  email: SortOrder
+  displayName: SortOrder
+  phoneNumber: SortOrder
+  emailVerified: SortOrder
+  disabled: SortOrder
+  role: SortOrder
+  state: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  avatorId: SortOrder
+  locationId: SortOrder
+}
+
+input UserWhereUniqueInput {
+  id: String
+  email: String
+}
+
+input UserScalarWhereWithAggregatesInput {
+  AND: [UserScalarWhereWithAggregatesInput!]
+  OR: [UserScalarWhereWithAggregatesInput!]
+  NOT: [UserScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  email: StringWithAggregatesFilter
+  displayName: StringWithAggregatesFilter
+  phoneNumber: StringNullableWithAggregatesFilter
+  emailVerified: BoolWithAggregatesFilter
+  disabled: BoolWithAggregatesFilter
+  role: EnumRoleWithAggregatesFilter
+  state: EnumStateWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+  avatorId: StringNullableWithAggregatesFilter
+  locationId: StringNullableWithAggregatesFilter
+}
+
+input AttachmentWhereInput {
+  AND: [AttachmentWhereInput!]
+  OR: [AttachmentWhereInput!]
+  NOT: [AttachmentWhereInput!]
+  id: StringFilter
+  path: StringFilter
+  filename: StringNullableFilter
+  mimetype: StringNullableFilter
+  encoding: StringNullableFilter
+  duration: IntFilter
+  size: IntFilter
+  attachmentType: EnumAttachmentTypeFilter
+  downloadable: BoolFilter
+  placement: StringFilter
+  users: UserListRelationFilter
+  services: ServiceListRelationFilter
+  organizations: OrganizationListRelationFilter
+  orders: OrderListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input AttachmentOrderByInput {
+  id: SortOrder
+  path: SortOrder
+  filename: SortOrder
+  mimetype: SortOrder
+  encoding: SortOrder
+  duration: SortOrder
+  size: SortOrder
+  attachmentType: SortOrder
+  downloadable: SortOrder
+  placement: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input AttachmentWhereUniqueInput {
+  id: String
+}
+
+input AttachmentScalarWhereWithAggregatesInput {
+  AND: [AttachmentScalarWhereWithAggregatesInput!]
+  OR: [AttachmentScalarWhereWithAggregatesInput!]
+  NOT: [AttachmentScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  path: StringWithAggregatesFilter
+  filename: StringNullableWithAggregatesFilter
+  mimetype: StringNullableWithAggregatesFilter
+  encoding: StringNullableWithAggregatesFilter
+  duration: IntWithAggregatesFilter
+  size: IntWithAggregatesFilter
+  attachmentType: EnumAttachmentTypeWithAggregatesFilter
+  downloadable: BoolWithAggregatesFilter
+  placement: StringWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+}
+
+input OrganizationWhereInput {
+  AND: [OrganizationWhereInput!]
+  OR: [OrganizationWhereInput!]
+  NOT: [OrganizationWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  description: StringNullableFilter
+  logo: AttachmentWhereInput
+  services: ServiceListRelationFilter
+  orders: OrderListRelationFilter
+  staffs: UserListRelationFilter
+  location: LocationWhereInput
+  offers: ServiceCategoryListRelationFilter
+  ratings: RatingListRelationFilter
+  owner: UserWhereInput
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  logoId: StringFilter
+  locationId: StringFilter
+  ownerId: StringFilter
+}
+
+input OrganizationOrderByInput {
+  id: SortOrder
+  name: SortOrder
+  description: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  logoId: SortOrder
+  locationId: SortOrder
+  ownerId: SortOrder
+}
+
+input OrganizationWhereUniqueInput {
+  id: String
+}
+
+input OrganizationScalarWhereWithAggregatesInput {
+  AND: [OrganizationScalarWhereWithAggregatesInput!]
+  OR: [OrganizationScalarWhereWithAggregatesInput!]
+  NOT: [OrganizationScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  name: StringWithAggregatesFilter
+  description: StringNullableWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+  logoId: StringWithAggregatesFilter
+  locationId: StringWithAggregatesFilter
+  ownerId: StringWithAggregatesFilter
+}
+
+input ServiceWhereInput {
+  AND: [ServiceWhereInput!]
+  OR: [ServiceWhereInput!]
+  NOT: [ServiceWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  description: StringNullableFilter
+  price: FloatFilter
+  state: EnumStateFilter
+  organization: OrganizationWhereInput
+  image: AttachmentWhereInput
+  category: ServiceCategoryWhereInput
+  orders: OrderListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  organizationId: StringFilter
+  imageId: StringFilter
+  serviceCategoryId: StringFilter
+}
+
+input ServiceOrderByInput {
+  id: SortOrder
+  name: SortOrder
+  description: SortOrder
+  price: SortOrder
+  state: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  organizationId: SortOrder
+  imageId: SortOrder
+  serviceCategoryId: SortOrder
+}
+
+input ServiceWhereUniqueInput {
+  id: String
+}
+
+input ServiceScalarWhereWithAggregatesInput {
+  AND: [ServiceScalarWhereWithAggregatesInput!]
+  OR: [ServiceScalarWhereWithAggregatesInput!]
+  NOT: [ServiceScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  name: StringWithAggregatesFilter
+  description: StringNullableWithAggregatesFilter
+  price: FloatWithAggregatesFilter
+  state: EnumStateWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+  organizationId: StringWithAggregatesFilter
+  imageId: StringWithAggregatesFilter
+  serviceCategoryId: StringWithAggregatesFilter
+}
+
+input OrderWhereInput {
+  AND: [OrderWhereInput!]
+  OR: [OrderWhereInput!]
+  NOT: [OrderWhereInput!]
+  id: StringFilter
+  quantity: IntFilter
+  service: ServiceWhereInput
+  organization: OrganizationWhereInput
+  owner: UserWhereInput
+  state: EnumStateFilter
+  receipt: AttachmentWhereInput
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  serviceId: StringFilter
+  organizationId: StringFilter
+  ownerId: StringFilter
+  receiptId: StringNullableFilter
+}
+
+input OrderOrderByInput {
+  id: SortOrder
+  quantity: SortOrder
+  state: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  serviceId: SortOrder
+  organizationId: SortOrder
+  ownerId: SortOrder
+  receiptId: SortOrder
+}
+
+input OrderWhereUniqueInput {
+  id: String
+}
+
+input OrderScalarWhereWithAggregatesInput {
+  AND: [OrderScalarWhereWithAggregatesInput!]
+  OR: [OrderScalarWhereWithAggregatesInput!]
+  NOT: [OrderScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  quantity: IntWithAggregatesFilter
+  state: EnumStateWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+  serviceId: StringWithAggregatesFilter
+  organizationId: StringWithAggregatesFilter
+  ownerId: StringWithAggregatesFilter
+  receiptId: StringNullableWithAggregatesFilter
+}
+
+input ServiceCategoryWhereInput {
+  AND: [ServiceCategoryWhereInput!]
+  OR: [ServiceCategoryWhereInput!]
+  NOT: [ServiceCategoryWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  state: EnumStateFilter
+  organizations: OrganizationListRelationFilter
+  services: ServiceListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ServiceCategoryOrderByInput {
+  id: SortOrder
+  name: SortOrder
+  state: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input ServiceCategoryWhereUniqueInput {
+  id: String
+}
+
+input ServiceCategoryScalarWhereWithAggregatesInput {
+  AND: [ServiceCategoryScalarWhereWithAggregatesInput!]
+  OR: [ServiceCategoryScalarWhereWithAggregatesInput!]
+  NOT: [ServiceCategoryScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  name: StringWithAggregatesFilter
+  state: EnumStateWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+}
+
+input RatingWhereInput {
+  AND: [RatingWhereInput!]
+  OR: [RatingWhereInput!]
+  NOT: [RatingWhereInput!]
+  id: StringFilter
+  value: IntFilter
+  comment: StringNullableFilter
+  organization: OrganizationWhereInput
+  owner: UserWhereInput
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  ownerId: StringFilter
+  organizationId: StringFilter
+}
+
+input RatingOrderByInput {
+  id: SortOrder
+  value: SortOrder
+  comment: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  ownerId: SortOrder
+  organizationId: SortOrder
+}
+
+input RatingWhereUniqueInput {
+  id: String
+}
+
+input RatingScalarWhereWithAggregatesInput {
+  AND: [RatingScalarWhereWithAggregatesInput!]
+  OR: [RatingScalarWhereWithAggregatesInput!]
+  NOT: [RatingScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  value: IntWithAggregatesFilter
+  comment: StringNullableWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+  ownerId: StringWithAggregatesFilter
+  organizationId: StringWithAggregatesFilter
+}
+
+input LocationWhereInput {
+  AND: [LocationWhereInput!]
+  OR: [LocationWhereInput!]
+  NOT: [LocationWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  lat: FloatFilter
+  lon: FloatFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  organizations: OrganizationListRelationFilter
+  users: UserListRelationFilter
+}
+
+input LocationOrderByInput {
+  id: SortOrder
+  name: SortOrder
+  lat: SortOrder
+  lon: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input LocationWhereUniqueInput {
+  id: String
+}
+
+input LocationScalarWhereWithAggregatesInput {
+  AND: [LocationScalarWhereWithAggregatesInput!]
+  OR: [LocationScalarWhereWithAggregatesInput!]
+  NOT: [LocationScalarWhereWithAggregatesInput!]
+  id: StringWithAggregatesFilter
+  name: StringWithAggregatesFilter
+  lat: FloatWithAggregatesFilter
+  lon: FloatWithAggregatesFilter
+  createdAt: DateTimeWithAggregatesFilter
+  updatedAt: DateTimeWithAggregatesFilter
+}
+
+input CasbinRuleCreateInput {
+  ptype: String!
+  v0: String
+  v1: String
+  v2: String
+  v3: String
+  v4: String
+  v5: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input CasbinRuleUncheckedCreateInput {
+  id: Int
+  ptype: String!
+  v0: String
+  v1: String
+  v2: String
+  v3: String
+  v4: String
+  v5: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input CasbinRuleUpdateInput {
+  ptype: StringFieldUpdateOperationsInput
+  v0: NullableStringFieldUpdateOperationsInput
+  v1: NullableStringFieldUpdateOperationsInput
+  v2: NullableStringFieldUpdateOperationsInput
+  v3: NullableStringFieldUpdateOperationsInput
+  v4: NullableStringFieldUpdateOperationsInput
+  v5: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input CasbinRuleUncheckedUpdateInput {
+  id: IntFieldUpdateOperationsInput
+  ptype: StringFieldUpdateOperationsInput
+  v0: NullableStringFieldUpdateOperationsInput
+  v1: NullableStringFieldUpdateOperationsInput
+  v2: NullableStringFieldUpdateOperationsInput
+  v3: NullableStringFieldUpdateOperationsInput
+  v4: NullableStringFieldUpdateOperationsInput
+  v5: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input CasbinRuleCreateManyInput {
+  id: Int
+  ptype: String!
+  v0: String
+  v1: String
+  v2: String
+  v3: String
+  v4: String
+  v5: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input CasbinRuleUpdateManyMutationInput {
+  ptype: StringFieldUpdateOperationsInput
+  v0: NullableStringFieldUpdateOperationsInput
+  v1: NullableStringFieldUpdateOperationsInput
+  v2: NullableStringFieldUpdateOperationsInput
+  v3: NullableStringFieldUpdateOperationsInput
+  v4: NullableStringFieldUpdateOperationsInput
+  v5: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input CasbinRuleUncheckedUpdateManyInput {
+  id: IntFieldUpdateOperationsInput
+  ptype: StringFieldUpdateOperationsInput
+  v0: NullableStringFieldUpdateOperationsInput
+  v1: NullableStringFieldUpdateOperationsInput
+  v2: NullableStringFieldUpdateOperationsInput
+  v3: NullableStringFieldUpdateOperationsInput
+  v4: NullableStringFieldUpdateOperationsInput
+  v5: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input UserCreateInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avator: AttachmentCreateNestedOneWithoutUsersInput
+  orders: OrderCreateNestedManyWithoutOwnerInput
+  ratings: RatingCreateNestedManyWithoutOwnerInput
+  location: LocationCreateNestedOneWithoutUsersInput
+  organizations: OrganizationCreateNestedManyWithoutOwnerInput
+  staffOf: OrganizationCreateNestedManyWithoutStaffsInput
+}
+
+input UserUncheckedCreateInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+  orders: OrderUncheckedCreateNestedManyWithoutOwnerInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOwnerInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+input UserUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avator: AttachmentUpdateOneWithoutUsersInput
+  orders: OrderUpdateManyWithoutOwnerInput
+  ratings: RatingUpdateManyWithoutOwnerInput
+  location: LocationUpdateOneWithoutUsersInput
+  organizations: OrganizationUpdateManyWithoutOwnerInput
+  staffOf: OrganizationUpdateManyWithoutStaffsInput
+}
+
+input UserUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutOwnerInput
+  ratings: RatingUncheckedUpdateManyWithoutOwnerInput
+  organizations: OrganizationUncheckedUpdateManyWithoutOwnerInput
+}
+
+input UserCreateManyInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+}
+
+input UserUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input UserUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+}
+
+input AttachmentUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUpdateManyWithoutAvatorInput
+  services: ServiceUpdateManyWithoutImageInput
+  organizations: OrganizationUpdateManyWithoutLogoInput
+  orders: OrderUpdateManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUncheckedUpdateManyWithoutAvatorInput
+  services: ServiceUncheckedUpdateManyWithoutImageInput
+  organizations: OrganizationUncheckedUpdateManyWithoutLogoInput
+  orders: OrderUncheckedUpdateManyWithoutReceiptInput
+}
+
+input AttachmentUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input AttachmentUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input OrganizationCreateInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input OrganizationCreateManyInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+}
+
+input OrganizationUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input OrganizationUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+}
+
+input ServiceCreateInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organization: OrganizationCreateNestedOneWithoutServicesInput!
+  image: AttachmentCreateNestedOneWithoutServicesInput!
+  category: ServiceCategoryCreateNestedOneWithoutServicesInput!
+  orders: OrderCreateNestedManyWithoutServiceInput
+}
+
+input ServiceUncheckedCreateInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  imageId: String!
+  serviceCategoryId: String!
+  orders: OrderUncheckedCreateNestedManyWithoutServiceInput
+}
+
+input ServiceUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organization: OrganizationUpdateOneRequiredWithoutServicesInput
+  image: AttachmentUpdateOneRequiredWithoutServicesInput
+  category: ServiceCategoryUpdateOneRequiredWithoutServicesInput
+  orders: OrderUpdateManyWithoutServiceInput
+}
+
+input ServiceUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  imageId: StringFieldUpdateOperationsInput
+  serviceCategoryId: StringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutServiceInput
+}
+
+input ServiceCreateManyInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  imageId: String!
+  serviceCategoryId: String!
+}
+
+input ServiceUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input ServiceUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  imageId: StringFieldUpdateOperationsInput
+  serviceCategoryId: StringFieldUpdateOperationsInput
+}
+
+input OrderCreateInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  service: ServiceCreateNestedOneWithoutOrdersInput!
+  organization: OrganizationCreateNestedOneWithoutOrdersInput!
+  owner: UserCreateNestedOneWithoutOrdersInput!
+  receipt: AttachmentCreateNestedOneWithoutOrdersInput
+}
+
+input OrderUncheckedCreateInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  organizationId: String!
+  ownerId: String!
+  receiptId: String
+}
+
+input OrderUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  service: ServiceUpdateOneRequiredWithoutOrdersInput
+  organization: OrganizationUpdateOneRequiredWithoutOrdersInput
+  owner: UserUpdateOneRequiredWithoutOrdersInput
+  receipt: AttachmentUpdateOneWithoutOrdersInput
+}
+
+input OrderUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  serviceId: StringFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  receiptId: NullableStringFieldUpdateOperationsInput
+}
+
+input OrderCreateManyInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  organizationId: String!
+  ownerId: String!
+  receiptId: String
+}
+
+input OrderUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input OrderUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  serviceId: StringFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  receiptId: NullableStringFieldUpdateOperationsInput
+}
+
+input ServiceCategoryCreateInput {
+  id: String
+  name: String!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizations: OrganizationCreateNestedManyWithoutOffersInput
+  services: ServiceCreateNestedManyWithoutCategoryInput
+}
+
+input ServiceCategoryUncheckedCreateInput {
+  id: String
+  name: String!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  services: ServiceUncheckedCreateNestedManyWithoutCategoryInput
+}
+
+input ServiceCategoryUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizations: OrganizationUpdateManyWithoutOffersInput
+  services: ServiceUpdateManyWithoutCategoryInput
+}
+
+input ServiceCategoryUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutCategoryInput
+}
+
+input ServiceCategoryCreateManyInput {
+  id: String
+  name: String!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ServiceCategoryUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input ServiceCategoryUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input RatingCreateInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  organization: OrganizationCreateNestedOneWithoutRatingsInput!
+  owner: UserCreateNestedOneWithoutRatingsInput!
+}
+
+input RatingUncheckedCreateInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  ownerId: String!
+  organizationId: String!
+}
+
+input RatingUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organization: OrganizationUpdateOneRequiredWithoutRatingsInput
+  owner: UserUpdateOneRequiredWithoutRatingsInput
+}
+
+input RatingUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+}
+
+input RatingCreateManyInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  ownerId: String!
+  organizationId: String!
+}
+
+input RatingUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input RatingUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+}
+
+input LocationCreateInput {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizations: OrganizationCreateNestedManyWithoutLocationInput
+  users: UserCreateNestedManyWithoutLocationInput
+}
+
+input LocationUncheckedCreateInput {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizations: OrganizationUncheckedCreateNestedManyWithoutLocationInput
+  users: UserUncheckedCreateNestedManyWithoutLocationInput
+}
+
+input LocationUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizations: OrganizationUpdateManyWithoutLocationInput
+  users: UserUpdateManyWithoutLocationInput
+}
+
+input LocationUncheckedUpdateInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizations: OrganizationUncheckedUpdateManyWithoutLocationInput
+  users: UserUncheckedUpdateManyWithoutLocationInput
+}
+
+input LocationCreateManyInput {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input LocationUpdateManyMutationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input LocationUncheckedUpdateManyInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntFilter
+}
+
+input StringFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: NestedStringFilter
+}
+
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: NestedStringNullableFilter
+}
+
+input DateTimeFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: NestedDateTimeFilter
+}
+
+input IntWithAggregatesFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntWithAggregatesFilter
+  count: NestedIntFilter
+  avg: NestedFloatFilter
+  sum: NestedIntFilter
+  min: NestedIntFilter
+  max: NestedIntFilter
+}
+
+input StringWithAggregatesFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: NestedStringWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedStringFilter
+  max: NestedStringFilter
+}
+
+input StringNullableWithAggregatesFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: NestedStringNullableWithAggregatesFilter
+  count: NestedIntNullableFilter
+  min: NestedStringNullableFilter
+  max: NestedStringNullableFilter
+}
+
+input DateTimeWithAggregatesFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: NestedDateTimeWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedDateTimeFilter
+  max: NestedDateTimeFilter
+}
+
+input BoolFilter {
+  equals: Boolean
+  not: NestedBoolFilter
+}
+
+input AttachmentRelationFilter {
+  is: AttachmentWhereInput
+  isNot: AttachmentWhereInput
+}
+
+input EnumRoleFilter {
+  equals: Role
+  in: [Role!]
+  notIn: [Role!]
+  not: NestedEnumRoleFilter
+}
+
+input EnumStateFilter {
+  equals: State
+  in: [State!]
+  notIn: [State!]
+  not: NestedEnumStateFilter
+}
+
+input OrderListRelationFilter {
+  every: OrderWhereInput
+  some: OrderWhereInput
+  none: OrderWhereInput
+}
+
+input RatingListRelationFilter {
+  every: RatingWhereInput
+  some: RatingWhereInput
+  none: RatingWhereInput
+}
+
+input LocationRelationFilter {
+  is: LocationWhereInput
+  isNot: LocationWhereInput
+}
+
+input OrganizationListRelationFilter {
+  every: OrganizationWhereInput
+  some: OrganizationWhereInput
+  none: OrganizationWhereInput
+}
+
+input BoolWithAggregatesFilter {
+  equals: Boolean
+  not: NestedBoolWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedBoolFilter
+  max: NestedBoolFilter
+}
+
+input EnumRoleWithAggregatesFilter {
+  equals: Role
+  in: [Role!]
+  notIn: [Role!]
+  not: NestedEnumRoleWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedEnumRoleFilter
+  max: NestedEnumRoleFilter
+}
+
+input EnumStateWithAggregatesFilter {
+  equals: State
+  in: [State!]
+  notIn: [State!]
+  not: NestedEnumStateWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedEnumStateFilter
+  max: NestedEnumStateFilter
+}
+
+input EnumAttachmentTypeFilter {
+  equals: AttachmentType
+  in: [AttachmentType!]
+  notIn: [AttachmentType!]
+  not: NestedEnumAttachmentTypeFilter
+}
+
+input UserListRelationFilter {
+  every: UserWhereInput
+  some: UserWhereInput
+  none: UserWhereInput
+}
+
+input ServiceListRelationFilter {
+  every: ServiceWhereInput
+  some: ServiceWhereInput
+  none: ServiceWhereInput
+}
+
+input EnumAttachmentTypeWithAggregatesFilter {
+  equals: AttachmentType
+  in: [AttachmentType!]
+  notIn: [AttachmentType!]
+  not: NestedEnumAttachmentTypeWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedEnumAttachmentTypeFilter
+  max: NestedEnumAttachmentTypeFilter
+}
+
+input ServiceCategoryListRelationFilter {
+  every: ServiceCategoryWhereInput
+  some: ServiceCategoryWhereInput
+  none: ServiceCategoryWhereInput
+}
+
+input UserRelationFilter {
+  is: UserWhereInput
+  isNot: UserWhereInput
+}
+
+input FloatFilter {
+  equals: Float
+  in: [Float!]
+  notIn: [Float!]
+  lt: Float
+  lte: Float
+  gt: Float
+  gte: Float
+  not: NestedFloatFilter
+}
+
+input OrganizationRelationFilter {
+  is: OrganizationWhereInput
+  isNot: OrganizationWhereInput
+}
+
+input ServiceCategoryRelationFilter {
+  is: ServiceCategoryWhereInput
+  isNot: ServiceCategoryWhereInput
+}
+
+input FloatWithAggregatesFilter {
+  equals: Float
+  in: [Float!]
+  notIn: [Float!]
+  lt: Float
+  lte: Float
+  gt: Float
+  gte: Float
+  not: NestedFloatWithAggregatesFilter
+  count: NestedIntFilter
+  avg: NestedFloatFilter
+  sum: NestedFloatFilter
+  min: NestedFloatFilter
+  max: NestedFloatFilter
+}
+
+input ServiceRelationFilter {
+  is: ServiceWhereInput
+  isNot: ServiceWhereInput
+}
+
+input StringFieldUpdateOperationsInput {
+  set: String
+}
+
+input NullableStringFieldUpdateOperationsInput {
+  set: String
+}
+
+input DateTimeFieldUpdateOperationsInput {
+  set: DateTime
+}
+
+input IntFieldUpdateOperationsInput {
+  set: Int
+  increment: Int
+  decrement: Int
+  multiply: Int
+  divide: Int
+}
+
+input AttachmentCreateNestedOneWithoutUsersInput {
+  create: AttachmentUncheckedCreateWithoutUsersInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutUsersInput
+  connect: AttachmentWhereUniqueInput
+}
+
+input OrderCreateNestedManyWithoutOwnerInput {
+  create: [OrderCreateWithoutOwnerInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOwnerInput!]
+  createMany: OrderCreateManyOwnerInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input RatingCreateNestedManyWithoutOwnerInput {
+  create: [RatingCreateWithoutOwnerInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOwnerInput!]
+  createMany: RatingCreateManyOwnerInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+}
+
+input LocationCreateNestedOneWithoutUsersInput {
+  create: LocationUncheckedCreateWithoutUsersInput
+  connectOrCreate: LocationCreateOrConnectWithoutUsersInput
+  connect: LocationWhereUniqueInput
+}
+
+input OrganizationCreateNestedManyWithoutOwnerInput {
+  create: [OrganizationCreateWithoutOwnerInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutOwnerInput!]
+  createMany: OrganizationCreateManyOwnerInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input OrganizationCreateNestedManyWithoutStaffsInput {
+  create: [OrganizationCreateWithoutStaffsInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutStaffsInput!]
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input OrderUncheckedCreateNestedManyWithoutOwnerInput {
+  create: [OrderCreateWithoutOwnerInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOwnerInput!]
+  createMany: OrderCreateManyOwnerInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input RatingUncheckedCreateNestedManyWithoutOwnerInput {
+  create: [RatingCreateWithoutOwnerInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOwnerInput!]
+  createMany: RatingCreateManyOwnerInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+}
+
+input OrganizationUncheckedCreateNestedManyWithoutOwnerInput {
+  create: [OrganizationCreateWithoutOwnerInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutOwnerInput!]
+  createMany: OrganizationCreateManyOwnerInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input BoolFieldUpdateOperationsInput {
+  set: Boolean
+}
+
+input EnumRoleFieldUpdateOperationsInput {
+  set: Role
+}
+
+input EnumStateFieldUpdateOperationsInput {
+  set: State
+}
+
+input AttachmentUpdateOneWithoutUsersInput {
+  create: AttachmentUncheckedCreateWithoutUsersInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutUsersInput
+  upsert: AttachmentUpsertWithoutUsersInput
+  connect: AttachmentWhereUniqueInput
+  disconnect: Boolean
+  delete: Boolean
+  update: AttachmentUncheckedUpdateWithoutUsersInput
+}
+
+input OrderUpdateManyWithoutOwnerInput {
+  create: [OrderCreateWithoutOwnerInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOwnerInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutOwnerInput!]
+  createMany: OrderCreateManyOwnerInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutOwnerInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutOwnerInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input RatingUpdateManyWithoutOwnerInput {
+  create: [RatingCreateWithoutOwnerInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOwnerInput!]
+  upsert: [RatingUpsertWithWhereUniqueWithoutOwnerInput!]
+  createMany: RatingCreateManyOwnerInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+  set: [RatingWhereUniqueInput!]
+  disconnect: [RatingWhereUniqueInput!]
+  delete: [RatingWhereUniqueInput!]
+  update: [RatingUpdateWithWhereUniqueWithoutOwnerInput!]
+  updateMany: [RatingUpdateManyWithWhereWithoutOwnerInput!]
+  deleteMany: [RatingScalarWhereInput!]
+}
+
+input LocationUpdateOneWithoutUsersInput {
+  create: LocationUncheckedCreateWithoutUsersInput
+  connectOrCreate: LocationCreateOrConnectWithoutUsersInput
+  upsert: LocationUpsertWithoutUsersInput
+  connect: LocationWhereUniqueInput
+  disconnect: Boolean
+  delete: Boolean
+  update: LocationUncheckedUpdateWithoutUsersInput
+}
+
+input OrganizationUpdateManyWithoutOwnerInput {
+  create: [OrganizationCreateWithoutOwnerInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutOwnerInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutOwnerInput!]
+  createMany: OrganizationCreateManyOwnerInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutOwnerInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutOwnerInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input OrganizationUpdateManyWithoutStaffsInput {
+  create: [OrganizationCreateWithoutStaffsInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutStaffsInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutStaffsInput!]
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutStaffsInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutStaffsInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input OrderUncheckedUpdateManyWithoutOwnerInput {
+  create: [OrderCreateWithoutOwnerInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOwnerInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutOwnerInput!]
+  createMany: OrderCreateManyOwnerInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutOwnerInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutOwnerInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input RatingUncheckedUpdateManyWithoutOwnerInput {
+  create: [RatingCreateWithoutOwnerInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOwnerInput!]
+  upsert: [RatingUpsertWithWhereUniqueWithoutOwnerInput!]
+  createMany: RatingCreateManyOwnerInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+  set: [RatingWhereUniqueInput!]
+  disconnect: [RatingWhereUniqueInput!]
+  delete: [RatingWhereUniqueInput!]
+  update: [RatingUpdateWithWhereUniqueWithoutOwnerInput!]
+  updateMany: [RatingUpdateManyWithWhereWithoutOwnerInput!]
+  deleteMany: [RatingScalarWhereInput!]
+}
+
+input OrganizationUncheckedUpdateManyWithoutOwnerInput {
+  create: [OrganizationCreateWithoutOwnerInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutOwnerInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutOwnerInput!]
+  createMany: OrganizationCreateManyOwnerInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutOwnerInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutOwnerInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input UserCreateNestedManyWithoutAvatorInput {
+  create: [UserCreateWithoutAvatorInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutAvatorInput!]
+  createMany: UserCreateManyAvatorInputEnvelope
+  connect: [UserWhereUniqueInput!]
+}
+
+input ServiceCreateNestedManyWithoutImageInput {
+  create: [ServiceCreateWithoutImageInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutImageInput!]
+  createMany: ServiceCreateManyImageInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+}
+
+input OrganizationCreateNestedManyWithoutLogoInput {
+  create: [OrganizationCreateWithoutLogoInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLogoInput!]
+  createMany: OrganizationCreateManyLogoInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input OrderCreateNestedManyWithoutReceiptInput {
+  create: [OrderCreateWithoutReceiptInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutReceiptInput!]
+  createMany: OrderCreateManyReceiptInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input UserUncheckedCreateNestedManyWithoutAvatorInput {
+  create: [UserCreateWithoutAvatorInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutAvatorInput!]
+  createMany: UserCreateManyAvatorInputEnvelope
+  connect: [UserWhereUniqueInput!]
+}
+
+input ServiceUncheckedCreateNestedManyWithoutImageInput {
+  create: [ServiceCreateWithoutImageInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutImageInput!]
+  createMany: ServiceCreateManyImageInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+}
+
+input OrganizationUncheckedCreateNestedManyWithoutLogoInput {
+  create: [OrganizationCreateWithoutLogoInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLogoInput!]
+  createMany: OrganizationCreateManyLogoInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input OrderUncheckedCreateNestedManyWithoutReceiptInput {
+  create: [OrderCreateWithoutReceiptInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutReceiptInput!]
+  createMany: OrderCreateManyReceiptInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input EnumAttachmentTypeFieldUpdateOperationsInput {
+  set: AttachmentType
+}
+
+input UserUpdateManyWithoutAvatorInput {
+  create: [UserCreateWithoutAvatorInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutAvatorInput!]
+  upsert: [UserUpsertWithWhereUniqueWithoutAvatorInput!]
+  createMany: UserCreateManyAvatorInputEnvelope
+  connect: [UserWhereUniqueInput!]
+  set: [UserWhereUniqueInput!]
+  disconnect: [UserWhereUniqueInput!]
+  delete: [UserWhereUniqueInput!]
+  update: [UserUpdateWithWhereUniqueWithoutAvatorInput!]
+  updateMany: [UserUpdateManyWithWhereWithoutAvatorInput!]
+  deleteMany: [UserScalarWhereInput!]
+}
+
+input ServiceUpdateManyWithoutImageInput {
+  create: [ServiceCreateWithoutImageInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutImageInput!]
+  upsert: [ServiceUpsertWithWhereUniqueWithoutImageInput!]
+  createMany: ServiceCreateManyImageInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+  set: [ServiceWhereUniqueInput!]
+  disconnect: [ServiceWhereUniqueInput!]
+  delete: [ServiceWhereUniqueInput!]
+  update: [ServiceUpdateWithWhereUniqueWithoutImageInput!]
+  updateMany: [ServiceUpdateManyWithWhereWithoutImageInput!]
+  deleteMany: [ServiceScalarWhereInput!]
+}
+
+input OrganizationUpdateManyWithoutLogoInput {
+  create: [OrganizationCreateWithoutLogoInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLogoInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutLogoInput!]
+  createMany: OrganizationCreateManyLogoInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutLogoInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutLogoInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input OrderUpdateManyWithoutReceiptInput {
+  create: [OrderCreateWithoutReceiptInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutReceiptInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutReceiptInput!]
+  createMany: OrderCreateManyReceiptInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutReceiptInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutReceiptInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input UserUncheckedUpdateManyWithoutAvatorInput {
+  create: [UserCreateWithoutAvatorInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutAvatorInput!]
+  upsert: [UserUpsertWithWhereUniqueWithoutAvatorInput!]
+  createMany: UserCreateManyAvatorInputEnvelope
+  connect: [UserWhereUniqueInput!]
+  set: [UserWhereUniqueInput!]
+  disconnect: [UserWhereUniqueInput!]
+  delete: [UserWhereUniqueInput!]
+  update: [UserUpdateWithWhereUniqueWithoutAvatorInput!]
+  updateMany: [UserUpdateManyWithWhereWithoutAvatorInput!]
+  deleteMany: [UserScalarWhereInput!]
+}
+
+input ServiceUncheckedUpdateManyWithoutImageInput {
+  create: [ServiceCreateWithoutImageInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutImageInput!]
+  upsert: [ServiceUpsertWithWhereUniqueWithoutImageInput!]
+  createMany: ServiceCreateManyImageInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+  set: [ServiceWhereUniqueInput!]
+  disconnect: [ServiceWhereUniqueInput!]
+  delete: [ServiceWhereUniqueInput!]
+  update: [ServiceUpdateWithWhereUniqueWithoutImageInput!]
+  updateMany: [ServiceUpdateManyWithWhereWithoutImageInput!]
+  deleteMany: [ServiceScalarWhereInput!]
+}
+
+input OrganizationUncheckedUpdateManyWithoutLogoInput {
+  create: [OrganizationCreateWithoutLogoInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLogoInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutLogoInput!]
+  createMany: OrganizationCreateManyLogoInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutLogoInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutLogoInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input OrderUncheckedUpdateManyWithoutReceiptInput {
+  create: [OrderCreateWithoutReceiptInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutReceiptInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutReceiptInput!]
+  createMany: OrderCreateManyReceiptInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutReceiptInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutReceiptInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input AttachmentCreateNestedOneWithoutOrganizationsInput {
+  create: AttachmentUncheckedCreateWithoutOrganizationsInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutOrganizationsInput
+  connect: AttachmentWhereUniqueInput
+}
+
+input ServiceCreateNestedManyWithoutOrganizationInput {
+  create: [ServiceCreateWithoutOrganizationInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutOrganizationInput!]
+  createMany: ServiceCreateManyOrganizationInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+}
+
+input OrderCreateNestedManyWithoutOrganizationInput {
+  create: [OrderCreateWithoutOrganizationInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOrganizationInput!]
+  createMany: OrderCreateManyOrganizationInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input UserCreateNestedManyWithoutStaffOfInput {
+  create: [UserCreateWithoutStaffOfInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutStaffOfInput!]
+  connect: [UserWhereUniqueInput!]
+}
+
+input LocationCreateNestedOneWithoutOrganizationsInput {
+  create: LocationUncheckedCreateWithoutOrganizationsInput
+  connectOrCreate: LocationCreateOrConnectWithoutOrganizationsInput
+  connect: LocationWhereUniqueInput
+}
+
+input ServiceCategoryCreateNestedManyWithoutOrganizationsInput {
+  create: [ServiceCategoryCreateWithoutOrganizationsInput!]
+  connectOrCreate: [ServiceCategoryCreateOrConnectWithoutOrganizationsInput!]
+  connect: [ServiceCategoryWhereUniqueInput!]
+}
+
+input RatingCreateNestedManyWithoutOrganizationInput {
+  create: [RatingCreateWithoutOrganizationInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOrganizationInput!]
+  createMany: RatingCreateManyOrganizationInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+}
+
+input UserCreateNestedOneWithoutOrganizationsInput {
+  create: UserUncheckedCreateWithoutOrganizationsInput
+  connectOrCreate: UserCreateOrConnectWithoutOrganizationsInput
+  connect: UserWhereUniqueInput
+}
+
+input ServiceUncheckedCreateNestedManyWithoutOrganizationInput {
+  create: [ServiceCreateWithoutOrganizationInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutOrganizationInput!]
+  createMany: ServiceCreateManyOrganizationInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+}
+
+input OrderUncheckedCreateNestedManyWithoutOrganizationInput {
+  create: [OrderCreateWithoutOrganizationInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOrganizationInput!]
+  createMany: OrderCreateManyOrganizationInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input RatingUncheckedCreateNestedManyWithoutOrganizationInput {
+  create: [RatingCreateWithoutOrganizationInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOrganizationInput!]
+  createMany: RatingCreateManyOrganizationInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+}
+
+input AttachmentUpdateOneRequiredWithoutOrganizationsInput {
+  create: AttachmentUncheckedCreateWithoutOrganizationsInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutOrganizationsInput
+  upsert: AttachmentUpsertWithoutOrganizationsInput
+  connect: AttachmentWhereUniqueInput
+  update: AttachmentUncheckedUpdateWithoutOrganizationsInput
+}
+
+input ServiceUpdateManyWithoutOrganizationInput {
+  create: [ServiceCreateWithoutOrganizationInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutOrganizationInput!]
+  upsert: [ServiceUpsertWithWhereUniqueWithoutOrganizationInput!]
+  createMany: ServiceCreateManyOrganizationInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+  set: [ServiceWhereUniqueInput!]
+  disconnect: [ServiceWhereUniqueInput!]
+  delete: [ServiceWhereUniqueInput!]
+  update: [ServiceUpdateWithWhereUniqueWithoutOrganizationInput!]
+  updateMany: [ServiceUpdateManyWithWhereWithoutOrganizationInput!]
+  deleteMany: [ServiceScalarWhereInput!]
+}
+
+input OrderUpdateManyWithoutOrganizationInput {
+  create: [OrderCreateWithoutOrganizationInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOrganizationInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutOrganizationInput!]
+  createMany: OrderCreateManyOrganizationInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutOrganizationInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutOrganizationInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input UserUpdateManyWithoutStaffOfInput {
+  create: [UserCreateWithoutStaffOfInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutStaffOfInput!]
+  upsert: [UserUpsertWithWhereUniqueWithoutStaffOfInput!]
+  connect: [UserWhereUniqueInput!]
+  set: [UserWhereUniqueInput!]
+  disconnect: [UserWhereUniqueInput!]
+  delete: [UserWhereUniqueInput!]
+  update: [UserUpdateWithWhereUniqueWithoutStaffOfInput!]
+  updateMany: [UserUpdateManyWithWhereWithoutStaffOfInput!]
+  deleteMany: [UserScalarWhereInput!]
+}
+
+input LocationUpdateOneRequiredWithoutOrganizationsInput {
+  create: LocationUncheckedCreateWithoutOrganizationsInput
+  connectOrCreate: LocationCreateOrConnectWithoutOrganizationsInput
+  upsert: LocationUpsertWithoutOrganizationsInput
+  connect: LocationWhereUniqueInput
+  update: LocationUncheckedUpdateWithoutOrganizationsInput
+}
+
+input ServiceCategoryUpdateManyWithoutOrganizationsInput {
+  create: [ServiceCategoryCreateWithoutOrganizationsInput!]
+  connectOrCreate: [ServiceCategoryCreateOrConnectWithoutOrganizationsInput!]
+  upsert: [ServiceCategoryUpsertWithWhereUniqueWithoutOrganizationsInput!]
+  connect: [ServiceCategoryWhereUniqueInput!]
+  set: [ServiceCategoryWhereUniqueInput!]
+  disconnect: [ServiceCategoryWhereUniqueInput!]
+  delete: [ServiceCategoryWhereUniqueInput!]
+  update: [ServiceCategoryUpdateWithWhereUniqueWithoutOrganizationsInput!]
+  updateMany: [ServiceCategoryUpdateManyWithWhereWithoutOrganizationsInput!]
+  deleteMany: [ServiceCategoryScalarWhereInput!]
+}
+
+input RatingUpdateManyWithoutOrganizationInput {
+  create: [RatingCreateWithoutOrganizationInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOrganizationInput!]
+  upsert: [RatingUpsertWithWhereUniqueWithoutOrganizationInput!]
+  createMany: RatingCreateManyOrganizationInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+  set: [RatingWhereUniqueInput!]
+  disconnect: [RatingWhereUniqueInput!]
+  delete: [RatingWhereUniqueInput!]
+  update: [RatingUpdateWithWhereUniqueWithoutOrganizationInput!]
+  updateMany: [RatingUpdateManyWithWhereWithoutOrganizationInput!]
+  deleteMany: [RatingScalarWhereInput!]
+}
+
+input UserUpdateOneRequiredWithoutOrganizationsInput {
+  create: UserUncheckedCreateWithoutOrganizationsInput
+  connectOrCreate: UserCreateOrConnectWithoutOrganizationsInput
+  upsert: UserUpsertWithoutOrganizationsInput
+  connect: UserWhereUniqueInput
+  update: UserUncheckedUpdateWithoutOrganizationsInput
+}
+
+input ServiceUncheckedUpdateManyWithoutOrganizationInput {
+  create: [ServiceCreateWithoutOrganizationInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutOrganizationInput!]
+  upsert: [ServiceUpsertWithWhereUniqueWithoutOrganizationInput!]
+  createMany: ServiceCreateManyOrganizationInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+  set: [ServiceWhereUniqueInput!]
+  disconnect: [ServiceWhereUniqueInput!]
+  delete: [ServiceWhereUniqueInput!]
+  update: [ServiceUpdateWithWhereUniqueWithoutOrganizationInput!]
+  updateMany: [ServiceUpdateManyWithWhereWithoutOrganizationInput!]
+  deleteMany: [ServiceScalarWhereInput!]
+}
+
+input OrderUncheckedUpdateManyWithoutOrganizationInput {
+  create: [OrderCreateWithoutOrganizationInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutOrganizationInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutOrganizationInput!]
+  createMany: OrderCreateManyOrganizationInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutOrganizationInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutOrganizationInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input RatingUncheckedUpdateManyWithoutOrganizationInput {
+  create: [RatingCreateWithoutOrganizationInput!]
+  connectOrCreate: [RatingCreateOrConnectWithoutOrganizationInput!]
+  upsert: [RatingUpsertWithWhereUniqueWithoutOrganizationInput!]
+  createMany: RatingCreateManyOrganizationInputEnvelope
+  connect: [RatingWhereUniqueInput!]
+  set: [RatingWhereUniqueInput!]
+  disconnect: [RatingWhereUniqueInput!]
+  delete: [RatingWhereUniqueInput!]
+  update: [RatingUpdateWithWhereUniqueWithoutOrganizationInput!]
+  updateMany: [RatingUpdateManyWithWhereWithoutOrganizationInput!]
+  deleteMany: [RatingScalarWhereInput!]
+}
+
+input OrganizationCreateNestedOneWithoutServicesInput {
+  create: OrganizationUncheckedCreateWithoutServicesInput
+  connectOrCreate: OrganizationCreateOrConnectWithoutServicesInput
+  connect: OrganizationWhereUniqueInput
+}
+
+input AttachmentCreateNestedOneWithoutServicesInput {
+  create: AttachmentUncheckedCreateWithoutServicesInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutServicesInput
+  connect: AttachmentWhereUniqueInput
+}
+
+input ServiceCategoryCreateNestedOneWithoutServicesInput {
+  create: ServiceCategoryUncheckedCreateWithoutServicesInput
+  connectOrCreate: ServiceCategoryCreateOrConnectWithoutServicesInput
+  connect: ServiceCategoryWhereUniqueInput
+}
+
+input OrderCreateNestedManyWithoutServiceInput {
+  create: [OrderCreateWithoutServiceInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutServiceInput!]
+  createMany: OrderCreateManyServiceInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input OrderUncheckedCreateNestedManyWithoutServiceInput {
+  create: [OrderCreateWithoutServiceInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutServiceInput!]
+  createMany: OrderCreateManyServiceInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+}
+
+input FloatFieldUpdateOperationsInput {
+  set: Float
+  increment: Float
+  decrement: Float
+  multiply: Float
+  divide: Float
+}
+
+input OrganizationUpdateOneRequiredWithoutServicesInput {
+  create: OrganizationUncheckedCreateWithoutServicesInput
+  connectOrCreate: OrganizationCreateOrConnectWithoutServicesInput
+  upsert: OrganizationUpsertWithoutServicesInput
+  connect: OrganizationWhereUniqueInput
+  update: OrganizationUncheckedUpdateWithoutServicesInput
+}
+
+input AttachmentUpdateOneRequiredWithoutServicesInput {
+  create: AttachmentUncheckedCreateWithoutServicesInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutServicesInput
+  upsert: AttachmentUpsertWithoutServicesInput
+  connect: AttachmentWhereUniqueInput
+  update: AttachmentUncheckedUpdateWithoutServicesInput
+}
+
+input ServiceCategoryUpdateOneRequiredWithoutServicesInput {
+  create: ServiceCategoryUncheckedCreateWithoutServicesInput
+  connectOrCreate: ServiceCategoryCreateOrConnectWithoutServicesInput
+  upsert: ServiceCategoryUpsertWithoutServicesInput
+  connect: ServiceCategoryWhereUniqueInput
+  update: ServiceCategoryUncheckedUpdateWithoutServicesInput
+}
+
+input OrderUpdateManyWithoutServiceInput {
+  create: [OrderCreateWithoutServiceInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutServiceInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutServiceInput!]
+  createMany: OrderCreateManyServiceInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutServiceInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutServiceInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input OrderUncheckedUpdateManyWithoutServiceInput {
+  create: [OrderCreateWithoutServiceInput!]
+  connectOrCreate: [OrderCreateOrConnectWithoutServiceInput!]
+  upsert: [OrderUpsertWithWhereUniqueWithoutServiceInput!]
+  createMany: OrderCreateManyServiceInputEnvelope
+  connect: [OrderWhereUniqueInput!]
+  set: [OrderWhereUniqueInput!]
+  disconnect: [OrderWhereUniqueInput!]
+  delete: [OrderWhereUniqueInput!]
+  update: [OrderUpdateWithWhereUniqueWithoutServiceInput!]
+  updateMany: [OrderUpdateManyWithWhereWithoutServiceInput!]
+  deleteMany: [OrderScalarWhereInput!]
+}
+
+input ServiceCreateNestedOneWithoutOrdersInput {
+  create: ServiceUncheckedCreateWithoutOrdersInput
+  connectOrCreate: ServiceCreateOrConnectWithoutOrdersInput
+  connect: ServiceWhereUniqueInput
+}
+
+input OrganizationCreateNestedOneWithoutOrdersInput {
+  create: OrganizationUncheckedCreateWithoutOrdersInput
+  connectOrCreate: OrganizationCreateOrConnectWithoutOrdersInput
+  connect: OrganizationWhereUniqueInput
+}
+
+input UserCreateNestedOneWithoutOrdersInput {
+  create: UserUncheckedCreateWithoutOrdersInput
+  connectOrCreate: UserCreateOrConnectWithoutOrdersInput
+  connect: UserWhereUniqueInput
+}
+
+input AttachmentCreateNestedOneWithoutOrdersInput {
+  create: AttachmentUncheckedCreateWithoutOrdersInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutOrdersInput
+  connect: AttachmentWhereUniqueInput
+}
+
+input ServiceUpdateOneRequiredWithoutOrdersInput {
+  create: ServiceUncheckedCreateWithoutOrdersInput
+  connectOrCreate: ServiceCreateOrConnectWithoutOrdersInput
+  upsert: ServiceUpsertWithoutOrdersInput
+  connect: ServiceWhereUniqueInput
+  update: ServiceUncheckedUpdateWithoutOrdersInput
+}
+
+input OrganizationUpdateOneRequiredWithoutOrdersInput {
+  create: OrganizationUncheckedCreateWithoutOrdersInput
+  connectOrCreate: OrganizationCreateOrConnectWithoutOrdersInput
+  upsert: OrganizationUpsertWithoutOrdersInput
+  connect: OrganizationWhereUniqueInput
+  update: OrganizationUncheckedUpdateWithoutOrdersInput
+}
+
+input UserUpdateOneRequiredWithoutOrdersInput {
+  create: UserUncheckedCreateWithoutOrdersInput
+  connectOrCreate: UserCreateOrConnectWithoutOrdersInput
+  upsert: UserUpsertWithoutOrdersInput
+  connect: UserWhereUniqueInput
+  update: UserUncheckedUpdateWithoutOrdersInput
+}
+
+input AttachmentUpdateOneWithoutOrdersInput {
+  create: AttachmentUncheckedCreateWithoutOrdersInput
+  connectOrCreate: AttachmentCreateOrConnectWithoutOrdersInput
+  upsert: AttachmentUpsertWithoutOrdersInput
+  connect: AttachmentWhereUniqueInput
+  disconnect: Boolean
+  delete: Boolean
+  update: AttachmentUncheckedUpdateWithoutOrdersInput
+}
+
+input OrganizationCreateNestedManyWithoutOffersInput {
+  create: [OrganizationCreateWithoutOffersInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutOffersInput!]
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input ServiceCreateNestedManyWithoutCategoryInput {
+  create: [ServiceCreateWithoutCategoryInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutCategoryInput!]
+  createMany: ServiceCreateManyCategoryInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+}
+
+input ServiceUncheckedCreateNestedManyWithoutCategoryInput {
+  create: [ServiceCreateWithoutCategoryInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutCategoryInput!]
+  createMany: ServiceCreateManyCategoryInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+}
+
+input OrganizationUpdateManyWithoutOffersInput {
+  create: [OrganizationCreateWithoutOffersInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutOffersInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutOffersInput!]
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutOffersInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutOffersInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input ServiceUpdateManyWithoutCategoryInput {
+  create: [ServiceCreateWithoutCategoryInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutCategoryInput!]
+  upsert: [ServiceUpsertWithWhereUniqueWithoutCategoryInput!]
+  createMany: ServiceCreateManyCategoryInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+  set: [ServiceWhereUniqueInput!]
+  disconnect: [ServiceWhereUniqueInput!]
+  delete: [ServiceWhereUniqueInput!]
+  update: [ServiceUpdateWithWhereUniqueWithoutCategoryInput!]
+  updateMany: [ServiceUpdateManyWithWhereWithoutCategoryInput!]
+  deleteMany: [ServiceScalarWhereInput!]
+}
+
+input ServiceUncheckedUpdateManyWithoutCategoryInput {
+  create: [ServiceCreateWithoutCategoryInput!]
+  connectOrCreate: [ServiceCreateOrConnectWithoutCategoryInput!]
+  upsert: [ServiceUpsertWithWhereUniqueWithoutCategoryInput!]
+  createMany: ServiceCreateManyCategoryInputEnvelope
+  connect: [ServiceWhereUniqueInput!]
+  set: [ServiceWhereUniqueInput!]
+  disconnect: [ServiceWhereUniqueInput!]
+  delete: [ServiceWhereUniqueInput!]
+  update: [ServiceUpdateWithWhereUniqueWithoutCategoryInput!]
+  updateMany: [ServiceUpdateManyWithWhereWithoutCategoryInput!]
+  deleteMany: [ServiceScalarWhereInput!]
+}
+
+input OrganizationCreateNestedOneWithoutRatingsInput {
+  create: OrganizationUncheckedCreateWithoutRatingsInput
+  connectOrCreate: OrganizationCreateOrConnectWithoutRatingsInput
+  connect: OrganizationWhereUniqueInput
+}
+
+input UserCreateNestedOneWithoutRatingsInput {
+  create: UserUncheckedCreateWithoutRatingsInput
+  connectOrCreate: UserCreateOrConnectWithoutRatingsInput
+  connect: UserWhereUniqueInput
+}
+
+input OrganizationUpdateOneRequiredWithoutRatingsInput {
+  create: OrganizationUncheckedCreateWithoutRatingsInput
+  connectOrCreate: OrganizationCreateOrConnectWithoutRatingsInput
+  upsert: OrganizationUpsertWithoutRatingsInput
+  connect: OrganizationWhereUniqueInput
+  update: OrganizationUncheckedUpdateWithoutRatingsInput
+}
+
+input UserUpdateOneRequiredWithoutRatingsInput {
+  create: UserUncheckedCreateWithoutRatingsInput
+  connectOrCreate: UserCreateOrConnectWithoutRatingsInput
+  upsert: UserUpsertWithoutRatingsInput
+  connect: UserWhereUniqueInput
+  update: UserUncheckedUpdateWithoutRatingsInput
+}
+
+input OrganizationCreateNestedManyWithoutLocationInput {
+  create: [OrganizationCreateWithoutLocationInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLocationInput!]
+  createMany: OrganizationCreateManyLocationInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input UserCreateNestedManyWithoutLocationInput {
+  create: [UserCreateWithoutLocationInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutLocationInput!]
+  createMany: UserCreateManyLocationInputEnvelope
+  connect: [UserWhereUniqueInput!]
+}
+
+input OrganizationUncheckedCreateNestedManyWithoutLocationInput {
+  create: [OrganizationCreateWithoutLocationInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLocationInput!]
+  createMany: OrganizationCreateManyLocationInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+}
+
+input UserUncheckedCreateNestedManyWithoutLocationInput {
+  create: [UserCreateWithoutLocationInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutLocationInput!]
+  createMany: UserCreateManyLocationInputEnvelope
+  connect: [UserWhereUniqueInput!]
+}
+
+input OrganizationUpdateManyWithoutLocationInput {
+  create: [OrganizationCreateWithoutLocationInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLocationInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutLocationInput!]
+  createMany: OrganizationCreateManyLocationInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutLocationInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutLocationInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input UserUpdateManyWithoutLocationInput {
+  create: [UserCreateWithoutLocationInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutLocationInput!]
+  upsert: [UserUpsertWithWhereUniqueWithoutLocationInput!]
+  createMany: UserCreateManyLocationInputEnvelope
+  connect: [UserWhereUniqueInput!]
+  set: [UserWhereUniqueInput!]
+  disconnect: [UserWhereUniqueInput!]
+  delete: [UserWhereUniqueInput!]
+  update: [UserUpdateWithWhereUniqueWithoutLocationInput!]
+  updateMany: [UserUpdateManyWithWhereWithoutLocationInput!]
+  deleteMany: [UserScalarWhereInput!]
+}
+
+input OrganizationUncheckedUpdateManyWithoutLocationInput {
+  create: [OrganizationCreateWithoutLocationInput!]
+  connectOrCreate: [OrganizationCreateOrConnectWithoutLocationInput!]
+  upsert: [OrganizationUpsertWithWhereUniqueWithoutLocationInput!]
+  createMany: OrganizationCreateManyLocationInputEnvelope
+  connect: [OrganizationWhereUniqueInput!]
+  set: [OrganizationWhereUniqueInput!]
+  disconnect: [OrganizationWhereUniqueInput!]
+  delete: [OrganizationWhereUniqueInput!]
+  update: [OrganizationUpdateWithWhereUniqueWithoutLocationInput!]
+  updateMany: [OrganizationUpdateManyWithWhereWithoutLocationInput!]
+  deleteMany: [OrganizationScalarWhereInput!]
+}
+
+input UserUncheckedUpdateManyWithoutLocationInput {
+  create: [UserCreateWithoutLocationInput!]
+  connectOrCreate: [UserCreateOrConnectWithoutLocationInput!]
+  upsert: [UserUpsertWithWhereUniqueWithoutLocationInput!]
+  createMany: UserCreateManyLocationInputEnvelope
+  connect: [UserWhereUniqueInput!]
+  set: [UserWhereUniqueInput!]
+  disconnect: [UserWhereUniqueInput!]
+  delete: [UserWhereUniqueInput!]
+  update: [UserUpdateWithWhereUniqueWithoutLocationInput!]
+  updateMany: [UserUpdateManyWithWhereWithoutLocationInput!]
+  deleteMany: [UserScalarWhereInput!]
+}
+
+input NestedIntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntFilter
+}
+
+input NestedStringFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: NestedStringFilter
+}
+
+input NestedStringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: NestedStringNullableFilter
+}
+
+input NestedDateTimeFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: NestedDateTimeFilter
+}
+
+input NestedIntWithAggregatesFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntWithAggregatesFilter
+  count: NestedIntFilter
+  avg: NestedFloatFilter
+  sum: NestedIntFilter
+  min: NestedIntFilter
+  max: NestedIntFilter
+}
+
+input NestedFloatFilter {
+  equals: Float
+  in: [Float!]
+  notIn: [Float!]
+  lt: Float
+  lte: Float
+  gt: Float
+  gte: Float
+  not: NestedFloatFilter
+}
+
+input NestedStringWithAggregatesFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: NestedStringWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedStringFilter
+  max: NestedStringFilter
+}
+
+input NestedStringNullableWithAggregatesFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: NestedStringNullableWithAggregatesFilter
+  count: NestedIntNullableFilter
+  min: NestedStringNullableFilter
+  max: NestedStringNullableFilter
+}
+
+input NestedIntNullableFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntNullableFilter
+}
+
+input NestedDateTimeWithAggregatesFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: NestedDateTimeWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedDateTimeFilter
+  max: NestedDateTimeFilter
+}
+
+input NestedBoolFilter {
+  equals: Boolean
+  not: NestedBoolFilter
+}
+
+input NestedEnumRoleFilter {
+  equals: Role
+  in: [Role!]
+  notIn: [Role!]
+  not: NestedEnumRoleFilter
+}
+
+input NestedEnumStateFilter {
+  equals: State
+  in: [State!]
+  notIn: [State!]
+  not: NestedEnumStateFilter
+}
+
+input NestedBoolWithAggregatesFilter {
+  equals: Boolean
+  not: NestedBoolWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedBoolFilter
+  max: NestedBoolFilter
+}
+
+input NestedEnumRoleWithAggregatesFilter {
+  equals: Role
+  in: [Role!]
+  notIn: [Role!]
+  not: NestedEnumRoleWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedEnumRoleFilter
+  max: NestedEnumRoleFilter
+}
+
+input NestedEnumStateWithAggregatesFilter {
+  equals: State
+  in: [State!]
+  notIn: [State!]
+  not: NestedEnumStateWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedEnumStateFilter
+  max: NestedEnumStateFilter
+}
+
+input NestedEnumAttachmentTypeFilter {
+  equals: AttachmentType
+  in: [AttachmentType!]
+  notIn: [AttachmentType!]
+  not: NestedEnumAttachmentTypeFilter
+}
+
+input NestedEnumAttachmentTypeWithAggregatesFilter {
+  equals: AttachmentType
+  in: [AttachmentType!]
+  notIn: [AttachmentType!]
+  not: NestedEnumAttachmentTypeWithAggregatesFilter
+  count: NestedIntFilter
+  min: NestedEnumAttachmentTypeFilter
+  max: NestedEnumAttachmentTypeFilter
+}
+
+input NestedFloatWithAggregatesFilter {
+  equals: Float
+  in: [Float!]
+  notIn: [Float!]
+  lt: Float
+  lte: Float
+  gt: Float
+  gte: Float
+  not: NestedFloatWithAggregatesFilter
+  count: NestedIntFilter
+  avg: NestedFloatFilter
+  sum: NestedFloatFilter
+  min: NestedFloatFilter
+  max: NestedFloatFilter
+}
+
+input AttachmentCreateOrConnectWithoutUsersInput {
+  where: AttachmentWhereUniqueInput!
+  create: AttachmentUncheckedCreateWithoutUsersInput!
+}
+
+input OrderCreateWithoutOwnerInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  service: ServiceCreateNestedOneWithoutOrdersInput!
+  organization: OrganizationCreateNestedOneWithoutOrdersInput!
+  receipt: AttachmentCreateNestedOneWithoutOrdersInput
+}
+
+input OrderUncheckedCreateWithoutOwnerInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  organizationId: String!
+  receiptId: String
+}
+
+input OrderCreateOrConnectWithoutOwnerInput {
+  where: OrderWhereUniqueInput!
+  create: OrderUncheckedCreateWithoutOwnerInput!
+}
+
+input OrderCreateManyOwnerInputEnvelope {
+  data: [OrderCreateManyOwnerInput!]!
+  skipDuplicates: Boolean
+}
+
+input RatingCreateWithoutOwnerInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  organization: OrganizationCreateNestedOneWithoutRatingsInput!
+}
+
+input RatingUncheckedCreateWithoutOwnerInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+}
+
+input RatingCreateOrConnectWithoutOwnerInput {
+  where: RatingWhereUniqueInput!
+  create: RatingUncheckedCreateWithoutOwnerInput!
+}
+
+input RatingCreateManyOwnerInputEnvelope {
+  data: [RatingCreateManyOwnerInput!]!
+  skipDuplicates: Boolean
+}
+
+input LocationCreateWithoutUsersInput {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizations: OrganizationCreateNestedManyWithoutLocationInput
+}
+
+input LocationUncheckedCreateWithoutUsersInput {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizations: OrganizationUncheckedCreateNestedManyWithoutLocationInput
+}
+
+input LocationCreateOrConnectWithoutUsersInput {
+  where: LocationWhereUniqueInput!
+  create: LocationUncheckedCreateWithoutUsersInput!
+}
+
+input OrganizationCreateWithoutOwnerInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationUncheckedCreateWithoutOwnerInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutOwnerInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutOwnerInput!
+}
+
+input OrganizationCreateManyOwnerInputEnvelope {
+  data: [OrganizationCreateManyOwnerInput!]!
+  skipDuplicates: Boolean
+}
+
+input OrganizationCreateWithoutStaffsInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateWithoutStaffsInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutStaffsInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutStaffsInput!
+}
+
+input AttachmentUpsertWithoutUsersInput {
+  update: AttachmentUncheckedUpdateWithoutUsersInput!
+  create: AttachmentUncheckedCreateWithoutUsersInput!
+}
+
+input AttachmentUpdateWithoutUsersInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  services: ServiceUpdateManyWithoutImageInput
+  organizations: OrganizationUpdateManyWithoutLogoInput
+  orders: OrderUpdateManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedUpdateWithoutUsersInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutImageInput
+  organizations: OrganizationUncheckedUpdateManyWithoutLogoInput
+  orders: OrderUncheckedUpdateManyWithoutReceiptInput
+}
+
+input OrderUpsertWithWhereUniqueWithoutOwnerInput {
+  where: OrderWhereUniqueInput!
+  update: OrderUncheckedUpdateWithoutOwnerInput!
+  create: OrderUncheckedCreateWithoutOwnerInput!
+}
+
+input OrderUpdateWithWhereUniqueWithoutOwnerInput {
+  where: OrderWhereUniqueInput!
+  data: OrderUncheckedUpdateWithoutOwnerInput!
+}
+
+input OrderUpdateManyWithWhereWithoutOwnerInput {
+  where: OrderScalarWhereInput!
+  data: OrderUncheckedUpdateManyWithoutOrdersInput!
+}
+
+input OrderScalarWhereInput {
+  AND: [OrderScalarWhereInput!]
+  OR: [OrderScalarWhereInput!]
+  NOT: [OrderScalarWhereInput!]
+  id: StringFilter
+  quantity: IntFilter
+  state: EnumStateFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  serviceId: StringFilter
+  organizationId: StringFilter
+  ownerId: StringFilter
+  receiptId: StringNullableFilter
+}
+
+input RatingUpsertWithWhereUniqueWithoutOwnerInput {
+  where: RatingWhereUniqueInput!
+  update: RatingUncheckedUpdateWithoutOwnerInput!
+  create: RatingUncheckedCreateWithoutOwnerInput!
+}
+
+input RatingUpdateWithWhereUniqueWithoutOwnerInput {
+  where: RatingWhereUniqueInput!
+  data: RatingUncheckedUpdateWithoutOwnerInput!
+}
+
+input RatingUpdateManyWithWhereWithoutOwnerInput {
+  where: RatingScalarWhereInput!
+  data: RatingUncheckedUpdateManyWithoutRatingsInput!
+}
+
+input RatingScalarWhereInput {
+  AND: [RatingScalarWhereInput!]
+  OR: [RatingScalarWhereInput!]
+  NOT: [RatingScalarWhereInput!]
+  id: StringFilter
+  value: IntFilter
+  comment: StringNullableFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  ownerId: StringFilter
+  organizationId: StringFilter
+}
+
+input LocationUpsertWithoutUsersInput {
+  update: LocationUncheckedUpdateWithoutUsersInput!
+  create: LocationUncheckedCreateWithoutUsersInput!
+}
+
+input LocationUpdateWithoutUsersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizations: OrganizationUpdateManyWithoutLocationInput
+}
+
+input LocationUncheckedUpdateWithoutUsersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizations: OrganizationUncheckedUpdateManyWithoutLocationInput
+}
+
+input OrganizationUpsertWithWhereUniqueWithoutOwnerInput {
+  where: OrganizationWhereUniqueInput!
+  update: OrganizationUncheckedUpdateWithoutOwnerInput!
+  create: OrganizationUncheckedCreateWithoutOwnerInput!
+}
+
+input OrganizationUpdateWithWhereUniqueWithoutOwnerInput {
+  where: OrganizationWhereUniqueInput!
+  data: OrganizationUncheckedUpdateWithoutOwnerInput!
+}
+
+input OrganizationUpdateManyWithWhereWithoutOwnerInput {
+  where: OrganizationScalarWhereInput!
+  data: OrganizationUncheckedUpdateManyWithoutOrganizationsInput!
+}
+
+input OrganizationScalarWhereInput {
+  AND: [OrganizationScalarWhereInput!]
+  OR: [OrganizationScalarWhereInput!]
+  NOT: [OrganizationScalarWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  description: StringNullableFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  logoId: StringFilter
+  locationId: StringFilter
+  ownerId: StringFilter
+}
+
+input OrganizationUpsertWithWhereUniqueWithoutStaffsInput {
+  where: OrganizationWhereUniqueInput!
+  update: OrganizationUncheckedUpdateWithoutStaffsInput!
+  create: OrganizationUncheckedCreateWithoutStaffsInput!
+}
+
+input OrganizationUpdateWithWhereUniqueWithoutStaffsInput {
+  where: OrganizationWhereUniqueInput!
+  data: OrganizationUncheckedUpdateWithoutStaffsInput!
+}
+
+input OrganizationUpdateManyWithWhereWithoutStaffsInput {
+  where: OrganizationScalarWhereInput!
+  data: OrganizationUncheckedUpdateManyWithoutStaffOfInput!
+}
+
+input UserCreateWithoutAvatorInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  orders: OrderCreateNestedManyWithoutOwnerInput
+  ratings: RatingCreateNestedManyWithoutOwnerInput
+  location: LocationCreateNestedOneWithoutUsersInput
+  organizations: OrganizationCreateNestedManyWithoutOwnerInput
+  staffOf: OrganizationCreateNestedManyWithoutStaffsInput
+}
+
+input UserUncheckedCreateWithoutAvatorInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  locationId: String
+  orders: OrderUncheckedCreateNestedManyWithoutOwnerInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOwnerInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+input UserCreateOrConnectWithoutAvatorInput {
+  where: UserWhereUniqueInput!
+  create: UserUncheckedCreateWithoutAvatorInput!
+}
+
+input UserCreateManyAvatorInputEnvelope {
+  data: [UserCreateManyAvatorInput!]!
+  skipDuplicates: Boolean
+}
+
+input ServiceCreateWithoutImageInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organization: OrganizationCreateNestedOneWithoutServicesInput!
+  category: ServiceCategoryCreateNestedOneWithoutServicesInput!
+  orders: OrderCreateNestedManyWithoutServiceInput
+}
+
+input ServiceUncheckedCreateWithoutImageInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  serviceCategoryId: String!
+  orders: OrderUncheckedCreateNestedManyWithoutServiceInput
+}
+
+input ServiceCreateOrConnectWithoutImageInput {
+  where: ServiceWhereUniqueInput!
+  create: ServiceUncheckedCreateWithoutImageInput!
+}
+
+input ServiceCreateManyImageInputEnvelope {
+  data: [ServiceCreateManyImageInput!]!
+  skipDuplicates: Boolean
+}
+
+input OrganizationCreateWithoutLogoInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateWithoutLogoInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  locationId: String!
+  ownerId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutLogoInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutLogoInput!
+}
+
+input OrganizationCreateManyLogoInputEnvelope {
+  data: [OrganizationCreateManyLogoInput!]!
+  skipDuplicates: Boolean
+}
+
+input OrderCreateWithoutReceiptInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  service: ServiceCreateNestedOneWithoutOrdersInput!
+  organization: OrganizationCreateNestedOneWithoutOrdersInput!
+  owner: UserCreateNestedOneWithoutOrdersInput!
+}
+
+input OrderUncheckedCreateWithoutReceiptInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  organizationId: String!
+  ownerId: String!
+}
+
+input OrderCreateOrConnectWithoutReceiptInput {
+  where: OrderWhereUniqueInput!
+  create: OrderUncheckedCreateWithoutReceiptInput!
+}
+
+input OrderCreateManyReceiptInputEnvelope {
+  data: [OrderCreateManyReceiptInput!]!
+  skipDuplicates: Boolean
+}
+
+input UserUpsertWithWhereUniqueWithoutAvatorInput {
+  where: UserWhereUniqueInput!
+  update: UserUncheckedUpdateWithoutAvatorInput!
+  create: UserUncheckedCreateWithoutAvatorInput!
+}
+
+input UserUpdateWithWhereUniqueWithoutAvatorInput {
+  where: UserWhereUniqueInput!
+  data: UserUncheckedUpdateWithoutAvatorInput!
+}
+
+input UserUpdateManyWithWhereWithoutAvatorInput {
+  where: UserScalarWhereInput!
+  data: UserUncheckedUpdateManyWithoutUsersInput!
+}
+
+input UserScalarWhereInput {
+  AND: [UserScalarWhereInput!]
+  OR: [UserScalarWhereInput!]
+  NOT: [UserScalarWhereInput!]
+  id: StringFilter
+  email: StringFilter
+  displayName: StringFilter
+  phoneNumber: StringNullableFilter
+  emailVerified: BoolFilter
+  disabled: BoolFilter
+  role: EnumRoleFilter
+  state: EnumStateFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  avatorId: StringNullableFilter
+  locationId: StringNullableFilter
+}
+
+input ServiceUpsertWithWhereUniqueWithoutImageInput {
+  where: ServiceWhereUniqueInput!
+  update: ServiceUncheckedUpdateWithoutImageInput!
+  create: ServiceUncheckedCreateWithoutImageInput!
+}
+
+input ServiceUpdateWithWhereUniqueWithoutImageInput {
+  where: ServiceWhereUniqueInput!
+  data: ServiceUncheckedUpdateWithoutImageInput!
+}
+
+input ServiceUpdateManyWithWhereWithoutImageInput {
+  where: ServiceScalarWhereInput!
+  data: ServiceUncheckedUpdateManyWithoutServicesInput!
+}
+
+input ServiceScalarWhereInput {
+  AND: [ServiceScalarWhereInput!]
+  OR: [ServiceScalarWhereInput!]
+  NOT: [ServiceScalarWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  description: StringNullableFilter
+  price: FloatFilter
+  state: EnumStateFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  organizationId: StringFilter
+  imageId: StringFilter
+  serviceCategoryId: StringFilter
+}
+
+input OrganizationUpsertWithWhereUniqueWithoutLogoInput {
+  where: OrganizationWhereUniqueInput!
+  update: OrganizationUncheckedUpdateWithoutLogoInput!
+  create: OrganizationUncheckedCreateWithoutLogoInput!
+}
+
+input OrganizationUpdateWithWhereUniqueWithoutLogoInput {
+  where: OrganizationWhereUniqueInput!
+  data: OrganizationUncheckedUpdateWithoutLogoInput!
+}
+
+input OrganizationUpdateManyWithWhereWithoutLogoInput {
+  where: OrganizationScalarWhereInput!
+  data: OrganizationUncheckedUpdateManyWithoutOrganizationsInput!
+}
+
+input OrderUpsertWithWhereUniqueWithoutReceiptInput {
+  where: OrderWhereUniqueInput!
+  update: OrderUncheckedUpdateWithoutReceiptInput!
+  create: OrderUncheckedCreateWithoutReceiptInput!
+}
+
+input OrderUpdateWithWhereUniqueWithoutReceiptInput {
+  where: OrderWhereUniqueInput!
+  data: OrderUncheckedUpdateWithoutReceiptInput!
+}
+
+input OrderUpdateManyWithWhereWithoutReceiptInput {
+  where: OrderScalarWhereInput!
+  data: OrderUncheckedUpdateManyWithoutOrdersInput!
+}
+
+input AttachmentCreateOrConnectWithoutOrganizationsInput {
+  where: AttachmentWhereUniqueInput!
+  create: AttachmentUncheckedCreateWithoutOrganizationsInput!
+}
+
+input ServiceCreateWithoutOrganizationInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  image: AttachmentCreateNestedOneWithoutServicesInput!
+  category: ServiceCategoryCreateNestedOneWithoutServicesInput!
+  orders: OrderCreateNestedManyWithoutServiceInput
+}
+
+input ServiceUncheckedCreateWithoutOrganizationInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  imageId: String!
+  serviceCategoryId: String!
+  orders: OrderUncheckedCreateNestedManyWithoutServiceInput
+}
+
+input ServiceCreateOrConnectWithoutOrganizationInput {
+  where: ServiceWhereUniqueInput!
+  create: ServiceUncheckedCreateWithoutOrganizationInput!
+}
+
+input ServiceCreateManyOrganizationInputEnvelope {
+  data: [ServiceCreateManyOrganizationInput!]!
+  skipDuplicates: Boolean
+}
+
+input OrderCreateWithoutOrganizationInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  service: ServiceCreateNestedOneWithoutOrdersInput!
+  owner: UserCreateNestedOneWithoutOrdersInput!
+  receipt: AttachmentCreateNestedOneWithoutOrdersInput
+}
+
+input OrderUncheckedCreateWithoutOrganizationInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  ownerId: String!
+  receiptId: String
+}
+
+input OrderCreateOrConnectWithoutOrganizationInput {
+  where: OrderWhereUniqueInput!
+  create: OrderUncheckedCreateWithoutOrganizationInput!
+}
+
+input OrderCreateManyOrganizationInputEnvelope {
+  data: [OrderCreateManyOrganizationInput!]!
+  skipDuplicates: Boolean
+}
+
+input UserCreateWithoutStaffOfInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avator: AttachmentCreateNestedOneWithoutUsersInput
+  orders: OrderCreateNestedManyWithoutOwnerInput
+  ratings: RatingCreateNestedManyWithoutOwnerInput
+  location: LocationCreateNestedOneWithoutUsersInput
+  organizations: OrganizationCreateNestedManyWithoutOwnerInput
+}
+
+input UserUncheckedCreateWithoutStaffOfInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+  orders: OrderUncheckedCreateNestedManyWithoutOwnerInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOwnerInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+input UserCreateOrConnectWithoutStaffOfInput {
+  where: UserWhereUniqueInput!
+  create: UserUncheckedCreateWithoutStaffOfInput!
+}
+
+input LocationCreateWithoutOrganizationsInput {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserCreateNestedManyWithoutLocationInput
+}
+
+input LocationUncheckedCreateWithoutOrganizationsInput {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+  users: UserUncheckedCreateNestedManyWithoutLocationInput
+}
+
+input LocationCreateOrConnectWithoutOrganizationsInput {
+  where: LocationWhereUniqueInput!
+  create: LocationUncheckedCreateWithoutOrganizationsInput!
+}
+
+input ServiceCategoryCreateWithoutOrganizationsInput {
+  id: String
+  name: String!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  services: ServiceCreateNestedManyWithoutCategoryInput
+}
+
+input ServiceCategoryUncheckedCreateWithoutOrganizationsInput {
+  id: String
+  name: String!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  services: ServiceUncheckedCreateNestedManyWithoutCategoryInput
+}
+
+input ServiceCategoryCreateOrConnectWithoutOrganizationsInput {
+  where: ServiceCategoryWhereUniqueInput!
+  create: ServiceCategoryUncheckedCreateWithoutOrganizationsInput!
+}
+
+input RatingCreateWithoutOrganizationInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  owner: UserCreateNestedOneWithoutRatingsInput!
+}
+
+input RatingUncheckedCreateWithoutOrganizationInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  ownerId: String!
+}
+
+input RatingCreateOrConnectWithoutOrganizationInput {
+  where: RatingWhereUniqueInput!
+  create: RatingUncheckedCreateWithoutOrganizationInput!
+}
+
+input RatingCreateManyOrganizationInputEnvelope {
+  data: [RatingCreateManyOrganizationInput!]!
+  skipDuplicates: Boolean
+}
+
+input UserCreateWithoutOrganizationsInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avator: AttachmentCreateNestedOneWithoutUsersInput
+  orders: OrderCreateNestedManyWithoutOwnerInput
+  ratings: RatingCreateNestedManyWithoutOwnerInput
+  location: LocationCreateNestedOneWithoutUsersInput
+  staffOf: OrganizationCreateNestedManyWithoutStaffsInput
+}
+
+input UserUncheckedCreateWithoutOrganizationsInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+  orders: OrderUncheckedCreateNestedManyWithoutOwnerInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+input UserCreateOrConnectWithoutOrganizationsInput {
+  where: UserWhereUniqueInput!
+  create: UserUncheckedCreateWithoutOrganizationsInput!
+}
+
+input AttachmentUpsertWithoutOrganizationsInput {
+  update: AttachmentUncheckedUpdateWithoutOrganizationsInput!
+  create: AttachmentUncheckedCreateWithoutOrganizationsInput!
+}
+
+input AttachmentUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUpdateManyWithoutAvatorInput
+  services: ServiceUpdateManyWithoutImageInput
+  orders: OrderUpdateManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUncheckedUpdateManyWithoutAvatorInput
+  services: ServiceUncheckedUpdateManyWithoutImageInput
+  orders: OrderUncheckedUpdateManyWithoutReceiptInput
+}
+
+input ServiceUpsertWithWhereUniqueWithoutOrganizationInput {
+  where: ServiceWhereUniqueInput!
+  update: ServiceUncheckedUpdateWithoutOrganizationInput!
+  create: ServiceUncheckedCreateWithoutOrganizationInput!
+}
+
+input ServiceUpdateWithWhereUniqueWithoutOrganizationInput {
+  where: ServiceWhereUniqueInput!
+  data: ServiceUncheckedUpdateWithoutOrganizationInput!
+}
+
+input ServiceUpdateManyWithWhereWithoutOrganizationInput {
+  where: ServiceScalarWhereInput!
+  data: ServiceUncheckedUpdateManyWithoutServicesInput!
+}
+
+input OrderUpsertWithWhereUniqueWithoutOrganizationInput {
+  where: OrderWhereUniqueInput!
+  update: OrderUncheckedUpdateWithoutOrganizationInput!
+  create: OrderUncheckedCreateWithoutOrganizationInput!
+}
+
+input OrderUpdateWithWhereUniqueWithoutOrganizationInput {
+  where: OrderWhereUniqueInput!
+  data: OrderUncheckedUpdateWithoutOrganizationInput!
+}
+
+input OrderUpdateManyWithWhereWithoutOrganizationInput {
+  where: OrderScalarWhereInput!
+  data: OrderUncheckedUpdateManyWithoutOrdersInput!
+}
+
+input UserUpsertWithWhereUniqueWithoutStaffOfInput {
+  where: UserWhereUniqueInput!
+  update: UserUncheckedUpdateWithoutStaffOfInput!
+  create: UserUncheckedCreateWithoutStaffOfInput!
+}
+
+input UserUpdateWithWhereUniqueWithoutStaffOfInput {
+  where: UserWhereUniqueInput!
+  data: UserUncheckedUpdateWithoutStaffOfInput!
+}
+
+input UserUpdateManyWithWhereWithoutStaffOfInput {
+  where: UserScalarWhereInput!
+  data: UserUncheckedUpdateManyWithoutStaffsInput!
+}
+
+input LocationUpsertWithoutOrganizationsInput {
+  update: LocationUncheckedUpdateWithoutOrganizationsInput!
+  create: LocationUncheckedCreateWithoutOrganizationsInput!
+}
+
+input LocationUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUpdateManyWithoutLocationInput
+}
+
+input LocationUncheckedUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  lat: FloatFieldUpdateOperationsInput
+  lon: FloatFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUncheckedUpdateManyWithoutLocationInput
+}
+
+input ServiceCategoryUpsertWithWhereUniqueWithoutOrganizationsInput {
+  where: ServiceCategoryWhereUniqueInput!
+  update: ServiceCategoryUncheckedUpdateWithoutOrganizationsInput!
+  create: ServiceCategoryUncheckedCreateWithoutOrganizationsInput!
+}
+
+input ServiceCategoryUpdateWithWhereUniqueWithoutOrganizationsInput {
+  where: ServiceCategoryWhereUniqueInput!
+  data: ServiceCategoryUncheckedUpdateWithoutOrganizationsInput!
+}
+
+input ServiceCategoryUpdateManyWithWhereWithoutOrganizationsInput {
+  where: ServiceCategoryScalarWhereInput!
+  data: ServiceCategoryUncheckedUpdateManyWithoutOffersInput!
+}
+
+input ServiceCategoryScalarWhereInput {
+  AND: [ServiceCategoryScalarWhereInput!]
+  OR: [ServiceCategoryScalarWhereInput!]
+  NOT: [ServiceCategoryScalarWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  state: EnumStateFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input RatingUpsertWithWhereUniqueWithoutOrganizationInput {
+  where: RatingWhereUniqueInput!
+  update: RatingUncheckedUpdateWithoutOrganizationInput!
+  create: RatingUncheckedCreateWithoutOrganizationInput!
+}
+
+input RatingUpdateWithWhereUniqueWithoutOrganizationInput {
+  where: RatingWhereUniqueInput!
+  data: RatingUncheckedUpdateWithoutOrganizationInput!
+}
+
+input RatingUpdateManyWithWhereWithoutOrganizationInput {
+  where: RatingScalarWhereInput!
+  data: RatingUncheckedUpdateManyWithoutRatingsInput!
+}
+
+input UserUpsertWithoutOrganizationsInput {
+  update: UserUncheckedUpdateWithoutOrganizationsInput!
+  create: UserUncheckedCreateWithoutOrganizationsInput!
+}
+
+input UserUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avator: AttachmentUpdateOneWithoutUsersInput
+  orders: OrderUpdateManyWithoutOwnerInput
+  ratings: RatingUpdateManyWithoutOwnerInput
+  location: LocationUpdateOneWithoutUsersInput
+  staffOf: OrganizationUpdateManyWithoutStaffsInput
+}
+
+input UserUncheckedUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutOwnerInput
+  ratings: RatingUncheckedUpdateManyWithoutOwnerInput
+}
+
+input OrganizationCreateWithoutServicesInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateWithoutServicesInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutServicesInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutServicesInput!
+}
+
+input AttachmentCreateOrConnectWithoutServicesInput {
+  where: AttachmentWhereUniqueInput!
+  create: AttachmentUncheckedCreateWithoutServicesInput!
+}
+
+input ServiceCategoryCreateWithoutServicesInput {
+  id: String
+  name: String!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizations: OrganizationCreateNestedManyWithoutOffersInput
+}
+
+input ServiceCategoryUncheckedCreateWithoutServicesInput {
+  id: String
+  name: String!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ServiceCategoryCreateOrConnectWithoutServicesInput {
+  where: ServiceCategoryWhereUniqueInput!
+  create: ServiceCategoryUncheckedCreateWithoutServicesInput!
+}
+
+input OrderCreateWithoutServiceInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organization: OrganizationCreateNestedOneWithoutOrdersInput!
+  owner: UserCreateNestedOneWithoutOrdersInput!
+  receipt: AttachmentCreateNestedOneWithoutOrdersInput
+}
+
+input OrderUncheckedCreateWithoutServiceInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  ownerId: String!
+  receiptId: String
+}
+
+input OrderCreateOrConnectWithoutServiceInput {
+  where: OrderWhereUniqueInput!
+  create: OrderUncheckedCreateWithoutServiceInput!
+}
+
+input OrderCreateManyServiceInputEnvelope {
+  data: [OrderCreateManyServiceInput!]!
+  skipDuplicates: Boolean
+}
+
+input OrganizationUpsertWithoutServicesInput {
+  update: OrganizationUncheckedUpdateWithoutServicesInput!
+  create: OrganizationUncheckedCreateWithoutServicesInput!
+}
+
+input OrganizationUpdateWithoutServicesInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateWithoutServicesInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input AttachmentUpsertWithoutServicesInput {
+  update: AttachmentUncheckedUpdateWithoutServicesInput!
+  create: AttachmentUncheckedCreateWithoutServicesInput!
+}
+
+input AttachmentUpdateWithoutServicesInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUpdateManyWithoutAvatorInput
+  organizations: OrganizationUpdateManyWithoutLogoInput
+  orders: OrderUpdateManyWithoutReceiptInput
+}
+
+input AttachmentUncheckedUpdateWithoutServicesInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUncheckedUpdateManyWithoutAvatorInput
+  organizations: OrganizationUncheckedUpdateManyWithoutLogoInput
+  orders: OrderUncheckedUpdateManyWithoutReceiptInput
+}
+
+input ServiceCategoryUpsertWithoutServicesInput {
+  update: ServiceCategoryUncheckedUpdateWithoutServicesInput!
+  create: ServiceCategoryUncheckedCreateWithoutServicesInput!
+}
+
+input ServiceCategoryUpdateWithoutServicesInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizations: OrganizationUpdateManyWithoutOffersInput
+}
+
+input ServiceCategoryUncheckedUpdateWithoutServicesInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input OrderUpsertWithWhereUniqueWithoutServiceInput {
+  where: OrderWhereUniqueInput!
+  update: OrderUncheckedUpdateWithoutServiceInput!
+  create: OrderUncheckedCreateWithoutServiceInput!
+}
+
+input OrderUpdateWithWhereUniqueWithoutServiceInput {
+  where: OrderWhereUniqueInput!
+  data: OrderUncheckedUpdateWithoutServiceInput!
+}
+
+input OrderUpdateManyWithWhereWithoutServiceInput {
+  where: OrderScalarWhereInput!
+  data: OrderUncheckedUpdateManyWithoutOrdersInput!
+}
+
+input ServiceCreateWithoutOrdersInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organization: OrganizationCreateNestedOneWithoutServicesInput!
+  image: AttachmentCreateNestedOneWithoutServicesInput!
+  category: ServiceCategoryCreateNestedOneWithoutServicesInput!
+}
+
+input ServiceUncheckedCreateWithoutOrdersInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  imageId: String!
+  serviceCategoryId: String!
+}
+
+input ServiceCreateOrConnectWithoutOrdersInput {
+  where: ServiceWhereUniqueInput!
+  create: ServiceUncheckedCreateWithoutOrdersInput!
+}
+
+input OrganizationCreateWithoutOrdersInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateWithoutOrdersInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutOrdersInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutOrdersInput!
+}
+
+input UserCreateWithoutOrdersInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avator: AttachmentCreateNestedOneWithoutUsersInput
+  ratings: RatingCreateNestedManyWithoutOwnerInput
+  location: LocationCreateNestedOneWithoutUsersInput
+  organizations: OrganizationCreateNestedManyWithoutOwnerInput
+  staffOf: OrganizationCreateNestedManyWithoutStaffsInput
+}
+
+input UserUncheckedCreateWithoutOrdersInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+  ratings: RatingUncheckedCreateNestedManyWithoutOwnerInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+input UserCreateOrConnectWithoutOrdersInput {
+  where: UserWhereUniqueInput!
+  create: UserUncheckedCreateWithoutOrdersInput!
+}
+
+input AttachmentCreateOrConnectWithoutOrdersInput {
+  where: AttachmentWhereUniqueInput!
+  create: AttachmentUncheckedCreateWithoutOrdersInput!
+}
+
+input ServiceUpsertWithoutOrdersInput {
+  update: ServiceUncheckedUpdateWithoutOrdersInput!
+  create: ServiceUncheckedCreateWithoutOrdersInput!
+}
+
+input ServiceUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organization: OrganizationUpdateOneRequiredWithoutServicesInput
+  image: AttachmentUpdateOneRequiredWithoutServicesInput
+  category: ServiceCategoryUpdateOneRequiredWithoutServicesInput
+}
+
+input ServiceUncheckedUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  imageId: StringFieldUpdateOperationsInput
+  serviceCategoryId: StringFieldUpdateOperationsInput
+}
+
+input OrganizationUpsertWithoutOrdersInput {
+  update: OrganizationUncheckedUpdateWithoutOrdersInput!
+  create: OrganizationUncheckedCreateWithoutOrdersInput!
+}
+
+input OrganizationUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input UserUpsertWithoutOrdersInput {
+  update: UserUncheckedUpdateWithoutOrdersInput!
+  create: UserUncheckedCreateWithoutOrdersInput!
+}
+
+input UserUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avator: AttachmentUpdateOneWithoutUsersInput
+  ratings: RatingUpdateManyWithoutOwnerInput
+  location: LocationUpdateOneWithoutUsersInput
+  organizations: OrganizationUpdateManyWithoutOwnerInput
+  staffOf: OrganizationUpdateManyWithoutStaffsInput
+}
+
+input UserUncheckedUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+  ratings: RatingUncheckedUpdateManyWithoutOwnerInput
+  organizations: OrganizationUncheckedUpdateManyWithoutOwnerInput
+}
+
+input AttachmentUpsertWithoutOrdersInput {
+  update: AttachmentUncheckedUpdateWithoutOrdersInput!
+  create: AttachmentUncheckedCreateWithoutOrdersInput!
+}
+
+input AttachmentUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUpdateManyWithoutAvatorInput
+  services: ServiceUpdateManyWithoutImageInput
+  organizations: OrganizationUpdateManyWithoutLogoInput
+}
+
+input AttachmentUncheckedUpdateWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  path: StringFieldUpdateOperationsInput
+  filename: NullableStringFieldUpdateOperationsInput
+  mimetype: NullableStringFieldUpdateOperationsInput
+  encoding: NullableStringFieldUpdateOperationsInput
+  duration: IntFieldUpdateOperationsInput
+  size: IntFieldUpdateOperationsInput
+  attachmentType: EnumAttachmentTypeFieldUpdateOperationsInput
+  downloadable: BoolFieldUpdateOperationsInput
+  placement: StringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  users: UserUncheckedUpdateManyWithoutAvatorInput
+  services: ServiceUncheckedUpdateManyWithoutImageInput
+  organizations: OrganizationUncheckedUpdateManyWithoutLogoInput
+}
+
+input OrganizationCreateWithoutOffersInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateWithoutOffersInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutOffersInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutOffersInput!
+}
+
+input ServiceCreateWithoutCategoryInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organization: OrganizationCreateNestedOneWithoutServicesInput!
+  image: AttachmentCreateNestedOneWithoutServicesInput!
+  orders: OrderCreateNestedManyWithoutServiceInput
+}
+
+input ServiceUncheckedCreateWithoutCategoryInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  imageId: String!
+  orders: OrderUncheckedCreateNestedManyWithoutServiceInput
+}
+
+input ServiceCreateOrConnectWithoutCategoryInput {
+  where: ServiceWhereUniqueInput!
+  create: ServiceUncheckedCreateWithoutCategoryInput!
+}
+
+input ServiceCreateManyCategoryInputEnvelope {
+  data: [ServiceCreateManyCategoryInput!]!
+  skipDuplicates: Boolean
+}
+
+input OrganizationUpsertWithWhereUniqueWithoutOffersInput {
+  where: OrganizationWhereUniqueInput!
+  update: OrganizationUncheckedUpdateWithoutOffersInput!
+  create: OrganizationUncheckedCreateWithoutOffersInput!
+}
+
+input OrganizationUpdateWithWhereUniqueWithoutOffersInput {
+  where: OrganizationWhereUniqueInput!
+  data: OrganizationUncheckedUpdateWithoutOffersInput!
+}
+
+input OrganizationUpdateManyWithWhereWithoutOffersInput {
+  where: OrganizationScalarWhereInput!
+  data: OrganizationUncheckedUpdateManyWithoutOrganizationsInput!
+}
+
+input ServiceUpsertWithWhereUniqueWithoutCategoryInput {
+  where: ServiceWhereUniqueInput!
+  update: ServiceUncheckedUpdateWithoutCategoryInput!
+  create: ServiceUncheckedCreateWithoutCategoryInput!
+}
+
+input ServiceUpdateWithWhereUniqueWithoutCategoryInput {
+  where: ServiceWhereUniqueInput!
+  data: ServiceUncheckedUpdateWithoutCategoryInput!
+}
+
+input ServiceUpdateManyWithWhereWithoutCategoryInput {
+  where: ServiceScalarWhereInput!
+  data: ServiceUncheckedUpdateManyWithoutServicesInput!
+}
+
+input OrganizationCreateWithoutRatingsInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  location: LocationCreateNestedOneWithoutOrganizationsInput!
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateWithoutRatingsInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+  ownerId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutRatingsInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutRatingsInput!
+}
+
+input UserCreateWithoutRatingsInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avator: AttachmentCreateNestedOneWithoutUsersInput
+  orders: OrderCreateNestedManyWithoutOwnerInput
+  location: LocationCreateNestedOneWithoutUsersInput
+  organizations: OrganizationCreateNestedManyWithoutOwnerInput
+  staffOf: OrganizationCreateNestedManyWithoutStaffsInput
+}
+
+input UserUncheckedCreateWithoutRatingsInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+  orders: OrderUncheckedCreateNestedManyWithoutOwnerInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+input UserCreateOrConnectWithoutRatingsInput {
+  where: UserWhereUniqueInput!
+  create: UserUncheckedCreateWithoutRatingsInput!
+}
+
+input OrganizationUpsertWithoutRatingsInput {
+  update: OrganizationUncheckedUpdateWithoutRatingsInput!
+  create: OrganizationUncheckedCreateWithoutRatingsInput!
+}
+
+input OrganizationUpdateWithoutRatingsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateWithoutRatingsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input UserUpsertWithoutRatingsInput {
+  update: UserUncheckedUpdateWithoutRatingsInput!
+  create: UserUncheckedCreateWithoutRatingsInput!
+}
+
+input UserUpdateWithoutRatingsInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avator: AttachmentUpdateOneWithoutUsersInput
+  orders: OrderUpdateManyWithoutOwnerInput
+  location: LocationUpdateOneWithoutUsersInput
+  organizations: OrganizationUpdateManyWithoutOwnerInput
+  staffOf: OrganizationUpdateManyWithoutStaffsInput
+}
+
+input UserUncheckedUpdateWithoutRatingsInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutOwnerInput
+  organizations: OrganizationUncheckedUpdateManyWithoutOwnerInput
+}
+
+input OrganizationCreateWithoutLocationInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logo: AttachmentCreateNestedOneWithoutOrganizationsInput!
+  services: ServiceCreateNestedManyWithoutOrganizationInput
+  orders: OrderCreateNestedManyWithoutOrganizationInput
+  staffs: UserCreateNestedManyWithoutStaffOfInput
+  offers: ServiceCategoryCreateNestedManyWithoutOrganizationsInput
+  ratings: RatingCreateNestedManyWithoutOrganizationInput
+  owner: UserCreateNestedOneWithoutOrganizationsInput!
+}
+
+input OrganizationUncheckedCreateWithoutLocationInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  ownerId: String!
+  services: ServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  orders: OrderUncheckedCreateNestedManyWithoutOrganizationInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+input OrganizationCreateOrConnectWithoutLocationInput {
+  where: OrganizationWhereUniqueInput!
+  create: OrganizationUncheckedCreateWithoutLocationInput!
+}
+
+input OrganizationCreateManyLocationInputEnvelope {
+  data: [OrganizationCreateManyLocationInput!]!
+  skipDuplicates: Boolean
+}
+
+input UserCreateWithoutLocationInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avator: AttachmentCreateNestedOneWithoutUsersInput
+  orders: OrderCreateNestedManyWithoutOwnerInput
+  ratings: RatingCreateNestedManyWithoutOwnerInput
+  organizations: OrganizationCreateNestedManyWithoutOwnerInput
+  staffOf: OrganizationCreateNestedManyWithoutStaffsInput
+}
+
+input UserUncheckedCreateWithoutLocationInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  orders: OrderUncheckedCreateNestedManyWithoutOwnerInput
+  ratings: RatingUncheckedCreateNestedManyWithoutOwnerInput
+  organizations: OrganizationUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+input UserCreateOrConnectWithoutLocationInput {
+  where: UserWhereUniqueInput!
+  create: UserUncheckedCreateWithoutLocationInput!
+}
+
+input UserCreateManyLocationInputEnvelope {
+  data: [UserCreateManyLocationInput!]!
+  skipDuplicates: Boolean
+}
+
+input OrganizationUpsertWithWhereUniqueWithoutLocationInput {
+  where: OrganizationWhereUniqueInput!
+  update: OrganizationUncheckedUpdateWithoutLocationInput!
+  create: OrganizationUncheckedCreateWithoutLocationInput!
+}
+
+input OrganizationUpdateWithWhereUniqueWithoutLocationInput {
+  where: OrganizationWhereUniqueInput!
+  data: OrganizationUncheckedUpdateWithoutLocationInput!
+}
+
+input OrganizationUpdateManyWithWhereWithoutLocationInput {
+  where: OrganizationScalarWhereInput!
+  data: OrganizationUncheckedUpdateManyWithoutOrganizationsInput!
+}
+
+input UserUpsertWithWhereUniqueWithoutLocationInput {
+  where: UserWhereUniqueInput!
+  update: UserUncheckedUpdateWithoutLocationInput!
+  create: UserUncheckedCreateWithoutLocationInput!
+}
+
+input UserUpdateWithWhereUniqueWithoutLocationInput {
+  where: UserWhereUniqueInput!
+  data: UserUncheckedUpdateWithoutLocationInput!
+}
+
+input UserUpdateManyWithWhereWithoutLocationInput {
+  where: UserScalarWhereInput!
+  data: UserUncheckedUpdateManyWithoutUsersInput!
+}
+
+input OrderCreateManyOwnerInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  organizationId: String!
+  receiptId: String
+}
+
+input RatingCreateManyOwnerInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+}
+
+input OrganizationCreateManyOwnerInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  locationId: String!
+}
+
+input OrderUpdateWithoutOwnerInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  service: ServiceUpdateOneRequiredWithoutOrdersInput
+  organization: OrganizationUpdateOneRequiredWithoutOrdersInput
+  receipt: AttachmentUpdateOneWithoutOrdersInput
+}
+
+input OrderUncheckedUpdateWithoutOwnerInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  serviceId: StringFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  receiptId: NullableStringFieldUpdateOperationsInput
+}
+
+input OrderUncheckedUpdateManyWithoutOrdersInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  serviceId: StringFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  receiptId: NullableStringFieldUpdateOperationsInput
+}
+
+input RatingUpdateWithoutOwnerInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organization: OrganizationUpdateOneRequiredWithoutRatingsInput
+}
+
+input RatingUncheckedUpdateWithoutOwnerInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+}
+
+input RatingUncheckedUpdateManyWithoutRatingsInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+}
+
+input OrganizationUpdateWithoutOwnerInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+}
+
+input OrganizationUncheckedUpdateWithoutOwnerInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input OrganizationUncheckedUpdateManyWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+}
+
+input OrganizationUpdateWithoutStaffsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateWithoutStaffsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input OrganizationUncheckedUpdateManyWithoutStaffOfInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+}
+
+input UserCreateManyAvatorInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  locationId: String
+}
+
+input ServiceCreateManyImageInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  serviceCategoryId: String!
+}
+
+input OrganizationCreateManyLogoInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  locationId: String!
+  ownerId: String!
+}
+
+input OrderCreateManyReceiptInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  organizationId: String!
+  ownerId: String!
+}
+
+input UserUpdateWithoutAvatorInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  orders: OrderUpdateManyWithoutOwnerInput
+  ratings: RatingUpdateManyWithoutOwnerInput
+  location: LocationUpdateOneWithoutUsersInput
+  organizations: OrganizationUpdateManyWithoutOwnerInput
+  staffOf: OrganizationUpdateManyWithoutStaffsInput
+}
+
+input UserUncheckedUpdateWithoutAvatorInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutOwnerInput
+  ratings: RatingUncheckedUpdateManyWithoutOwnerInput
+  organizations: OrganizationUncheckedUpdateManyWithoutOwnerInput
+}
+
+input UserUncheckedUpdateManyWithoutUsersInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+}
+
+input ServiceUpdateWithoutImageInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organization: OrganizationUpdateOneRequiredWithoutServicesInput
+  category: ServiceCategoryUpdateOneRequiredWithoutServicesInput
+  orders: OrderUpdateManyWithoutServiceInput
+}
+
+input ServiceUncheckedUpdateWithoutImageInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  serviceCategoryId: StringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutServiceInput
+}
+
+input ServiceUncheckedUpdateManyWithoutServicesInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  serviceCategoryId: StringFieldUpdateOperationsInput
+}
+
+input OrganizationUpdateWithoutLogoInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateWithoutLogoInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input OrderUpdateWithoutReceiptInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  service: ServiceUpdateOneRequiredWithoutOrdersInput
+  organization: OrganizationUpdateOneRequiredWithoutOrdersInput
+  owner: UserUpdateOneRequiredWithoutOrdersInput
+}
+
+input OrderUncheckedUpdateWithoutReceiptInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  serviceId: StringFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+}
+
+input ServiceCreateManyOrganizationInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  imageId: String!
+  serviceCategoryId: String!
+}
+
+input OrderCreateManyOrganizationInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String!
+  ownerId: String!
+  receiptId: String
+}
+
+input RatingCreateManyOrganizationInput {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  ownerId: String!
+}
+
+input ServiceUpdateWithoutOrganizationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  image: AttachmentUpdateOneRequiredWithoutServicesInput
+  category: ServiceCategoryUpdateOneRequiredWithoutServicesInput
+  orders: OrderUpdateManyWithoutServiceInput
+}
+
+input ServiceUncheckedUpdateWithoutOrganizationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  imageId: StringFieldUpdateOperationsInput
+  serviceCategoryId: StringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutServiceInput
+}
+
+input OrderUpdateWithoutOrganizationInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  service: ServiceUpdateOneRequiredWithoutOrdersInput
+  owner: UserUpdateOneRequiredWithoutOrdersInput
+  receipt: AttachmentUpdateOneWithoutOrdersInput
+}
+
+input OrderUncheckedUpdateWithoutOrganizationInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  serviceId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  receiptId: NullableStringFieldUpdateOperationsInput
+}
+
+input UserUpdateWithoutStaffOfInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avator: AttachmentUpdateOneWithoutUsersInput
+  orders: OrderUpdateManyWithoutOwnerInput
+  ratings: RatingUpdateManyWithoutOwnerInput
+  location: LocationUpdateOneWithoutUsersInput
+  organizations: OrganizationUpdateManyWithoutOwnerInput
+}
+
+input UserUncheckedUpdateWithoutStaffOfInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutOwnerInput
+  ratings: RatingUncheckedUpdateManyWithoutOwnerInput
+  organizations: OrganizationUncheckedUpdateManyWithoutOwnerInput
+}
+
+input UserUncheckedUpdateManyWithoutStaffsInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  locationId: NullableStringFieldUpdateOperationsInput
+}
+
+input ServiceCategoryUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  services: ServiceUpdateManyWithoutCategoryInput
+}
+
+input ServiceCategoryUncheckedUpdateWithoutOrganizationsInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutCategoryInput
+}
+
+input ServiceCategoryUncheckedUpdateManyWithoutOffersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+}
+
+input RatingUpdateWithoutOrganizationInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  owner: UserUpdateOneRequiredWithoutRatingsInput
+}
+
+input RatingUncheckedUpdateWithoutOrganizationInput {
+  id: StringFieldUpdateOperationsInput
+  value: IntFieldUpdateOperationsInput
+  comment: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+}
+
+input OrderCreateManyServiceInput {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  ownerId: String!
+  receiptId: String
+}
+
+input OrderUpdateWithoutServiceInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organization: OrganizationUpdateOneRequiredWithoutOrdersInput
+  owner: UserUpdateOneRequiredWithoutOrdersInput
+  receipt: AttachmentUpdateOneWithoutOrdersInput
+}
+
+input OrderUncheckedUpdateWithoutServiceInput {
+  id: StringFieldUpdateOperationsInput
+  quantity: IntFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  receiptId: NullableStringFieldUpdateOperationsInput
+}
+
+input ServiceCreateManyCategoryInput {
+  id: String
+  name: String!
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String!
+  imageId: String!
+}
+
+input OrganizationUpdateWithoutOffersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  location: LocationUpdateOneRequiredWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateWithoutOffersInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  locationId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input ServiceUpdateWithoutCategoryInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organization: OrganizationUpdateOneRequiredWithoutServicesInput
+  image: AttachmentUpdateOneRequiredWithoutServicesInput
+  orders: OrderUpdateManyWithoutServiceInput
+}
+
+input ServiceUncheckedUpdateWithoutCategoryInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  price: FloatFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  organizationId: StringFieldUpdateOperationsInput
+  imageId: StringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutServiceInput
+}
+
+input OrganizationCreateManyLocationInput {
+  id: String
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String!
+  ownerId: String!
+}
+
+input UserCreateManyLocationInput {
+  id: String
+  email: String!
+  displayName: String!
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+}
+
+input OrganizationUpdateWithoutLocationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logo: AttachmentUpdateOneRequiredWithoutOrganizationsInput
+  services: ServiceUpdateManyWithoutOrganizationInput
+  orders: OrderUpdateManyWithoutOrganizationInput
+  staffs: UserUpdateManyWithoutStaffOfInput
+  offers: ServiceCategoryUpdateManyWithoutOrganizationsInput
+  ratings: RatingUpdateManyWithoutOrganizationInput
+  owner: UserUpdateOneRequiredWithoutOrganizationsInput
+}
+
+input OrganizationUncheckedUpdateWithoutLocationInput {
+  id: StringFieldUpdateOperationsInput
+  name: StringFieldUpdateOperationsInput
+  description: NullableStringFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  logoId: StringFieldUpdateOperationsInput
+  ownerId: StringFieldUpdateOperationsInput
+  services: ServiceUncheckedUpdateManyWithoutOrganizationInput
+  orders: OrderUncheckedUpdateManyWithoutOrganizationInput
+  ratings: RatingUncheckedUpdateManyWithoutOrganizationInput
+}
+
+input UserUpdateWithoutLocationInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avator: AttachmentUpdateOneWithoutUsersInput
+  orders: OrderUpdateManyWithoutOwnerInput
+  ratings: RatingUpdateManyWithoutOwnerInput
+  organizations: OrganizationUpdateManyWithoutOwnerInput
+  staffOf: OrganizationUpdateManyWithoutStaffsInput
+}
+
+input UserUncheckedUpdateWithoutLocationInput {
+  id: StringFieldUpdateOperationsInput
+  email: StringFieldUpdateOperationsInput
+  displayName: StringFieldUpdateOperationsInput
+  phoneNumber: NullableStringFieldUpdateOperationsInput
+  emailVerified: BoolFieldUpdateOperationsInput
+  disabled: BoolFieldUpdateOperationsInput
+  role: EnumRoleFieldUpdateOperationsInput
+  state: EnumStateFieldUpdateOperationsInput
+  createdAt: DateTimeFieldUpdateOperationsInput
+  updatedAt: DateTimeFieldUpdateOperationsInput
+  avatorId: NullableStringFieldUpdateOperationsInput
+  orders: OrderUncheckedUpdateManyWithoutOwnerInput
+  ratings: RatingUncheckedUpdateManyWithoutOwnerInput
+  organizations: OrganizationUncheckedUpdateManyWithoutOwnerInput
+}
+
+type AggregateCasbinRule {
+  count: CasbinRuleCountAggregateOutputType
+  avg: CasbinRuleAvgAggregateOutputType
+  sum: CasbinRuleSumAggregateOutputType
+  min: CasbinRuleMinAggregateOutputType
+  max: CasbinRuleMaxAggregateOutputType
+}
+
+type AggregateUser {
+  count: UserCountAggregateOutputType
+  min: UserMinAggregateOutputType
+  max: UserMaxAggregateOutputType
+}
+
+type AggregateAttachment {
+  count: AttachmentCountAggregateOutputType
+  avg: AttachmentAvgAggregateOutputType
+  sum: AttachmentSumAggregateOutputType
+  min: AttachmentMinAggregateOutputType
+  max: AttachmentMaxAggregateOutputType
+}
+
+type AggregateOrganization {
+  count: OrganizationCountAggregateOutputType
+  min: OrganizationMinAggregateOutputType
+  max: OrganizationMaxAggregateOutputType
+}
+
+type AggregateService {
+  count: ServiceCountAggregateOutputType
+  avg: ServiceAvgAggregateOutputType
+  sum: ServiceSumAggregateOutputType
+  min: ServiceMinAggregateOutputType
+  max: ServiceMaxAggregateOutputType
+}
+
+type AggregateOrder {
+  count: OrderCountAggregateOutputType
+  avg: OrderAvgAggregateOutputType
+  sum: OrderSumAggregateOutputType
+  min: OrderMinAggregateOutputType
+  max: OrderMaxAggregateOutputType
+}
+
+type AggregateServiceCategory {
+  count: ServiceCategoryCountAggregateOutputType
+  min: ServiceCategoryMinAggregateOutputType
+  max: ServiceCategoryMaxAggregateOutputType
+}
+
+type AggregateRating {
+  count: RatingCountAggregateOutputType
+  avg: RatingAvgAggregateOutputType
+  sum: RatingSumAggregateOutputType
+  min: RatingMinAggregateOutputType
+  max: RatingMaxAggregateOutputType
+}
+
+type AggregateLocation {
+  count: LocationCountAggregateOutputType
+  avg: LocationAvgAggregateOutputType
+  sum: LocationSumAggregateOutputType
+  min: LocationMinAggregateOutputType
+  max: LocationMaxAggregateOutputType
+}
+
+type CasbinRuleCountAggregateOutputType {
+  id: Int!
+  ptype: Int
+  v0: Int
+  v1: Int
+  v2: Int
+  v3: Int
+  v4: Int
+  v5: Int
+  createdAt: Int
+  updatedAt: Int
+  _all: Int!
+}
+
+type CasbinRuleAvgAggregateOutputType {
+  id: Float!
+}
+
+type CasbinRuleSumAggregateOutputType {
+  id: Int!
+}
+
+type CasbinRuleMinAggregateOutputType {
+  id: Int!
+  ptype: String
+  v0: String
+  v1: String
+  v2: String
+  v3: String
+  v4: String
+  v5: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type CasbinRuleMaxAggregateOutputType {
+  id: Int!
+  ptype: String
+  v0: String
+  v1: String
+  v2: String
+  v3: String
+  v4: String
+  v5: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type UserCountAggregateOutputType {
+  id: Int
+  email: Int
+  displayName: Int
+  phoneNumber: Int
+  emailVerified: Int
+  disabled: Int
+  role: Int
+  state: Int
+  createdAt: Int
+  updatedAt: Int
+  avatorId: Int
+  locationId: Int
+  _all: Int!
+}
+
+type UserMinAggregateOutputType {
+  id: String
+  email: String
+  displayName: String
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+}
+
+type UserMaxAggregateOutputType {
+  id: String
+  email: String
+  displayName: String
+  phoneNumber: String
+  emailVerified: Boolean
+  disabled: Boolean
+  role: Role
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  avatorId: String
+  locationId: String
+}
+
+type AttachmentCountAggregateOutputType {
+  id: Int
+  path: Int
+  filename: Int
+  mimetype: Int
+  encoding: Int
+  duration: Int!
+  size: Int!
+  attachmentType: Int
+  downloadable: Int
+  placement: Int
+  createdAt: Int
+  updatedAt: Int
+  _all: Int!
+}
+
+type AttachmentAvgAggregateOutputType {
+  duration: Float!
+  size: Float!
+}
+
+type AttachmentSumAggregateOutputType {
+  duration: Int!
+  size: Int!
+}
+
+type AttachmentMinAggregateOutputType {
+  id: String
+  path: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int!
+  size: Int!
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type AttachmentMaxAggregateOutputType {
+  id: String
+  path: String
+  filename: String
+  mimetype: String
+  encoding: String
+  duration: Int!
+  size: Int!
+  attachmentType: AttachmentType
+  downloadable: Boolean
+  placement: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type OrganizationCountAggregateOutputType {
+  id: Int
+  name: Int
+  description: Int
+  createdAt: Int
+  updatedAt: Int
+  logoId: Int
+  locationId: Int
+  ownerId: Int
+  _all: Int!
+}
+
+type OrganizationMinAggregateOutputType {
+  id: String
+  name: String
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String
+  locationId: String
+  ownerId: String
+}
+
+type OrganizationMaxAggregateOutputType {
+  id: String
+  name: String
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  logoId: String
+  locationId: String
+  ownerId: String
+}
+
+type ServiceCountAggregateOutputType {
+  id: Int
+  name: Int
+  description: Int
+  price: Int!
+  state: Int
+  createdAt: Int
+  updatedAt: Int
+  organizationId: Int
+  imageId: Int
+  serviceCategoryId: Int
+  _all: Int!
+}
+
+type ServiceAvgAggregateOutputType {
+  price: Float!
+}
+
+type ServiceSumAggregateOutputType {
+  price: Float!
+}
+
+type ServiceMinAggregateOutputType {
+  id: String
+  name: String
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String
+  imageId: String
+  serviceCategoryId: String
+}
+
+type ServiceMaxAggregateOutputType {
+  id: String
+  name: String
+  description: String
+  price: Float!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  organizationId: String
+  imageId: String
+  serviceCategoryId: String
+}
+
+type OrderCountAggregateOutputType {
+  id: Int
+  quantity: Int!
+  state: Int
+  createdAt: Int
+  updatedAt: Int
+  serviceId: Int
+  organizationId: Int
+  ownerId: Int
+  receiptId: Int
+  _all: Int!
+}
+
+type OrderAvgAggregateOutputType {
+  quantity: Float!
+}
+
+type OrderSumAggregateOutputType {
+  quantity: Int!
+}
+
+type OrderMinAggregateOutputType {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String
+  organizationId: String
+  ownerId: String
+  receiptId: String
+}
+
+type OrderMaxAggregateOutputType {
+  id: String
+  quantity: Int!
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+  serviceId: String
+  organizationId: String
+  ownerId: String
+  receiptId: String
+}
+
+type ServiceCategoryCountAggregateOutputType {
+  id: Int
+  name: Int
+  state: Int
+  createdAt: Int
+  updatedAt: Int
+  _all: Int!
+}
+
+type ServiceCategoryMinAggregateOutputType {
+  id: String
+  name: String
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type ServiceCategoryMaxAggregateOutputType {
+  id: String
+  name: String
+  state: State
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type RatingCountAggregateOutputType {
+  id: Int
+  value: Int!
+  comment: Int
+  createdAt: Int
+  updatedAt: Int
+  ownerId: Int
+  organizationId: Int
+  _all: Int!
+}
+
+type RatingAvgAggregateOutputType {
+  value: Float!
+}
+
+type RatingSumAggregateOutputType {
+  value: Int!
+}
+
+type RatingMinAggregateOutputType {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  ownerId: String
+  organizationId: String
+}
+
+type RatingMaxAggregateOutputType {
+  id: String
+  value: Int!
+  comment: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  ownerId: String
+  organizationId: String
+}
+
+type LocationCountAggregateOutputType {
+  id: Int
+  name: Int
+  lat: Int!
+  lon: Int!
+  createdAt: Int
+  updatedAt: Int
+  _all: Int!
+}
+
+type LocationAvgAggregateOutputType {
+  lat: Float!
+  lon: Float!
+}
+
+type LocationSumAggregateOutputType {
+  lat: Float!
+  lon: Float!
+}
+
+type LocationMinAggregateOutputType {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type LocationMaxAggregateOutputType {
+  id: String
+  name: String
+  lat: Float!
+  lon: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+}

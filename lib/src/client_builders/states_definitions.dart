@@ -4,7 +4,7 @@ const Map<String, List<String>> states = {
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error'
   ],
   "createOne": [
@@ -12,7 +12,7 @@ const Map<String, List<String>> states = {
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged'
+     'Optimistic',
      'Error'
   ],
   "createMany": [
@@ -20,7 +20,7 @@ const Map<String, List<String>> states = {
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error'
   ],
   "updateOne": [
@@ -28,23 +28,23 @@ const Map<String, List<String>> states = {
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error'
   ],
   "updateMany": [
-    'Initial',
+   'Initial',
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error'
   ],
   "deleteOne": [
-    'Initial',
+   'Initial',
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error'
   ],
   "deleteMany": [
@@ -52,7 +52,7 @@ const Map<String, List<String>> states = {
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error'
   ],
   "findUnique": [
@@ -60,7 +60,7 @@ const Map<String, List<String>> states = {
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error'
   ],
   "findMany": [
@@ -68,23 +68,19 @@ const Map<String, List<String>> states = {
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error',
-     'MoreLoadedSuccess',
-    'StreamEndedSuccess',
-    'MoreLoadedFailure',
-    'StreamEndedFailure'
+     'LoadMoreInProgress',
+    'AllDataLoaded'    
   ],
   "findFirst": [
     'Initial',
      'Success',
      'Failure',
      'InProgress',
-     'DatasetChanged',
+     'Optimistic',
      'Error',
-    'MoreLoadedSuccess',
-    'StreamEndedSuccess',
-    'MoreLoadedFailure',
-    'StreamEndedFailure'
+     'LoadMoreInProgress',
+    'AllDataLoaded'
   ],
 };

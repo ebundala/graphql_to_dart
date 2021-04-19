@@ -1,17 +1,14 @@
 import "dart:async";
 import 'dart:io';
 import 'package:graphql/client.dart';
+import 'package:graphql_to_dart/src/client_builders/client_builder.dart';
 import 'package:graphql_to_dart/src/models/config.dart';
 import "package:path/path.dart" as p;
 import "package:glob/glob.dart";
 
 import "package:build/build.dart";
-import "package:code_builder/code_builder.dart";
-import "package:dart_style/dart_style.dart";
 import "package:gql/ast.dart";
 //import "package:gql/language.dart";
-import "package:gql_code_gen/gql_code_gen.dart";
-import "package:pedantic/pedantic.dart";
 import '../../graphql_to_dart.dart';
 
 const graphqlExtension = ".graphql";
@@ -97,12 +94,15 @@ class AstGenerator implements Builder {
   DocumentNode schema;
   GraphQlToDart graphQlToDart;
   final BuilderOptions options;
+  static const helperFileName = "common_client_helpers.dart";
   Config config;
   AstGenerator(this.options) {
     config = Config.fromJson(options.config);
 
     final file = File(config.schemaPath);
-
+    final helperStr = buildCommonGraphQLClientHelpers();
+    final helperFile = "/lib/${config.helperPath}/$helperFileName";
+    saveFile(helperFile, helperStr);
     graphQlToDart = GraphQlToDart(config);
     graphQlToDart.init();
 
@@ -141,7 +141,7 @@ class AstGenerator implements Builder {
         p.normalize(p.joinAll(buildStep.inputId.pathSegments..removeLast()));
     final str = await buildStep.readAsString(buildStep.inputId);
     var operationAst = gql(str);
-   
+
     var content = buildBloc(
         info: info,
         scalars: scalars,
