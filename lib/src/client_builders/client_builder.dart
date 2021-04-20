@@ -285,11 +285,11 @@ List<List<String>> buildBloc(
         Stream<${libname}State> ${i.name}(${libname}Excuted event) async* {
           
           //validate all required fields of required args and emit relevant events
-           ${buildInputsValidations()}
+           ${buildInputsValidations(i)}
             {
             try {
               await closeResultWrapper();
-              resultWrapper = await client.${i.name}(${buildOperationParams()});
+              resultWrapper = await client.${i.name}(${buildOperationParams(i.variables)});
               //listen for changes 
               resultWrapper.stream.listen((result) {
                 //reset events before starting to emit new ones
@@ -353,7 +353,10 @@ List<List<String>> buildBloc(
             await resultWrapper.observableQuery.close();
           }
         }
+       ${i.returnType} get getData{
+          return (state is ${i.operationName.pascalCase}Initial)||(state is ${i.operationName.pascalCase}Error)?null:(state as dynamic)?.data;
 
+        }
         @override
         Future<void> close() async {
           await closeResultWrapper();
@@ -378,12 +381,38 @@ List<List<String>> buildBloc(
   return content;
 }
 
-buildOperationParams() {
+buildOperationParams(List<VariableInfo> variables) {
+  if (variables.isNotEmpty) {
+    var joinedVars = variables.map((v) {
+      return "${v.name}:event.${v.name}";
+    }).join(',');
+    return joinedVars;
+  }
   return '';
 }
 
-buildInputsValidations() {
+buildInputsValidations(OperationAstInfo operation) {
+  final validations = operation.variables.where((v) => v.isNonNull).map((v) {
+    return v.fields.where((f) => f.isNonNull).map((f) {
+      var vf = "${v.name}?.${f.name}";
+      var test = f.isList ? "event.${vf}?.isEmpty==true" : "event.${vf}==null";
+      var stateName =
+          "${operation.operationName.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
+      return """
+      if(${test}){
+        yield ${stateName}ValidationError('${f.name} is required',getData,${reAssignedInputs(operation.variables)});
+      }
+      """;
+    }).join('\n else ');
+  }).join('\n else ');
+  if (validations.isNotEmpty) return "${validations} \nelse ";
   return '';
+}
+
+String reAssignedInputs(List<VariableInfo> variables) {
+  return variables.map((v) {
+    return "\$${v.name}:event.${v.name}";
+  }).join(',');
 }
 
 String fileName(String operationName, String name, [String ext = '.dart']) {
