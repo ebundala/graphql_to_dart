@@ -89,6 +89,8 @@ String _getName(DefinitionNode def) {
 class AstGenerator implements Builder {
   //final DartFormatter _dartfmt = DartFormatter();
   Map<String, InputObjectTypeDefinitionNode> inputs;
+  Map<String, ObjectTypeDefinitionNode> types;
+
   List<String> scalars;
   List<OperationInfo> info;
   DocumentNode schema;
@@ -112,6 +114,7 @@ class AstGenerator implements Builder {
       inputs = getInputsDef(schema);
       scalars = getScalarsAndEnums(schema);
       info = getOperationsInfo(schema);
+      types = getTypesMapping(schema);
     } else {
       throw Exception("Schema not found");
     }
@@ -144,6 +147,7 @@ class AstGenerator implements Builder {
 
     var content = buildBloc(
         info: info,
+        types: types,
         scalars: scalars,
         inputs: inputs,
         operationAst: operationAst,

@@ -29,36 +29,8 @@ class StatesBuilder {
       ..addAll(validationStates());
   }
 
-  List<String> createOne() {
-    return genericOperation();
-  }
-
-  List<String> createMany() {
-   return genericOperation();
-  }
-
-  List<String> updateOne() {
-    return genericOperation();
-  }
-
-  List<String> updateMany() {
-   return genericOperation();
-  }
-
-  List<String> deleteOne() {
-   return genericOperation();
-  }
-
-  List<String> deleteMany() {
-    return genericOperation();
-  }
-
-  List<String> findUnique() {
-   return genericOperation();
-  }
-
-  List<String> findMany() {
-   return states.map((e) {
+  List<String> listOperation() {
+    return states.map((e) {
       switch (e) {
         case 'Error':
           return classWithMessage(e);
@@ -78,23 +50,40 @@ class StatesBuilder {
       ..addAll(validationStates());
   }
 
+  List<String> createOne() {
+    return genericOperation();
+  }
+
+  List<String> createMany() {
+    return listOperation();
+  }
+
+  List<String> updateOne() {
+    return genericOperation();
+  }
+
+  List<String> updateMany() {
+    return listOperation();
+  }
+
+  List<String> deleteOne() {
+    return genericOperation();
+  }
+
+  List<String> deleteMany() {
+    return listOperation();
+  }
+
+  List<String> findUnique() {
+    return genericOperation();
+  }
+
+  List<String> findMany() {
+    return listOperation();
+  }
+
   List<String> findFirst() {
-    return states.map((e) {
-      switch (e) {
-        case 'Initial':
-        case 'Success':
-        case 'Failure':
-        case 'InProgress':
-        case 'DatasetChanged':
-          return classWithDataAndMessage(e);
-        case 'Error':
-          return classWithMessage(e);
-        default:
-          return generic(e);
-      }
-    }).toList()
-      ..insert(0, baseClass())
-      ..addAll(validationStates());
+    return genericOperation();
   }
 
   String generic(String e) {

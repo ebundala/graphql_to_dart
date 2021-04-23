@@ -195,4 +195,3 @@ OperationRuntimeInfo getOperationInfo(DocumentNode document) {
   }
   return null;
 }
-  

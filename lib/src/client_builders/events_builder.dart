@@ -25,6 +25,33 @@ class EventsBuilder {
           return classWithDataAndMessage(e);
         case 'Started':
         case 'Reseted':
+        case 'Retried':
+        default:
+          return generic(e);
+      }
+    }).toList()
+      ..insert(0, baseClass());
+  }
+
+  List<String> listOperation() {
+    return events.map((e) {
+      switch (e) {
+        case 'Excuted':
+        case 'MoreLoaded':
+          return classWithVariables(e);
+        case 'IsLoading':
+        case 'IsOptimistic':
+        case 'IsConcrete':
+          return classWithData(e);
+        case 'Refreshed':
+          return classWithStateData(e);
+        case 'Errored':
+        case 'Failed':
+          return classWithDataAndMessage(e);
+        case 'Started':
+        case 'Reseted':
+        case 'Retried':
+        case 'StreamEnded':
         default:
           return generic(e);
       }
@@ -37,7 +64,7 @@ class EventsBuilder {
   }
 
   List<String> createMany() {
-    return genericOperation();
+    return listOperation();
   }
 
   List<String> updateOne() {
@@ -45,7 +72,7 @@ class EventsBuilder {
   }
 
   List<String> updateMany() {
-    return genericOperation();
+    return listOperation();
   }
 
   List<String> deleteOne() {
@@ -53,7 +80,7 @@ class EventsBuilder {
   }
 
   List<String> deleteMany() {
-    return genericOperation();
+    return listOperation();
   }
 
   List<String> findUnique() {
@@ -61,53 +88,11 @@ class EventsBuilder {
   }
 
   List<String> findMany() {
-    return events.map((e) {
-      switch (e) {
-        case 'Excuted':
-          return classWithVariables(e);
-        case 'IsLoading':
-        case 'IsOptimistic':
-        case 'IsConcrete':
-        case 'MoreLoaded':
-        case 'StreamEnded':
-          return classWithData(e);
-        case 'Refreshed':
-          return classWithStateData(e);
-        case 'Errored':
-        case 'Failed':
-          return classWithDataAndMessage(e);
-        case 'Started':
-        case 'Reseted':
-        default:
-          return generic(e);
-      }
-    }).toList()
-      ..insert(0, baseClass());
+    return listOperation();
   }
 
   List<String> findFirst() {
-    return events.map((e) {
-      switch (e) {
-        case 'Excuted':
-          return classWithVariables(e);
-        case 'IsLoading':
-        case 'IsOptimistic':
-        case 'IsConcrete':
-        case 'MoreLoaded':
-        case 'StreamEnded':
-          return classWithData(e);
-        case 'Refreshed':
-          return classWithStateData(e);
-        case 'Errored':
-        case 'Failed':
-          return classWithDataAndMessage(e);
-        case 'Started':
-        case 'Reseted':
-        default:
-          return generic(e);
-      }
-    }).toList()
-      ..insert(0, baseClass());
+    return genericOperation();
   }
 
   String generic(String e) {

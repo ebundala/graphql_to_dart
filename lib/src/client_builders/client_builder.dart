@@ -207,12 +207,17 @@ List<List<String>> buildBloc(
     @required DocumentNode operationAst,
     @required String package,
     @required Map<String, InputObjectTypeDefinitionNode> inputs,
+    @required Map<String, ObjectTypeDefinitionNode> types,
     @required String modelsPath,
     @required String outDir,
     @required List<String> scalars,
     @required String helperPath}) {
-  var operations = getOperationInfoFromAst(
-      document: operationAst, scalars: scalars, info: info, inputs: inputs);
+  final operations = getOperationInfoFromAst(
+      types: types,
+      document: operationAst,
+      scalars: scalars,
+      info: info,
+      inputs: inputs);
   List<List<String>> content = [];
   for (var i in operations) {
     final ext = buildGraphqlClientExtension(i);
@@ -230,6 +235,29 @@ List<List<String>> buildBloc(
           ]))
         .join('\n');
     final libname = i.operationName.pascalCase;
+    final isList = i.isList
+        ? """  
+            else if (event is ${libname}MoreLoaded){      
+              yield ${libname}LoadMoreInProgress(data:getData);
+                ${i.name}LoadMore(event);
+            }
+             else if (event is ${libname}StreamEnded){
+                yield ${libname}AllDataLoaded(data:getData);
+            }
+    """
+        : "";
+    final isListFn = i.isList
+        ? """
+    void ${i.name}LoadMore(${libname}MoreLoaded event) {
+      client.${i.name}LoadMore(resultWrapper.observableQuery,${buildOperationParams(i.variables)});
+    }
+    """
+        : "";
+    final isloadingMoreEvent = i.isList
+        ? """
+       if(!(state is ${libname}LoadMoreInProgress))       
+    """
+        : "";
     var bloc = """
        ${imports}
 
@@ -258,6 +286,7 @@ List<List<String>> buildBloc(
               yield* ${i.name}(event);
             } else if (event is ${libname}IsLoading) {
               // emit loading state
+              ${isloadingMoreEvent}
               yield ${libname}InProgress(data: event.data);
             } else if (event is ${libname}IsOptimistic) {
               // emit optimistic result state
@@ -275,13 +304,21 @@ List<List<String>> buildBloc(
               //emit error case
               yield ${libname}Error(message: event.message);
             }
+            else if (event is ${libname}Retried){              
+                ${i.name}Retry();
+            }
+            ${isList}
+            
 
           if (hook != null) {
             yield* hook(this, event, ${libname}BlocHookStage.after);
           }
         }
+        void ${i.name}Retry(){
+          client.${i.name}Retry(resultWrapper.observableQuery);
+        }
+        ${isListFn}
 
-      
         Stream<${libname}State> ${i.name}(${libname}Excuted event) async* {
           
           //validate all required fields of required args and emit relevant events
@@ -451,6 +488,32 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
         isObservable: true, observableQuery: result, stream: stream);
   """);
   fn.writeln("}");
+  fn.write("""
+  //refetch fn
+    void ${operation.name}Retry(ObservableQuery observableQuery) {
+      if (observableQuery.isRefetchSafe)
+        observableQuery.refetch();
+    }
+    //load more fn
+    void ${operation.name}LoadMore(ObservableQuery observableQuery,${buildFnArguments(operation.variables)})  {
+      final Map<String, dynamic> vars = {};
+      ${variables}
+      observableQuery.fetchMore(
+        FetchMoreOptions(
+         document:document,
+         variables:vars,
+          updateQuery: (p, n) {
+            if (p['data'] is List && n['data'] is List) {
+              (p['data'] as List).addAll((n['data'] as List));
+              return p;
+            }
+            return n;
+          },
+        
+        ),
+      );
+    }
+  """);
   fn.writeln('}');
   return fn.toString();
 }

@@ -1,4 +1,5 @@
 import 'package:gql/ast.dart';
+import 'package:meta/meta.dart';
 
 List<OperationInfo> getOperationsInfo(DocumentNode document) {
   var scalars = getScalarsAndEnums(document);
@@ -18,6 +19,15 @@ Map<String, InputObjectTypeDefinitionNode> getInputsDef(DocumentNode document) {
     return p;
   });
   return inputs;
+}
+
+Map<String, ObjectTypeDefinitionNode> getTypesMapping(DocumentNode node) {
+  var vs = ObjectInfoVisitor();
+  node.visitChildren(vs);
+  return vs.accumulator.fold<Map<String, ObjectTypeDefinitionNode>>({}, (p, n) {
+    p.addAll(n);
+    return p;
+  });
 }
 
 List<String> getScalarsAndEnums(DocumentNode document) {
@@ -59,7 +69,7 @@ class OperationInfoVisitor extends AccumulatingVisitor<OperationInfo> {
     var type = opType;
     var returnType = nodeType(node.type);
     var _isScalar = isScalar(returnType, scalars);
-    returnType = convertScalarsToDartTypes(_isScalar,returnType);
+    returnType = convertScalarsToDartTypes(_isScalar, returnType);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
     var args = ArgsInfoVisitor(scalars: scalars, inputs: inputs);
@@ -126,6 +136,16 @@ class ScalarInfoVisitor extends AccumulatingVisitor<String> {
   }
 }
 
+class ObjectInfoVisitor
+    extends AccumulatingVisitor<Map<String, ObjectTypeDefinitionNode>> {
+  @override
+  void visitObjectTypeDefinitionNode(ObjectTypeDefinitionNode node) {
+    var k = node.name.value;
+    accumulator.add({k: node});
+    super.visitObjectTypeDefinitionNode(node);
+  }
+}
+
 class InputInfoVisitor
     extends AccumulatingVisitor<Map<String, InputObjectTypeDefinitionNode>> {
   @override
@@ -148,7 +168,7 @@ class ArgsInfoVisitor extends AccumulatingVisitor<ArgsInfo> {
     var _isScalar = isScalar(type, scalars);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
-        type = convertScalarsToDartTypes(_isScalar,type);
+    type = convertScalarsToDartTypes(_isScalar, type);
 
     var fv = ArgFieldInfoVisitor(scalars);
     var inputAst = inputs[type];
@@ -177,7 +197,7 @@ class ArgFieldInfoVisitor extends AccumulatingVisitor<ArgFieldInfo> {
     var _isScalar = isScalar(type, scalars);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
-    type = convertScalarsToDartTypes(_isScalar,type);
+    type = convertScalarsToDartTypes(_isScalar, type);
 
     accumulator.add(ArgFieldInfo(
         name: name,
@@ -241,9 +261,15 @@ class OperationAstInfo {
   final String operationName;
   final String returnType;
   final List<VariableInfo> variables;
-
+  //final bool isNonNull;
+  // final bool isScalar;
+  final bool isList;
   OperationAstInfo(
-      {this.name, this.returnType, this.operationName, this.variables});
+      {this.name,
+      this.isList,
+      this.returnType,
+      this.operationName,
+      this.variables});
 }
 
 class VariableInfo {
@@ -268,7 +294,10 @@ class OperationDefinitionASTVisitor
   final List<OperationInfo> schemaInfo;
   final List<String> scalars;
   final Map<String, InputObjectTypeDefinitionNode> inputs;
-  OperationDefinitionASTVisitor({this.schemaInfo, this.scalars, this.inputs});
+  final Map<String, ObjectTypeDefinitionNode> types;
+
+  OperationDefinitionASTVisitor(
+      {this.schemaInfo, this.types, this.scalars, this.inputs});
   String getOperationName(OperationDefinitionNode node) {
     FieldNode field = node.selectionSet?.selections?.firstWhere((v) {
       if (v is FieldNode) {
@@ -277,7 +306,7 @@ class OperationDefinitionASTVisitor
         }
       }
       return false;
-    });
+    },orElse: ()=>null);
     var fieldName = field?.name?.value;
     return fieldName;
   }
@@ -285,8 +314,15 @@ class OperationDefinitionASTVisitor
   String getReturnType(String operationName) {
     var info = schemaInfo.firstWhere((v) {
       return v.name == operationName;
-    });
+    },orElse: ()=>null);
     return info?.returnType;
+  }
+
+  bool _isList(String type) {
+    final o = types[type];
+    var field = o.fields.firstWhere((i) => i.name.value == 'data',orElse: ()=>null);
+    if (field != null) return isList(field.type);
+    return false;
   }
 
   @override
@@ -294,6 +330,7 @@ class OperationDefinitionASTVisitor
     var name = node.name.value;
     var operationName = getOperationName(node);
     var returnType = getReturnType(operationName);
+    var isList = _isList(returnType);
     var vs = VariableVisitor(inputs: inputs, scalars: scalars);
     node.visitChildren(vs);
     var variables = vs.accumulator;
@@ -302,6 +339,7 @@ class OperationDefinitionASTVisitor
         name: name,
         returnType: returnType,
         operationName: operationName,
+        isList: isList,
         variables: variables));
     super.visitOperationDefinitionNode(node);
   }
@@ -319,7 +357,7 @@ class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
     var _isScalar = isScalar(type, scalars);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
-        type = convertScalarsToDartTypes(_isScalar,type);
+    type = convertScalarsToDartTypes(_isScalar, type);
 
     var fv = ArgFieldInfoVisitor(scalars);
     var inputAst = inputs[type];
@@ -336,12 +374,15 @@ class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
 }
 
 List<OperationAstInfo> getOperationInfoFromAst(
-    {DocumentNode document,
-    List<String> scalars,
-    List<OperationInfo> info,
-    Map<String, InputObjectTypeDefinitionNode> inputs}) {
+    {
+   @required DocumentNode document,
+   @required List<String> scalars,
+   @required List<OperationInfo> info,
+   @required Map<String, InputObjectTypeDefinitionNode> inputs,
+        @required Map<String, ObjectTypeDefinitionNode> types,
+}) {
   var vs = OperationDefinitionASTVisitor(
-      inputs: inputs, scalars: scalars, schemaInfo: info);
+      inputs: inputs,types: types, scalars: scalars, schemaInfo: info);
   document.visitChildren(vs);
   return vs.accumulator;
 }
