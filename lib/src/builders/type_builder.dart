@@ -42,6 +42,8 @@ class TypeBuilder {
       }
       String current = stringBuffer.toString();
       stringBuffer.clear();
+      stringBuffer
+          .writeln('import "package:http/http.dart" show Multipartfile;');
       if (config.useEquatable) {
         stringBuffer.writeln('import "package:equatable/equatable.dart";');
       }

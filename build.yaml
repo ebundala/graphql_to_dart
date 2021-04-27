@@ -39,6 +39,6 @@ builders:
          use_equatable: true
          required_input_field: true
          type_override:
-          Upload: String
+          Upload: MultipartFile
 
  
