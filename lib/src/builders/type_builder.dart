@@ -214,6 +214,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     bool nonNull = false;
     LocalField localField;
     if (type.kind == "NON_NULL") {
+      //mark only top level as non nullable
       nonNull = true;
       type = type.ofType;
     }
@@ -222,7 +223,6 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       type = type.ofType;
     }
     if (type.kind == "NON_NULL") {
-      nonNull = true;
       type = type.ofType;
     }
     if (type.kind == scalar) {
