@@ -14,9 +14,9 @@ class StatesBuilder {
     return states.map((e) {
       switch (e) {
         case 'Error':
-          return classWithMessage(e);
+        // return classWithDataAndMessage(e);
         case 'Initial':
-          return generic(e);
+         // return generic(e);
         case 'Success':
         case 'Failure':
         case 'InProgress':
@@ -33,9 +33,9 @@ class StatesBuilder {
     return states.map((e) {
       switch (e) {
         case 'Error':
-          return classWithMessage(e);
+         // return classWithDataAndMessage(e);
         case 'Initial':
-          return generic(e);
+        //  return generic(e);
         case 'Success':
         case 'Failure':
         case 'InProgress':
@@ -98,8 +98,11 @@ class StatesBuilder {
   String baseClass() {
     return """
     abstract class ${base} extends Equatable{
+       final ${operation.returnType} data;
+      final String message;
+      ${base}({this.data,this.message});
        @override
-      List<Object> get props=>[];
+      List<Object> get props=>[data,message];
     }
     """;
   }

@@ -27,18 +27,18 @@ builders:
     # Generate the output directly into the package, not to a hidden cache dir
     build_to: source
     applies_builders: ["source_gen|combining_builder"]
-    defaults:
-       options:
-         schema_path: "lib/schema.graphql"
-         helper_path: 'graphql/common'
-         models_import_path: 'graphql/models'
-         package_name: example
-         graphql_endpoint: http://localhost:3000/graphql
-         models_directory_path: lib/graphql/models/
-         to_json_exclude_null_field: true
-         use_equatable: true
-         required_input_field: true
-         type_override:
-          Upload: MultipartFile
+    # defaults:
+    #    options:
+    #      schema_path: "lib/schema.graphql"
+    #      helper_path: 'graphql/common'
+    #      models_import_path: 'graphql/models'
+    #      package_name: examplePackage
+    #      graphql_endpoint: http://localhost:3000/graphql
+    #      models_directory_path: lib/graphql/models/
+    #      to_json_exclude_null_field: true
+    #      use_equatable: true
+    #      required_input_field: true
+    #      type_override:
+    #       Upload: MultipartFile
 
  

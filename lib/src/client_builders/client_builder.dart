@@ -4,7 +4,6 @@ import 'package:graphql_to_dart/src/client_builders/events_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_definitions.dart';
 import "package:code_builder/code_builder.dart";
-import "package:dart_style/dart_style.dart";
 
 import 'package:recase/recase.dart';
 import 'package:meta/meta.dart';
@@ -272,14 +271,14 @@ List<List<String>> buildBloc(
           final Stream<${libname}State> Function(
       ${libname}Bloc context, ${libname}Event event, ${libname}BlocHookStage stage) hook;
       OperationResult resultWrapper;
-       ${libname}Bloc({@required this.client,this.hook}) : super(${libname}Initial());
+       ${libname}Bloc({@required this.client,this.hook}) : super(${libname}Initial(data:null));
         @override
         Stream<${libname}State> mapEventToState(${libname}Event event) async* {
           if (hook != null) {
             yield* hook(this, event, ${libname}BlocHookStage.before);
           }
          if (event is ${libname}Started) {
-              yield ${libname}Initial();
+              yield ${libname}Initial(data:null);
             }
             if (event is ${libname}Excuted) {
               //start main excution 
@@ -302,7 +301,7 @@ List<List<String>> buildBloc(
               yield ${libname}Failure(data: event.data, message: event.message);
             } else if (event is ${libname}Errored) {
               //emit error case
-              yield ${libname}Error(message: event.message);
+              yield ${libname}Error(data:state.data,message: event.message);
             }
             else if (event is ${libname}Retried){              
                 ${i.name}Retry();
@@ -380,7 +379,7 @@ List<List<String>> buildBloc(
               resultWrapper.observableQuery.fetchResults();
             } catch (e) {
               //emit complete failure state;
-              yield ${libname}Error(message: e.toString());
+              yield ${libname}Error(data:state.data,message: e.toString());
             }
           }
         }

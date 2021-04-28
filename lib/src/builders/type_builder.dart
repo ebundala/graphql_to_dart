@@ -35,7 +35,7 @@ class TypeBuilder {
       if (config.useEquatable) {
         var props = localFields
             .map((v) =>
-                "${v.list ? 'List.from(${_to$(v.name)})' : _to$(v.name)}")
+                "${v.list ? 'List.from(${_to$(v.name)}??[])' : _to$(v.name)}")
             .join(",");
         stringBuffer.writeln('');
         stringBuffer.writeln("List<Object> get props => [$props];");
@@ -43,7 +43,7 @@ class TypeBuilder {
       String current = stringBuffer.toString();
       stringBuffer.clear();
       stringBuffer
-          .writeln('import "package:http/http.dart" show Multipartfile;');
+          .writeln('import "package:http/http.dart" show MultipartFile;');
       if (config.useEquatable) {
         stringBuffer.writeln('import "package:equatable/equatable.dart";');
       }
