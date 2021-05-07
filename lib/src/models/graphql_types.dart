@@ -1,11 +1,11 @@
 class GraphQLSchema {
-  List<Types> types;
+  late List<Types> types;
 
-  GraphQLSchema({this.types});
+  GraphQLSchema({required this.types});
 
   GraphQLSchema.fromJson(Map<String, dynamic> json) {
     if (json['types'] != null) {
-      types = List<Types>();
+      types = <Types>[];
       json['types'].forEach((v) {
         types.add(Types.fromJson(v));
       });
@@ -14,37 +14,35 @@ class GraphQLSchema {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
-    if (this.types != null) {
-      data['types'] = this.types.map((v) => v.toJson()).toList();
-    }
+    data['types'] = this.types.map((v) => v.toJson()).toList();
     return data;
   }
 }
 
 class Types {
-  List<Fields> fields;
-  String kind;
-  String name;
-  Type ofType;
-  List<Fields> inputFields;
-  List<Fields> enumValues;
+  List<Fields>? fields;
+  String? kind;
+  String? name;
+  Type? ofType;
+  late List<Fields> inputFields;
+  late List<Fields> enumValues;
   Types({this.fields, this.kind, this.name, this.ofType});
 
   Types.fromJson(Map<String, dynamic> json) {
     if (json['fields'] != null) {
-      fields = List<Fields>();
+      fields = <Fields>[];
       json['fields'].forEach((v) {
-        fields.add(Fields.fromJson(v));
+        fields!.add(Fields.fromJson(v));
       });
     }
     if (json['inputFields'] != null) {
-      inputFields = List<Fields>();
+      inputFields = <Fields>[];
       json['inputFields'].forEach((v) {
         inputFields.add(Fields.fromJson(v));
       });
     }
     if (json['enumValues'] != null) {
-      enumValues = List<Fields>();
+      enumValues = <Fields>[];
       json['enumValues'].forEach((v) {
         print(v);
         enumValues.add(Fields.fromJson(v));
@@ -58,7 +56,7 @@ class Types {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
     if (this.fields != null) {
-      data['fields'] = this.fields.map((v) => v.toJson()).toList();
+      data['fields'] = this.fields!.map((v) => v.toJson()).toList();
     }
     data['kind'] = this.kind;
     data['name'] = this.name;
@@ -68,9 +66,9 @@ class Types {
 }
 
 class Fields {
-  String description;
-  String name;
-  Type type;
+  String? description;
+  String? name;
+  Type? type;
 
   Fields({this.description, this.name, this.type});
 
@@ -85,21 +83,20 @@ class Fields {
     data['description'] = this.description;
     data['name'] = this.name;
     if (this.type != null) {
-      data['type'] = this.type.toJson();
+      data['type'] = this.type!.toJson();
     }
     return data;
   }
 }
 
 class Type {
-  String kind;
-  String name;  
-  Type ofType;
+  String? kind;
+  String? name;
+  Type? ofType;
 
   Type({this.kind, this.name, this.ofType});
 
   Type.fromJson(Map<String, dynamic> json) {
-
     kind = json['kind'];
     name = json['name'];
     ofType = json['ofType'] != null ? Type.fromJson(json['ofType']) : null;
@@ -110,15 +107,15 @@ class Type {
     data['kind'] = this.kind;
     data['name'] = this.name;
     if (this.ofType != null) {
-      data['ofType'] = this.ofType.toJson();
+      data['ofType'] = this.ofType!.toJson();
     }
     return data;
   }
 }
 
 class OfType {
-  String kind;
-  String name;
+  String? kind;
+  String? name;
 
   OfType({this.kind, this.name});
 

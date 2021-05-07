@@ -1,10 +1,10 @@
 import 'package:gql/ast.dart';
-import 'package:gql_code_gen/gql_code_gen.dart';
+//import 'package:gql_code_gen/gql_code_gen.dart';
 import 'package:graphql_to_dart/src/client_builders/events_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_definitions.dart';
 import "package:code_builder/code_builder.dart";
-
+import 'package:graphql_to_dart/src/builders/from_node.dart';
 import 'package:recase/recase.dart';
 import 'package:meta/meta.dart';
 import '../../graphql_to_dart.dart';
@@ -115,7 +115,7 @@ Map<String, List<String>> getEventsMapping(
       ev.addAll({k: v});
     }
   });
-  if (ev.isEmpty) return {'generic': events['generic']};
+  if (ev.isEmpty) return {'generic': events['generic'] ?? <String>[]};
   return ev;
 }
 
@@ -126,7 +126,7 @@ List<String> getPropsList(List<VariableInfo> variables) {
 }
 
 String _getName(DefinitionNode def) {
-  if (def.name != null && def.name.value != null) return def.name.value;
+  //if (def.name != null && def.name.value != null) return def.name.value;
 
   if (def is SchemaDefinitionNode) return "schema";
 
@@ -135,8 +135,10 @@ String _getName(DefinitionNode def) {
     if (def.type == OperationType.mutation) return "mutation";
     if (def.type == OperationType.subscription) return "subscription";
   }
-
-  return null;
+  if (def is DirectiveDefinitionNode) return def.name.value;
+  if (def is TypeDefinitionNode) return def.name.value;
+  if (def is FragmentDefinitionNode) return def.name.value;
+  return "unknown";
 }
 
 String getOperationCodeFromAstNode(DocumentNode doc) {
@@ -202,15 +204,15 @@ String buildConstructorArguments(
 }
 
 List<List<String>> buildBloc(
-    {@required List<OperationInfo> info,
-    @required DocumentNode operationAst,
-    @required String package,
-    @required Map<String, InputObjectTypeDefinitionNode> inputs,
-    @required Map<String, ObjectTypeDefinitionNode> types,
-    @required String modelsPath,
-    @required String outDir,
-    @required List<String> scalars,
-    @required String helperPath}) {
+    {required List<OperationInfo> info,
+    required DocumentNode operationAst,
+    required String package,
+    required Map<String, InputObjectTypeDefinitionNode> inputs,
+    required Map<String, ObjectTypeDefinitionNode> types,
+    required String modelsPath,
+    required String outDir,
+    required List<String> scalars,
+    required String helperPath}) {
   final operations = getOperationInfoFromAst(
       types: types,
       document: operationAst,

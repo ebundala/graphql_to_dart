@@ -5,42 +5,42 @@ import 'package:yaml/yaml.dart';
 //import 'package:yaml/yaml.dart';
 
 class Config {
-  String graphQLEndpoint;
+  late String graphQLEndpoint;
 //  String queriesFilePath;
 //  String mutationsFilePath;
 //  String subscriptionsFilePath;
-  String packageName;
-  String modelsDirectoryPath;
-  bool dynamicImportPath;
-  bool toJsonExcludeNullField;
-  bool useEquatable;
-  YamlMap typeOverride;
-  bool requiredInputField;
-  String schemaPath;
-  String helperPath;
-  String modelsImportPath;
-  Config({this.modelsDirectoryPath});
+  late String packageName;
+  late String modelsDirectoryPath;
+  late bool dynamicImportPath;
+  late bool toJsonExcludeNullField;
+  late bool useEquatable;
+  YamlMap? typeOverride;
+  late bool requiredInputField;
+  late String schemaPath;
+  late String helperPath;
+  late String modelsImportPath;
+  Config();
   Config.fromJson(Map map) {
-    graphQLEndpoint = map['graphql_endpoint']?.toString();
+    graphQLEndpoint = map['graphql_endpoint'].toString();
 //    queriesFilePath = map['queries_file_path']?.toString();
 //    mutationsFilePath = map['mutations_file_path']?.toString();
 //    subscriptionsFilePath = map['subscriptions_file_path']?.toString();
-    modelsDirectoryPath = map['models_directory_path']?.toString();
+    modelsDirectoryPath = map['models_directory_path'].toString();
     dynamicImportPath =
         map['dynamic_import_path']?.toString() == 'false' ? false : true;
     toJsonExcludeNullField =
-        map['to_json_exclude_null_field']?.toString() == 'false' ? false : true;
-    useEquatable = map['use_equatable']?.toString() == 'false' ? false : true;
+        map['to_json_exclude_null_field'].toString() == 'false' ? false : true;
+    useEquatable = map['use_equatable'].toString() == 'false' ? false : true;
     requiredInputField =
-        map['required_input_field']?.toString() == 'false' ? false : true;
-    packageName = map['package_name']?.toString();
+        map['required_input_field'].toString() == 'false' ? false : true;
+    packageName = map['package_name'].toString();
     ;
     typeOverride = map['type_override'];
-    schemaPath = map['schema_path']?.toString();
+    schemaPath = map['schema_path'].toString();
     ;
-    helperPath = map['helper_path']?.toString();
+    helperPath = map['helper_path'].toString();
     ;
-    modelsImportPath = map["models_import_path"]?.toString();
+    modelsImportPath = map["models_import_path"].toString();
     ;
   }
   Future<ValidationResult> validate() async {
@@ -71,7 +71,7 @@ class Config {
     }
   }
 
-  Future<FileSystemEntity> createRecursive(FileSystemEntity file) {
+  Future<FileSystemEntity>? createRecursive(FileSystemEntity file) {
     if (file is File) {
       return file.create(recursive: true);
     } else {
@@ -83,7 +83,7 @@ class Config {
 
 class ValidationResult {
   bool hasError;
-  String errorMessage;
+  String? errorMessage;
 
-  ValidationResult({this.hasError, this.errorMessage});
+  ValidationResult({required this.hasError, this.errorMessage});
 }

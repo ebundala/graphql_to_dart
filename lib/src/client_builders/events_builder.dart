@@ -5,8 +5,8 @@ import 'package:recase/recase.dart';
 class EventsBuilder {
   final OperationAstInfo operation;
   final List<String> events;
-  String base;
-  EventsBuilder({this.operation, this.events}) {
+  late String base;
+  EventsBuilder({required this.operation, required this.events}) {
     base = "${operation.operationName.pascalCase}Event";
   }
   List<String> genericOperation() {

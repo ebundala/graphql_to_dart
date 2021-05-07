@@ -14,12 +14,13 @@ class TypeConverters {
     "bool": "bool",
     "uuid": "String"
   };
+  String overrideType(String type) {
+    return nonObjectTypes[type.toString().toLowerCase()] ?? type;
+  }
 
-  void overrideTypes(Map newTypes) {
+  void overrideTypes(Map? newTypes) {
     newTypes?.forEach((key, value) {
       nonObjectTypes[key.toString().toLowerCase()] = value;
     });
   }
-
-  
 }

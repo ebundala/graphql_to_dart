@@ -28,7 +28,7 @@ class GraphQlToDart {
     // config = await ConfigParser.parse(yamlFilePath);
     ValidationResult result = await config.validate();
     if (result.hasError) {
-      throw result.errorMessage;
+      throw Exception(result.errorMessage);
     }
 
     LocalGraphQLClient localGraphQLClient = LocalGraphQLClient();
@@ -40,7 +40,7 @@ class GraphQlToDart {
     await Future.forEach(schema.types, (Types type) async {
       if (type.fields != null &&
           type.inputFields == null &&
-          !type.name.startsWith("__") &&
+          !type.name!.startsWith("__") &&
           !ignoreFields.contains(type.name?.toLowerCase())) {
         print("Creating model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
@@ -59,7 +59,7 @@ class GraphQlToDart {
       }
       if (type.kind == 'ENUM' &&
           type.fields == null &&
-          !type.name.startsWith("__") &&
+          !type.name!.startsWith("__") &&
           type.inputFields == null) {
         print("Creating enum model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
@@ -75,14 +75,14 @@ class GraphQlToDart {
     return outputs;
   }
 
-  Future runFlutterFormat([String path]) async {
+  Future runFlutterFormat([String? path]) async {
     var dir;
     if (path != null) {
       dir = Directory.current.path + path;
     }
     Process.runSync(
       "flutter",
-      ["format", dir ?? FileConstants().modelsDirectory.path],
+      ["format", dir ?? FileConstants().modelsDirectory!.path],
       runInShell: true,
     );
     print("Formatted Generated Files");

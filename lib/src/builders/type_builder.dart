@@ -59,7 +59,7 @@ class TypeBuilder {
       stringBuffer.write(current.toString());
       _addImports();
     }
-    var path = "/${pascalToSnake(type.name)}.dart".replaceAll(r"//", r"/");
+    var path = "/${pascalToSnake(type.name??"")}.dart".replaceAll(r"//", r"/");
     outputs[path] = stringBuffer.toString();
     //await saveToFile();
   }
@@ -156,7 +156,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   saveToFiles() async {
     outputs.forEach((k, v) async {
-      File file = File(FileConstants().modelsDirectory.path + k);
+      File file = File(FileConstants().modelsDirectory!.path + k);
       if (!(await file.exists())) {
         await file.create();
       }
@@ -166,7 +166,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   }
 
   _addFields() {
-    type.fields.forEach((field) {
+    type.fields!.forEach((field) {
       _typeOrdering(field.type, field.name);
     });
   }
@@ -181,7 +181,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addEnumValues() {
     // stringBuffer.writeln("import 'package:flutter/foundation.dart';");
     stringBuffer.writeln(
-        'enum ${type.name}{\n${type.enumValues.map((e) => _to$(e.name)).join(',\n')}\n}');
+        'enum ${type.name}{\n${type.enumValues.map((e) => _to$(e.name??'')).join(',\n')}\n}');
 //     stringBuffer.writeln('''
 //     extension ${type.name}Index on ${type.name} {
 //   // Overload the [] getter to get the name of the fruit.
@@ -211,48 +211,48 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         _wrapWith(constructorBuffer.toString(), "${type.name}({", "});"));
   }
 
-  _typeOrdering(Type type, String fieldName, [bool isInput = false]) {
+  _typeOrdering(Type? type, String? fieldName, [bool isInput = false]) {
     bool list = false;
     bool nonNull = false;
     LocalField localField;
-    if (type.kind == "NON_NULL") {
+    if (type!.kind == "NON_NULL") {
       //mark only top level as non nullable
       nonNull = true;
       type = type.ofType;
     }
-    if (type.kind == "LIST") {
+    if (type!.kind == "LIST") {
       list = true;
       type = type.ofType;
     }
-    if (type.kind == "NON_NULL") {
+    if (type!.kind == "NON_NULL") {
       type = type.ofType;
     }
-    if (type.kind == scalar) {
+    if (type!.kind == scalar) {
       localField = LocalField(
-          name: fieldName,
+          name: fieldName??'',
           list: list,
           nonNull: nonNull,
           isInput: isInput,
-          type: TypeConverters().nonObjectTypes[type.name.toLowerCase()],
+          type: TypeConverters().overrideType(type.name??"String"),
           object: false);
       localFields.add(localField);
     } else if (type.kind == 'ENUM') {
       localField = LocalField(
-        name: fieldName,
+        name: fieldName??"",
         list: list,
         nonNull: nonNull,
         isInput: isInput,
-        type: TypeConverters().nonObjectTypes['string'],
+        type: TypeConverters().overrideType('String'),
         object: false,
         /*isEnum: true*/
       );
       localFields.add(localField);
     } else {
       localField = LocalField(
-          name: fieldName,
+          name: fieldName??'',
           list: list,
           nonNull: nonNull,
-          type: type.name,
+          type: type.name??'',
           isInput: isInput,
           object: true);
       localFields.add(localField);
@@ -280,16 +280,16 @@ class LocalField {
   final bool isInput;
 
   LocalField(
-      {this.name,
-      this.list,
-      this.type,
-      this.object,
+      {required this.name,
+      required this.list,
+      required this.type,
+      required this.object,
       this.isEnum = false,
       this.isInput = false,
       this.nonNull = false});
 
   String toDeclarationStatement() {
-    return "${list ? "List<" : ""}${type ?? "var"}${list ? ">" : ""} ${_to$(name)};";
+    return "${list ? 'List<${type}>' : '${type}'} ${_to$(name)};";
   }
 
   @override

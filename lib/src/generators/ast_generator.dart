@@ -20,8 +20,8 @@ Set<String> allRelativeImports(String doc) {
     RegExp(r'^#\s*import\s+"([^"]+)"', multiLine: true),
     RegExp(r"^#\s*import\s+'([^']+)'", multiLine: true)
   ]) {
-    pattern.allMatches(doc)?.forEach((m) {
-      final path = m?.group(1);
+    pattern.allMatches(doc).forEach((m) {
+      final path = m.group(1);
       if (path != null) {
         imports.add(
           path.endsWith(graphqlExtension) ? path : "$path$graphqlExtension",
@@ -40,13 +40,16 @@ Future<String> inlineImportsRecursively(BuildStep buildStep) async {
   void collectContentRecursivelyFrom(AssetId id) async {
     importMap[id.path] = await buildStep.readAsString(id);
     final segments = id.pathSegments..removeLast();
+    var i = importMap[id.path];
+    late var imports;
+    if (i != null) {
+      imports = allRelativeImports(i)
+          .map((i) => p.normalize(p.joinAll([...segments, i])))
+          .where((i) => !importMap.containsKey(i)) // avoid duplicates/cycles
+          .toSet();
 
-    final imports = allRelativeImports(importMap[id.path])
-        .map((i) => p.normalize(p.joinAll([...segments, i])))
-        .where((i) => !importMap.containsKey(i)) // avoid duplicates/cycles
-        .toSet();
-
-    seenImports.addAll(imports);
+      seenImports.addAll(imports);
+    }
 
     final assetIds = await Stream.fromIterable(imports)
         .asyncExpand(
@@ -55,11 +58,11 @@ Future<String> inlineImportsRecursively(BuildStep buildStep) async {
         .toSet();
 
     for (final assetId in assetIds) {
-      await collectContentRecursivelyFrom(assetId);
+      collectContentRecursivelyFrom(assetId);
     }
   }
 
-  await collectContentRecursivelyFrom(buildStep.inputId);
+  collectContentRecursivelyFrom(buildStep.inputId);
 
   seenImports
       .where(
@@ -72,32 +75,18 @@ Future<String> inlineImportsRecursively(BuildStep buildStep) async {
   return importMap.values.join("\n\n\n");
 }
 
-String _getName(DefinitionNode def) {
-  if (def.name != null && def.name.value != null) return def.name.value;
-
-  if (def is SchemaDefinitionNode) return "schema";
-
-  if (def is OperationDefinitionNode) {
-    if (def.type == OperationType.query) return "query";
-    if (def.type == OperationType.mutation) return "mutation";
-    if (def.type == OperationType.subscription) return "subscription";
-  }
-
-  return null;
-}
-
 class AstGenerator implements Builder {
   //final DartFormatter _dartfmt = DartFormatter();
-  Map<String, InputObjectTypeDefinitionNode> inputs;
-  Map<String, ObjectTypeDefinitionNode> types;
+  late Map<String, InputObjectTypeDefinitionNode> inputs;
+  late Map<String, ObjectTypeDefinitionNode> types;
 
-  List<String> scalars;
-  List<OperationInfo> info;
-  DocumentNode schema;
-  GraphQlToDart graphQlToDart;
+  late List<String> scalars;
+  late List<OperationInfo> info;
+  late DocumentNode schema;
+  late GraphQlToDart graphQlToDart;
   final BuilderOptions options;
   static const helperFileName = "common_client_helpers.dart";
-  Config config;
+  late Config config;
   AstGenerator(this.options) {
     config = Config.fromJson(options.config);
 
@@ -155,7 +144,7 @@ class AstGenerator implements Builder {
         outDir: outDIR,
         modelsPath: config.modelsImportPath,
         helperPath: config.helperPath);
-    await content.forEach((v) async {
+    content.forEach((v) async {
       await saveFile(v[0], v[1]);
     });
     await graphQlToDart.runFlutterFormat(outDIR);

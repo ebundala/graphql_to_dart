@@ -5,8 +5,8 @@ import 'package:recase/recase.dart';
 class StatesBuilder {
   final OperationAstInfo operation;
   final List<String> states;
-  String base;
-  StatesBuilder({this.operation, this.states}) {
+  late String base;
+  StatesBuilder({required this.operation, required this.states}) {
     base = "${ReCase(operation.operationName).pascalCase}State";
   }
 
@@ -16,7 +16,7 @@ class StatesBuilder {
         case 'Error':
         // return classWithDataAndMessage(e);
         case 'Initial':
-         // return generic(e);
+        // return generic(e);
         case 'Success':
         case 'Failure':
         case 'InProgress':
@@ -33,7 +33,7 @@ class StatesBuilder {
     return states.map((e) {
       switch (e) {
         case 'Error':
-         // return classWithDataAndMessage(e);
+        // return classWithDataAndMessage(e);
         case 'Initial':
         //  return generic(e);
         case 'Success':
