@@ -24,8 +24,8 @@ class Types {
   String? kind;
   String? name;
   Type? ofType;
-  late List<Fields> inputFields;
-  late List<Fields> enumValues;
+  List<Fields>? inputFields;
+  List<Fields>? enumValues;
   Types({this.fields, this.kind, this.name, this.ofType});
 
   Types.fromJson(Map<String, dynamic> json) {
@@ -38,14 +38,14 @@ class Types {
     if (json['inputFields'] != null) {
       inputFields = <Fields>[];
       json['inputFields'].forEach((v) {
-        inputFields.add(Fields.fromJson(v));
+        inputFields!.add(Fields.fromJson(v));
       });
     }
     if (json['enumValues'] != null) {
       enumValues = <Fields>[];
       json['enumValues'].forEach((v) {
         print(v);
-        enumValues.add(Fields.fromJson(v));
+        enumValues!.add(Fields.fromJson(v));
       });
     }
     kind = json['kind'];

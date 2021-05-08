@@ -75,6 +75,8 @@ Future<String> inlineImportsRecursively(BuildStep buildStep) async {
   return importMap.values.join("\n\n\n");
 }
 
+bool generated = false;
+
 class AstGenerator implements Builder {
   //final DartFormatter _dartfmt = DartFormatter();
   late Map<String, InputObjectTypeDefinitionNode> inputs;
@@ -128,6 +130,10 @@ class AstGenerator implements Builder {
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
+    // if (!generated) {
+    //   await graphQlToDart.init();
+    //   generated = true;
+    // }
     final package = buildStep.inputId.package;
     final outDIR =
         p.normalize(p.joinAll(buildStep.inputId.pathSegments..removeLast()));

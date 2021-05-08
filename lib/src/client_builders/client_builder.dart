@@ -433,7 +433,9 @@ buildInputsValidations(OperationAstInfo operation) {
   final validations = operation.variables.where((v) => v.isNonNull).map((v) {
     return v.fields.where((f) => f.isNonNull).map((f) {
       var vf = "${v.name}?.${f.name}";
-      var test = f.isList ? "event.${vf}?.isEmpty==true" : "event.${vf}==null";
+      var test = f.isList || f.type == 'String'
+          ? "event.${vf}?.isEmpty==true"
+          : "event.${vf}==null";
       var stateName =
           "${operation.operationName.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
       return """

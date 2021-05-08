@@ -37,6 +37,7 @@ class TypeBuilder {
             .map((v) =>
                 "${v.list ? 'List.from(${_to$(v.name)}??[])' : _to$(v.name)}")
             .join(",");
+
         stringBuffer.writeln('');
         stringBuffer.writeln("List<Object> get props => [$props];");
       }
@@ -59,7 +60,8 @@ class TypeBuilder {
       stringBuffer.write(current.toString());
       _addImports();
     }
-    var path = "/${pascalToSnake(type.name??"")}.dart".replaceAll(r"//", r"/");
+    var path =
+        "/${pascalToSnake(type.name ?? "")}.dart".replaceAll(r"//", r"/");
     outputs[path] = stringBuffer.toString();
     //await saveToFile();
   }
@@ -172,7 +174,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   }
 
   _addInputFields() {
-    type.inputFields.forEach((field) {
+    type.inputFields!.forEach((field) {
       //pass true to indicate this is the input field
       _typeOrdering(field.type, field.name, true);
     });
@@ -181,7 +183,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addEnumValues() {
     // stringBuffer.writeln("import 'package:flutter/foundation.dart';");
     stringBuffer.writeln(
-        'enum ${type.name}{\n${type.enumValues.map((e) => _to$(e.name??'')).join(',\n')}\n}');
+        'enum ${type.name}{\n${type.enumValues!.map((e) => _to$(e.name ?? '')).join(',\n')}\n}');
 //     stringBuffer.writeln('''
 //     extension ${type.name}Index on ${type.name} {
 //   // Overload the [] getter to get the name of the fruit.
@@ -229,16 +231,16 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     }
     if (type!.kind == scalar) {
       localField = LocalField(
-          name: fieldName??'',
+          name: fieldName ?? '',
           list: list,
           nonNull: nonNull,
           isInput: isInput,
-          type: TypeConverters().overrideType(type.name??"String"),
+          type: TypeConverters().overrideType(type.name ?? "String"),
           object: false);
       localFields.add(localField);
     } else if (type.kind == 'ENUM') {
       localField = LocalField(
-        name: fieldName??"",
+        name: fieldName ?? "",
         list: list,
         nonNull: nonNull,
         isInput: isInput,
@@ -249,10 +251,10 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       localFields.add(localField);
     } else {
       localField = LocalField(
-          name: fieldName??'',
+          name: fieldName ?? '',
           list: list,
           nonNull: nonNull,
-          type: type.name??'',
+          type: type.name ?? '',
           isInput: isInput,
           object: true);
       localFields.add(localField);
