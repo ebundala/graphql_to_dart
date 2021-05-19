@@ -195,3 +195,108 @@ OperationRuntimeInfo getOperationInfo(DocumentNode document) {
   }
   return null;
 }
+
+  class ArgumentInfo {
+  final String name;
+  final dynamic value;
+  ArgumentInfo({this.name, this.value});
+}
+
+class NormalizeArgumentsVisitor extends TransformingVisitor {
+  final List<ArgumentInfo> args;
+  //Map<String, dynamic> variables;
+  List<VariableDefinitionNode> definitions = [];
+  Map<String, ObjectValueNode> valueNodes = {};
+  NormalizeArgumentsVisitor({this.args}) : super() {
+    args.forEach((v) {
+      final value = v.value;
+      Map<String, dynamic> vars = value?.getFilesVariables(name: v.name);
+      definitions
+          .addAll(value?.getVariableDefinitionsNodes(variables: vars) ?? []);
+      valueNodes[v.name] = value?.toValueNode(name: v.name);
+    });
+  }
+  @override
+  OperationDefinitionNode visitOperationDefinitionNode(
+      OperationDefinitionNode node) {
+    //add variables definitions
+    var field = node.selectionSet.selections.firstWhere(
+        (element) => (element as FieldNode)?.selectionSet != null,
+        orElse: () => null) as FieldNode;
+    List<ArgumentNode> argsNodes = [];
+    valueNodes.forEach((key, value) {
+      argsNodes.add(
+        ArgumentNode(
+          name: NameNode(value: key),
+          value: value,
+        ),
+      );
+    });
+
+    if (definitions?.isNotEmpty == true)
+      return OperationDefinitionNode(
+          directives: node.directives,
+          name: node.name,
+          selectionSet: SelectionSetNode(selections: [
+            ...node.selectionSet.selections
+                .where((element) =>
+                    (element as FieldNode).name.value != field?.name?.value)
+                .toList(),
+            FieldNode(
+                name: field.name,
+                alias: field.alias,
+                arguments: [
+                  ...field.arguments
+                      .where(
+                          (element) => valueNodes[element.name.value] == null)
+                      .toList(),
+                  ...argsNodes
+                ],
+                directives: field.directives,
+                selectionSet: field.selectionSet),
+          ]),
+          type: node.type,
+          variableDefinitions: [
+            ...node.variableDefinitions.where((element) {
+              return args.firstWhere(
+                      (e) => e.name == element.variable.name.value,
+                      orElse: () => null) ==
+                  null;
+            }).toList(),
+            ...definitions
+          ]);
+
+    return node;
+  }
+
+  // @override
+  // VariableDefinitionNode visitVariableDefinitionNode(
+  //     VariableDefinitionNode node) {
+  //   //remove variables definitions
+  //   var exist = args.firstWhere(
+  //       (element) => node.variable.name.value == element.name,
+  //       orElse: () => null);
+  //   if (exist != null)
+  //     return VariableDefinitionNode(
+  //       variable: VariableNode(
+  //           name: NameNode(value: 'ignored_${node.variable.name.value}')),
+  //       type: NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
+  //       defaultValue: DefaultValueNode(value: null),
+  //       directives: [],
+  //     );
+  //   return node;
+  // }
+
+  // @override
+  // ArgumentNode visitArgumentNode(ArgumentNode node) {
+  //   //add arguments values
+  //   var exist = args.firstWhere((element) => node.name.value == element.name,
+  //       orElse: () => null);
+  //   if (exist != null) {
+  //     return ArgumentNode(name: node.name, value: valueNodes[node.name]);
+  //   }
+  //   return node;
+  // }
+}
+  
+  

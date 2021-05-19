@@ -44,6 +44,7 @@ class _PrintVisitor extends Visitor<Expression> {
   Expression _list(
     List<Node> nodes,
   ) =>
+      // ignore: unnecessary_null_comparison
       nodes != null
           ? literalList(
               _acceptMany(nodes),

@@ -58,9 +58,7 @@ class Config {
       if (!(await modelsDirectory.exists())) {
         print(await createRecursive(modelsDirectory));
       }
-      if (packageName == null) {
-        throw "Package Name Can't Be Empty";
-      }
+
       FileConstants().modelsDirectory = modelsDirectory;
 //      FileConstants().queriesFile = queriesFile;
 //      FileConstants().mutationsFile = mutationsFile;

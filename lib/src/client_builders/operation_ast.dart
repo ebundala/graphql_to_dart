@@ -1,5 +1,4 @@
 import 'package:gql/ast.dart';
-import 'package:meta/meta.dart';
 
 List<OperationInfo> getOperationsInfo(DocumentNode document) {
   var scalars = getScalarsAndEnums(document);

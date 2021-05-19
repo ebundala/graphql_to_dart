@@ -11,3 +11,4 @@ build/
 doc/api/
 lib/graphql/models
 lib/generated_clients
+example/bin

@@ -1,12 +1,10 @@
 import 'package:gql/ast.dart';
-//import 'package:gql_code_gen/gql_code_gen.dart';
 import 'package:graphql_to_dart/src/client_builders/events_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_definitions.dart';
 import "package:code_builder/code_builder.dart";
 import 'package:graphql_to_dart/src/builders/from_node.dart';
 import 'package:recase/recase.dart';
-import 'package:meta/meta.dart';
 import '../../graphql_to_dart.dart';
 import './events_definitions.dart';
 
@@ -228,6 +226,7 @@ List<List<String>> buildBloc(
     final imports = (getModelsImports(i, 'package:${package}/${modelsPath}')
           ..insertAll(0, [
             "import 'package:equatable/equatable.dart';",
+            "import 'package:gql/ast.dart';",
             "import 'package:meta/meta.dart';",
             "import 'package:graphql/client.dart';",
             "import 'package:bloc/bloc.dart';",
@@ -474,14 +473,30 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
   fn.writeln(
       "Future<OperationResult> ${operation.name}(${buildFnArguments(operation.variables)}) async {");
   var variables = operation.variables.map((v) {
-    return """if(${v.name} != null){
-      vars["${v.name}"]=${v.isScalar ? '${v.name};' : '${v.isList ? "${v.name}.map((v)=>v.toJson())" : '${v.name}.toJson()'};'}
-    }""";
+    if (v.isScalar) {
+      return """
+     if(${v.name} != null){
+       vars.addAll({"${v.name}":${v.name}});
+     }
+      """;
+    } else {
+      return """
+    if(${v.name} != null){
+    args.add(ArgumentInfo(name: '${v.name}', value: ${v.name}));
+      vars.addAll(${v.name}.getFilesVariables(field_name: '${v.name}'));
+     }
+    """;
+    }
+    // return """if(${v.name} != null){
+    //   vars["${v.name}"]=${v.isScalar ? '${v.name};' : '${v.isList ? "${v.name}.map((v)=>v.toJson())" : '${v.name}.toJson()'};'}
+    // }""";
   }).join('\n');
   fn.write("""
   final Map<String, dynamic> vars = {};
+  final List<ArgumentInfo> args = [];
   ${variables}
-  final result = await runObservableOperation(this,document:document,variables:vars);
+  final doc = transform(document, [NormalizeArgumentsVisitor(args: args)]);
+  final result = await runObservableOperation(this,document:doc,variables:vars);
      var stream = result.stream.map((res) {
       var data = getDataFromField('${operation.operationName}', res);
       res.data = data;
@@ -500,6 +515,7 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
     //load more fn
     void ${operation.name}LoadMore(ObservableQuery observableQuery,${buildFnArguments(operation.variables)})  {
       final Map<String, dynamic> vars = {};
+      final List<ArgumentInfo> args = [];
       ${variables}
       observableQuery.fetchMore(
         FetchMoreOptions(
@@ -543,7 +559,7 @@ StringBuffer wrapWith(String begin, StringBuffer content, String end) {
 }
 
 String buildCommonGraphQLClientHelpers() {
-  return r"""
+  return """
 import 'package:gql/ast.dart';
 import 'package:graphql/client.dart';
 
@@ -703,7 +719,7 @@ Future<ObservableQuery> runObservableOperation(
 
 Map<String, dynamic> getDataFromField(fieldName, QueryResult result) {
   // if (!result.hasException&&) {
-  if (result.data != null) return result.data['${fieldName}'];
+  if (result.data != null) return result.data['\${fieldName}'];
   return null;
   // } else {
   //   //handle errors here
@@ -740,6 +756,115 @@ OperationRuntimeInfo getOperationInfo(DocumentNode document) {
         fieldName: fieldName, operationName: name, type: type);
   }
   return null;
+}
+
+${buildArgumentsNormalizer()}
+  """;
+}
+
+String buildArgumentsNormalizer() {
+  return r"""
+  class ArgumentInfo {
+  final String name;
+  final dynamic value;
+  ArgumentInfo({this.name, this.value});
+}
+
+class NormalizeArgumentsVisitor extends TransformingVisitor {
+  final List<ArgumentInfo> args;
+  //Map<String, dynamic> variables;
+  List<VariableDefinitionNode> definitions = [];
+  Map<String, ObjectValueNode> valueNodes = {};
+  NormalizeArgumentsVisitor({this.args}) : super() {
+    args.forEach((v) {
+      final value = v.value;
+      Map<String, dynamic> vars = value?.getFilesVariables(name: v.name);
+      definitions
+          .addAll(value?.getVariableDefinitionsNodes(variables: vars) ?? []);
+      valueNodes[v.name] = value?.toValueNode(name: v.name);
+    });
+  }
+  @override
+  OperationDefinitionNode visitOperationDefinitionNode(
+      OperationDefinitionNode node) {
+    //add variables definitions
+    var field = node.selectionSet.selections.firstWhere(
+        (element) => (element as FieldNode)?.selectionSet != null,
+        orElse: () => null) as FieldNode;
+    List<ArgumentNode> argsNodes = [];
+    valueNodes.forEach((key, value) {
+      argsNodes.add(
+        ArgumentNode(
+          name: NameNode(value: key),
+          value: value,
+        ),
+      );
+    });
+
+    if (definitions?.isNotEmpty == true)
+      return OperationDefinitionNode(
+          directives: node.directives,
+          name: node.name,
+          selectionSet: SelectionSetNode(selections: [
+            ...node.selectionSet.selections
+                .where((element) =>
+                    (element as FieldNode).name.value != field?.name?.value)
+                .toList(),
+            FieldNode(
+                name: field.name,
+                alias: field.alias,
+                arguments: [
+                  ...field.arguments
+                      .where(
+                          (element) => valueNodes[element.name.value] == null)
+                      .toList(),
+                  ...argsNodes
+                ],
+                directives: field.directives,
+                selectionSet: field.selectionSet),
+          ]),
+          type: node.type,
+          variableDefinitions: [
+            ...node.variableDefinitions.where((element) {
+              return args.firstWhere(
+                      (e) => e.name == element.variable.name.value,
+                      orElse: () => null) ==
+                  null;
+            }).toList(),
+            ...definitions
+          ]);
+
+    return node;
+  }
+
+  // @override
+  // VariableDefinitionNode visitVariableDefinitionNode(
+  //     VariableDefinitionNode node) {
+  //   //remove variables definitions
+  //   var exist = args.firstWhere(
+  //       (element) => node.variable.name.value == element.name,
+  //       orElse: () => null);
+  //   if (exist != null)
+  //     return VariableDefinitionNode(
+  //       variable: VariableNode(
+  //           name: NameNode(value: 'ignored_${node.variable.name.value}')),
+  //       type: NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
+  //       defaultValue: DefaultValueNode(value: null),
+  //       directives: [],
+  //     );
+  //   return node;
+  // }
+
+  // @override
+  // ArgumentNode visitArgumentNode(ArgumentNode node) {
+  //   //add arguments values
+  //   var exist = args.firstWhere((element) => node.name.value == element.name,
+  //       orElse: () => null);
+  //   if (exist != null) {
+  //     return ArgumentNode(name: node.name, value: valueNodes[node.name]);
+  //   }
+  //   return node;
+  // }
 }
   """;
 }

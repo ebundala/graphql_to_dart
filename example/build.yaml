@@ -1,8 +1,16 @@
 targets:
   $default:
     builders:
-      ast_generator:
-      # graphql_to_dart:
-      #    enabled: false
-      # ast_builder:
-      #   enabled: false
+      graphql_to_dart:ast_generator:
+        options:
+          schema_path: "lib/schema.graphql"
+          helper_path: "graphql/common"
+          models_import_path: "graphql/models"
+          package_name: "example"
+          graphql_endpoint: "https://itahuduma.com/graphql"
+          models_directory_path: "lib/graphql/models/"
+          to_json_exclude_null_field: true
+          use_equatable: true
+          required_input_field: true
+          type_override:
+            Upload: MultipartFile
