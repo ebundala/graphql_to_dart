@@ -12,3 +12,5 @@ doc/api/
 lib/graphql/models
 lib/generated_clients
 example/bin
+example/lib/graphql
+example/lib/schema.graphql
