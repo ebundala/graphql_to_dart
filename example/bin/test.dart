@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'package:example/generated_clients/signup/signup_bloc.dart';
-import 'package:example/graphql/models/auth_input.dart';
+import 'package:example/graphql/clients/signup/signup_bloc.dart';
+import 'package:example/graphql/models/signup_input.dart';
 import 'package:graphql/client.dart';
+import "package:http/http.dart" show MultipartFile;
 
 main(List<String> args) async {
   final HttpLink _httpLink = HttpLink(
@@ -14,18 +15,26 @@ main(List<String> args) async {
   );
 
   var bloc = SignupBloc(client: client);
-  var sub = bloc.listen((state) {
+
+  var sub = bloc.stream.listen((state) {
     print(state);
   }, onError: (e) {
     print(e);
   });
 
-  bloc.add(SignupExcuted(
-      credentials: AuthInput(
-    email: "ebundala+27@gmail.com",
-    password: 'password',
-    displayName: "Musa dart bloc",
-  )));
+  bloc.add(
+    SignupExcuted(
+      credentials: SignupInput(
+          email: "ebundala+27@gmail.com",
+          password: 'password',
+          displayName: "Musa dart bloc",
+          dateOfBirth: DateTime(2021),
+          gender: 'MALE',
+          phoneNumber: '+2550714226465',
+          avator: MultipartFile.fromString('', 'text here',
+              filename: 'avator.txt')),
+    ),
+  );
 
   await sub.asFuture().then((r) {
     print(r);

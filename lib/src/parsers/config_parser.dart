@@ -11,9 +11,9 @@ class ConfigParser {
       throw "Config Yaml file doesn't exist";
     }
     final YamlMap yaml = loadYaml(await file.readAsString()) as YamlMap;
-    if (yaml == null) {
-      throw "YAML can't be parsed";
-    }
+    // if (yaml == null) {
+    //   throw "YAML can't be parsed";
+    // }
     return Config.fromJson(yaml);
   }
 }

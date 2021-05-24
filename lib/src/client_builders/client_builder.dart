@@ -512,14 +512,18 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
       if (observableQuery.isRefetchSafe)
         observableQuery.refetch();
     }
-    //load more fn
+  """);
+  if (operation.isList) {
+    fn.write("""
+   //load more fn
     void ${operation.name}LoadMore(ObservableQuery observableQuery,${buildFnArguments(operation.variables)})  {
       final Map<String, dynamic> vars = {};
       final List<ArgumentInfo> args = [];
       ${variables}
+      final doc = transform(document, [NormalizeArgumentsVisitor(args: args)]);
       observableQuery.fetchMore(
         FetchMoreOptions(
-         document:document,
+         document:doc,
          variables:vars,
           updateQuery: (p, n) {
             if (p['data'] is List && n['data'] is List) {
@@ -533,6 +537,7 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
       );
     }
   """);
+  }
   fn.writeln('}');
   return fn.toString();
 }
@@ -778,10 +783,10 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
   NormalizeArgumentsVisitor({this.args}) : super() {
     args.forEach((v) {
       final value = v.value;
-      Map<String, dynamic> vars = value?.getFilesVariables(name: v.name);
+      Map<String, dynamic> vars = value?.getFilesVariables(field_name: v.name);
       definitions
           .addAll(value?.getVariableDefinitionsNodes(variables: vars) ?? []);
-      valueNodes[v.name] = value?.toValueNode(name: v.name);
+      valueNodes[v.name] = value?.toValueNode(field_name: v.name);
     });
   }
   @override
