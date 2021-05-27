@@ -497,7 +497,7 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
         p.addAll(e);
         return p;
        });
-        vars.add(files);
+        vars.addAll(files);
        }
         """;
     } else {
