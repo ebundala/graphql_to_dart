@@ -429,21 +429,25 @@ buildOperationParams(List<VariableInfo> variables) {
 }
 
 buildInputsValidations(OperationAstInfo operation) {
-  final validations = operation.variables.where((v) => v.isNonNull).map((v) {
-    return v.fields.where((f) => f.isNonNull).map((f) {
-      var vf = "${v.name}?.${f.name}";
-      var test = f.isList || f.type == 'String'
-          ? "event.${vf}?.isEmpty==true"
-          : "event.${vf}==null";
-      var stateName =
-          "${operation.operationName.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
-      return """
+  final validations = operation.variables
+      .where((v) => v.isNonNull)
+      .map((v) {
+        return v.fields.where((f) => f.isNonNull).map((f) {
+          var vf = "${v.name}?.${f.name}";
+          var test = f.isList || f.type == 'String'
+              ? "event.${vf}?.isEmpty==true"
+              : "event.${vf}==null";
+          var stateName =
+              "${operation.operationName.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
+          return """
       if(${test}){
         yield ${stateName}ValidationError('${f.name} is required',getData,${reAssignedInputs(operation.variables)});
       }
       """;
-    }).join('\n else ');
-  }).join('\n else ');
+        }).join('\n else ');
+      })
+      .where((e) => e.isNotEmpty)
+      .join('\n else ');
   if (validations.isNotEmpty) return "${validations} \nelse ";
   return '';
 }
@@ -460,7 +464,10 @@ String fileName(String operationName, String name, [String ext = '.dart']) {
 
 List<String> getModelsImports(OperationAstInfo operation, String modelsPath) {
   return operation.variables.fold<List<String>>([], (v, i) {
-    if (!i.isScalar) v.add("import '${modelsPath}/${i.type.snakeCase}.dart';");
+    var scalars = ['int', 'double', 'String', 'bool', 'DateTime'];
+
+    if (!i.isScalar || scalars.where((e) => e == i.type).length == 0)
+      v.add("import '${modelsPath}/${i.type.snakeCase}.dart';");
     return v;
   })
     ..add("import '${modelsPath}/${operation.returnType.snakeCase}.dart';");
@@ -479,6 +486,20 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
        vars.addAll({"${v.name}":${v.name}});
      }
       """;
+    } else if (v.isList) {
+      return """
+         if(${v.name} != null){
+        var i=-1;
+      var files= ${v.name}.map((e){
+         i++;
+         return e.getFilesVariables(field_name: 'orderBy_\${i}');
+       }).fold<Map<String, dynamic>>({}, (p, e){
+        p.addAll(e);
+        return p;
+       });
+        vars.add(files);
+       }
+        """;
     } else {
       return """
     if(${v.name} != null){
