@@ -338,8 +338,19 @@ List<List<String>> buildBloc(
                   var message = 'Error';
                   if (result.exception.linkException != null) {
                     //link exception means complete failure possibly throw here
-                    message =
-                        result.exception.linkException.originalException?.message;
+                    final exception = result.exception.linkException;
+              if (exception is ServerException) {
+                message = "Network error";
+              } else if (exception is RequestFormatException) {
+                message = "Request format error";
+              } else if (exception is ResponseFormatException) {
+                message = "Response format error";
+              } else if (exception is ContextReadException) {
+                message = "Context read error";
+              } else if (exception is ContextWriteException) {
+                message = "Context write error";
+              }
+                   
                   } else if (result.exception.graphqlErrors?.isNotEmpty == true) {
                     // failure but migth have data available
                     message = result.exception.graphqlErrors.map((e) {
@@ -827,7 +838,7 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
       );
     });
 
-    if (definitions?.isNotEmpty == true)
+    
       return OperationDefinitionNode(
           directives: node.directives,
           name: node.name,
@@ -859,8 +870,6 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
             }).toList(),
             ...definitions
           ]);
-
-    return node;
   }
 
   // @override
