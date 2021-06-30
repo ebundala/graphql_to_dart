@@ -13,6 +13,8 @@ class GraphQlToDart {
   //final String yamlFilePath;
   final Config config;
   late GraphQLSchema schema;
+  bool generated = false;
+  Completer<bool> isGenerating = Completer();
   GraphQlToDart(this.config);
   static const List<String> ignoreFields = [
     "rootquerytype",
@@ -24,9 +26,11 @@ class GraphQlToDart {
   ];
 
   Future<Map<String, String>> init({save: true}) async {
+    generated = true;
     // config = conf;
     // if (config == null) {
     // config = await ConfigParser.parse(yamlFilePath);
+
     ValidationResult result = await config.validate();
     if (result.hasError) {
       throw Exception(result.errorMessage);
@@ -73,7 +77,13 @@ class GraphQlToDart {
     if (save) {
       await runFlutterFormat();
     }
+    generated = true;
+    isGenerating.complete(generated);
     return outputs;
+  }
+
+  Future<bool> getStatus() {
+    return isGenerating.future;
   }
 
   Future runFlutterFormat([String? path]) async {

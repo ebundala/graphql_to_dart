@@ -388,7 +388,10 @@ List<List<String>> buildBloc(
                   add(${libname}IsConcrete(data: data));
                 }
               });
+              //excute observable query;
+              if(resultWrapper.isObservable){
               resultWrapper.observableQuery.fetchResults();
+              }
             } catch (e) {
               //emit complete failure state;
               yield ${libname}Error(data:state.data,message: e.toString());
@@ -398,8 +401,14 @@ List<List<String>> buildBloc(
 
         closeResultWrapper() async {
           if (resultWrapper != null) {
+            if(resultWrapper.isObservable==true && resultWrapper.observableQuery!=null){
             await resultWrapper.observableQuery.close();
+            }
+            if(resultWrapper.isStream==true&&resultWrapper.stream!=null){
+              await resultWrapper.stream.close();
+            }
           }
+          
         }
        ${i.returnType} get getData{
           return (state is ${i.operationName.pascalCase}Initial)||(state is ${i.operationName.pascalCase}Error)?null:(state as dynamic)?.data;
@@ -519,23 +528,17 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
      }
     """;
     }
-    // return """if(${v.name} != null){
-    //   vars["${v.name}"]=${v.isScalar ? '${v.name};' : '${v.isList ? "${v.name}.map((v)=>v.toJson())" : '${v.name}.toJson()'};'}
-    // }""";
   }).join('\n');
+
   fn.write("""
   final Map<String, dynamic> vars = {};
   final List<ArgumentInfo> args = [];
   ${variables}
   final doc = transform(document, [NormalizeArgumentsVisitor(args: args)]);
-  final result = await runObservableOperation(this,document:doc,variables:vars);
-     var stream = result.stream.map((res) {
-      var data = getDataFromField('${operation.operationName}', res);
-      res.data = data;
-      return res;
-    });
-    return OperationResult(
-        isObservable: true, observableQuery: result, stream: stream);
+  final result = await runObservableOperation(this,document:doc,
+  variables:vars,
+  operationName:'${operation.operationName}');
+  return result;
   """);
   fn.writeln("}");
   fn.write("""
@@ -697,7 +700,7 @@ Future<OperationResult> runOperation(GraphQLClient client,
   return OperationResult(result: data);
 }
 
-Future<ObservableQuery> runObservableOperation(
+Future<OperationResult> runObservableOperation(
   GraphQLClient client, {
   DocumentNode document,
   Map<String, dynamic> variables,
@@ -710,10 +713,11 @@ Future<ObservableQuery> runObservableOperation(
   bool fetchResults = false,
   bool carryForwardDataOnException = true,
   bool eagerlyFetchResults,
+  String operationName
 }) async {
   var info = getOperationInfo(document);
 
-  ObservableQuery result;
+  var result;
   switch (info.type) {
     case OperationType.query:
       result = client.watchQuery(WatchQueryOptions(
@@ -745,25 +749,37 @@ Future<ObservableQuery> runObservableOperation(
       break;
     case OperationType.subscription:
     default:
-      // var subscription = await subscribe(SubscriptionOptions(
-      //   document: document,
-      //   variables: variables,
-      //   fetchPolicy: fetchPolicy,
-      //   errorPolicy: errorPolicy,
-      //   cacheRereadPolicy: cacheRereadPolicy,
-      //   context: context,
-      //   optimisticResult: optimisticResult,
-
-      // ));
-      // var data = subscription.map((result) {
-      //   return getDataFromField(info.fieldName, result);
-      // });
-      // return OperationResult(isStream: true, stream: data);
-      throw UnsupportedError("Subscription observable query is not supported");
+      result = await client.subscribe(SubscriptionOptions(
+        document: document,
+        variables: variables,
+        fetchPolicy: fetchPolicy,
+        errorPolicy: errorPolicy,
+        cacheRereadPolicy: cacheRereadPolicy,
+        context: context,
+        optimisticResult: optimisticResult,
+      ),);
       break;
   }
 
-  return result;
+  if(result is ObservableQuery){
+     var stream = result.stream.map((res) {
+      var data = getDataFromField(operationName, res);
+      res.data = data;
+      return res;
+    });
+    return OperationResult(
+        isObservable: true, observableQuery: result, stream: stream);
+  }
+  else if(result is Stream<QueryResult>){
+     var stream = result.map((res) {
+        var data = getDataFromField(operationName, res);
+      res.data = data;
+      return res;
+      });
+      return OperationResult(isStream: true, stream: stream,);
+  }else{
+        throw UnsupportedError("Operation is not supported");
+  }
 }
 
 Map<String, dynamic> getDataFromField(fieldName, QueryResult result) {
