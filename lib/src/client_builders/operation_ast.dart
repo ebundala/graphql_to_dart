@@ -89,7 +89,7 @@ class OperationInfoVisitor extends AccumulatingVisitor<OperationInfo> {
 
 String nodeType(TypeNode node) {
   if (node is ListTypeNode) {
-    return (node.type as NamedTypeNode).name.value;
+    return nodeType(node.type); //(node.type as NamedTypeNode).name.value;
   }
   return (node as NamedTypeNode).name.value;
 }
