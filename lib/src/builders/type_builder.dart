@@ -100,7 +100,7 @@ class TypeBuilder {
 
   _addToJson() {
     StringBuffer toJsonBuilder = StringBuffer();
-    toJsonBuilder.writeln("Map _data = {};");
+    toJsonBuilder.writeln("Map<String,dynamic> _data = {};");
     localFields.forEach((field) {
       if (config.toJsonExcludeNullField) {
         toJsonBuilder.writeln("if(${_to$(field.name)}!=null)");
@@ -129,8 +129,8 @@ class TypeBuilder {
     stringBuffer.writeln();
     toJsonBuilder.writeln("return _data;");
     stringBuffer.writeln();
-    stringBuffer
-        .write(_wrapWith(toJsonBuilder.toString(), "Map toJson(){", "}"));
+    stringBuffer.write(_wrapWith(
+        toJsonBuilder.toString(), "Map<String,dynamic> toJson(){", "}"));
   }
 
   _addFromJson() {
@@ -164,7 +164,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     stringBuffer.writeln();
     stringBuffer.writeln();
     stringBuffer.write(_wrapWith(
-        str, "static ${type.name} fromJson(Map<String, dynamic> json){", "}"));
+        str, "static ${type.name} fromJson(Map<dynamic, dynamic> json){", "}"));
     /* localFields.forEach((field) {
       if (config.requiredInputField && field.isInput && field.nonNull) {
         fromJsonBuilder.writeln("assert(json['${field.name}']!=null);");

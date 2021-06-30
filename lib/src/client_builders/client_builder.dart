@@ -558,11 +558,23 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
          document:doc,
          variables:vars,
           updateQuery: (p, n) {
-            if (p['data'] is List && n['data'] is List) {
-              (p['data'] as List).addAll((n['data'] as List));
-              return p;
+            if (n != null) {
+            var data = n['${operation.operationName}'];
+            if (p != null) {
+              var data2 = p['${operation.operationName}'];
+              if (data2 != null && data != null) {
+                if (data2['data'] is List && data['data'] is List) {
+                  (data2['data'] as List).addAll((data['data'] as List));
+                  p['data'] = data2;
+                  return p;
+                }
+              }
+            } else {
+              return n;
             }
-            return n;
+          }
+
+          return p;
           },
         
         ),
