@@ -86,12 +86,13 @@ class AstGenerator implements Builder {
 
   late List<String> scalars;
   late List<OperationInfo> info;
-  late DocumentNode schema;
+  //DocumentNode? schema;
   late GraphQlToDart graphQlToDart;
   final BuilderOptions options;
   late IntrospectionSchema _schema;
   static const helperFileName = "common_client_helpers.dart";
   late Config config;
+
   AstGenerator(this.options) {
     config = Config.fromJson(options.config);
 
@@ -101,11 +102,6 @@ class AstGenerator implements Builder {
     saveFile(helperFile, helperStr);
     graphQlToDart = GraphQlToDart(config);
     graphQlToDart.init();
-    _schema = IntrospectionSchema.fromTypes(graphQlToDart.schema.types);
-    info = _schema.operationInfo();
-    scalars = _schema.scalarsAndEnums();
-    inputs = _schema.inputsMap();
-    types = _schema.objectsMap();
     // if (file.existsSync()) {
     //   var schemaStr = file.readAsStringSync();
     //   schema = gql(schemaStr);
@@ -138,10 +134,15 @@ class AstGenerator implements Builder {
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
-    // if (!generated) {
-    //   await graphQlToDart.init();
-    //   generated = true;
-    // }
+    if (await graphQlToDart.getStatus()) {
+      // graphQlToDart.init();
+      _schema = IntrospectionSchema.fromTypes(graphQlToDart.schema.types);
+      info = _schema.operationInfo();
+      scalars = _schema.scalarsAndEnums();
+      inputs = _schema.inputsMap();
+      types = _schema.objectsMap();
+      generated = true;
+    }
     final package = buildStep.inputId.package;
     final outDIR =
         p.normalize(p.joinAll(buildStep.inputId.pathSegments..removeLast()));
