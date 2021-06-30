@@ -12,6 +12,7 @@ import 'package:graphql_to_dart/src/models/graphql_types.dart';
 class GraphQlToDart {
   //final String yamlFilePath;
   final Config config;
+  late GraphQLSchema schema;
   GraphQlToDart(this.config);
   static const List<String> ignoreFields = [
     "rootquerytype",
@@ -33,7 +34,7 @@ class GraphQlToDart {
 
     LocalGraphQLClient localGraphQLClient = LocalGraphQLClient();
     localGraphQLClient.init(config);
-    final schema = await localGraphQLClient.fetchTypes();
+    schema = await localGraphQLClient.fetchTypes();
     TypeConverters converters = TypeConverters();
     converters.overrideTypes(config.typeOverride);
     final Map<String, String> outputs = {};

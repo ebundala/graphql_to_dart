@@ -2,7 +2,9 @@ import "dart:async";
 import 'dart:io';
 import 'package:graphql/client.dart';
 import 'package:graphql_to_dart/src/client_builders/client_builder.dart';
+import 'package:graphql_to_dart/src/introspection_api_client/introspection_schema.dart';
 import 'package:graphql_to_dart/src/models/config.dart';
+//import 'package:graphql_to_dart/src/models/graphql_types.dart';
 import "package:path/path.dart" as p;
 import "package:glob/glob.dart";
 
@@ -87,28 +89,34 @@ class AstGenerator implements Builder {
   late DocumentNode schema;
   late GraphQlToDart graphQlToDart;
   final BuilderOptions options;
+  late IntrospectionSchema _schema;
   static const helperFileName = "common_client_helpers.dart";
   late Config config;
   AstGenerator(this.options) {
     config = Config.fromJson(options.config);
 
-    final file = File(config.schemaPath);
+    // final file = File(config.schemaPath);
     final helperStr = buildCommonGraphQLClientHelpers();
     final helperFile = "/lib/${config.helperPath}/$helperFileName";
     saveFile(helperFile, helperStr);
     graphQlToDart = GraphQlToDart(config);
     graphQlToDart.init();
-
-    if (file.existsSync()) {
-      var schemaStr = file.readAsStringSync();
-      schema = gql(schemaStr);
-      inputs = getInputsDef(schema);
-      scalars = getScalarsAndEnums(schema);
-      info = getOperationsInfo(schema);
-      types = getTypesMapping(schema);
-    } else {
-      throw Exception("Schema not found");
-    }
+    _schema = IntrospectionSchema.fromTypes(graphQlToDart.schema.types);
+    info = _schema.operationInfo();
+    scalars = _schema.scalarsAndEnums();
+    inputs = _schema.inputsMap();
+    types = _schema.objectsMap();
+    // if (file.existsSync()) {
+    //   var schemaStr = file.readAsStringSync();
+    //   schema = gql(schemaStr);
+    //   _schema = IntrospectionSchema.fromDocumentNode(schema);
+    //   // inputs = getInputsDef(schema);
+    //   // scalars = getScalarsAndEnums(schema);
+    //   // info = getOperationsInfo(schema);
+    //   // types = getTypesMapping(schema);
+    // } else {
+    //   throw Exception("Schema not found");
+    // }
   }
   saveFile(
     String fileName,
@@ -202,6 +210,9 @@ class AstGenerator implements Builder {
     // );
   }
 }
+
+
+ 
 
 // import 'package:build/build.dart';
 // import 'package:graphql/client.dart';
