@@ -12,7 +12,7 @@ class TypeBuilder {
   static const String nonNull = "NON_NULL";
   static const String scalar = "SCALAR";
   static const String object = "OBJECT";
-  final Types type;
+  final Type type;
   final Config config;
   final StringBuffer stringBuffer = StringBuffer();
   List<LocalField> localFields = [];
@@ -47,11 +47,11 @@ class TypeBuilder {
       String current = stringBuffer.toString();
       stringBuffer.clear();
       if (type.inputFields != null) {
-        final Fields? hasFile = type.inputFields!.firstWhere((e) {
+        final hasFile = type.inputFields!.where((e) {
           return _recursiveGetType(e.type)!.name == 'Upload';
-        }, orElse: () => Fields());
+        });
 
-        if (hasFile!.name != null) {
+        if (hasFile.isNotEmpty) {
           stringBuffer
               .writeln('import "package:http/http.dart" show MultipartFile;');
         }
@@ -72,8 +72,7 @@ class TypeBuilder {
       stringBuffer.write(current.toString());
       _addImports();
     }
-    var path =
-        "/${pascalToSnake(type.name ?? "")}.dart".replaceAll(r"//", r"/");
+    var path = "/${pascalToSnake(type.name)}.dart".replaceAll(r"//", r"/");
     outputs[path] = stringBuffer.toString();
     //await saveToFile();
   }
@@ -226,7 +225,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addEnumValues() {
     // stringBuffer.writeln("import 'package:flutter/foundation.dart';");
     stringBuffer.writeln(
-        'enum ${type.name}{\n${type.enumValues!.map((e) => _to$(e.name ?? '')).join(',\n')}\n}');
+        'enum ${type.name}{\n${type.enumValues!.map((e) => _to$(e.name)).join(',\n')}\n}');
 //     stringBuffer.writeln('''
 //     extension ${type.name}Index on ${type.name} {
 //   // Overload the [] getter to get the name of the fruit.
@@ -494,7 +493,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           nonNull: nonNull,
           isInput: isInput,
           isScalar: true,
-          type: TypeConverters().overrideType(t.name ?? "String"),
+          type: TypeConverters().overrideType(t.name),
           object: false,
           isEnum: false);
       localFields.add(localField);
@@ -513,7 +512,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           name: fieldName ?? '',
           list: list,
           nonNull: nonNull,
-          type: TypeConverters().overrideType(t.name ?? ''),
+          type: TypeConverters().overrideType(t.name),
           isInput: isInput,
           object: true,
           isEnum: false);

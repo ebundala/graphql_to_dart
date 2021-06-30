@@ -37,11 +37,11 @@ class GraphQlToDart {
     TypeConverters converters = TypeConverters();
     converters.overrideTypes(config.typeOverride);
     final Map<String, String> outputs = {};
-    await Future.forEach(schema.types, (Types type) async {
+    await Future.forEach(schema.types, (Type type) async {
       if (type.fields != null &&
           type.inputFields == null &&
-          !type.name!.startsWith("__") &&
-          !ignoreFields.contains(type.name?.toLowerCase())) {
+          !type.name.startsWith("__") &&
+          !ignoreFields.contains(type.name.toLowerCase())) {
         print("Creating model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
@@ -59,7 +59,7 @@ class GraphQlToDart {
       }
       if (type.kind == 'ENUM' &&
           type.fields == null &&
-          !type.name!.startsWith("__") &&
+          !type.name.startsWith("__") &&
           type.inputFields == null) {
         print("Creating enum model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
