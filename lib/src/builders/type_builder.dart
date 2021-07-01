@@ -203,7 +203,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   saveToFiles() async {
     outputs.forEach((k, v) async {
-      File file = File(FileConstants().modelsDirectory!.path + k);
+      File file = File(FileConstants().modelsDirectory!.path + "/lib" + k);
       if (!(await file.exists())) {
         await file.create();
       }
@@ -338,7 +338,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
           value: ast.ListValueNode(values:[...${_to$(field.name)}!
-          .map((e)=>${getScalarValueNode(field, 'e', fieldName)}))]))
+          .map((e)=>${getScalarValueNode(field, 'e', fieldName, true)}))]))
       """;
     } else if (field.list && field.object && !field.isScalar) {
       return """
@@ -352,7 +352,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       return """ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
           value: ast.ListValueNode(values:[...${_to$(field.name)}!
-          .map((e)=>${getScalarValueNode(field, 'e', fieldName)})])
+          .map((e)=>${getScalarValueNode(field, 'e', fieldName, true)})])
         )""";
     } else if (field.object && !field.list && !field.isScalar) {
       return """
@@ -410,8 +410,9 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     }
   }
 
-  String getScalarValueNode(LocalField field, String value, String fieldName) {
-    final nn = field.nonNull && !field.list ? "" : "!";
+  String getScalarValueNode(LocalField field, String value, String fieldName,
+      [inList = false]) {
+    final nn = field.nonNull && !field.list || inList ? "" : "!";
 
     if (field.type == TypeConverters().overrideType('Upload')) {
       return """

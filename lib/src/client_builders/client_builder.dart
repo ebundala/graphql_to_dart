@@ -223,7 +223,8 @@ List<List<String>> buildBloc(
     final events = buildEvents(i);
     final states = buildStates(i);
     final ast = getOperationCodeFromAstNode(operationAst);
-    final imports = (getModelsImports(i, 'package:${package}/${modelsPath}')
+    //${package}/${modelsPath}
+    final imports = (getModelsImports(i, 'package:models')
           ..insertAll(0, [
             "import 'package:equatable/equatable.dart';",
             "import 'package:gql/ast.dart';",
