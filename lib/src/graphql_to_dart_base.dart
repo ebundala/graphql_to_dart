@@ -73,9 +73,25 @@ class GraphQlToDart {
         outputs.addAll(builder.outputs);
       }
     });
-    print("Formatting Generated Files");
+    // print("Formatting Generated Files");
     if (save) {
-      await runFlutterFormat();
+      // await runFlutterFormat();
+      var libEntry = [];
+      outputs.forEach(((k, v) {
+        libEntry.add('export "${k.split("/").last}";');
+      }));
+      libEntry.insertAll(0, ['library models;']);
+      File lib = File(FileConstants().modelsDirectory!.path + "models.dart");
+      if (!(await lib.exists())) {
+        await lib.create();
+      }
+      await lib.writeAsString(libEntry.join("\n"));
+      File pubspec =
+          File(FileConstants().modelsDirectory!.path + "pubspec.yaml");
+      if (!(await pubspec.exists())) {
+        await pubspec.create();
+      }
+      await pubspec.writeAsString(modelsPubSpec("1.0.1"));
     }
     generated = true;
     isGenerating.complete(generated);
@@ -97,5 +113,22 @@ class GraphQlToDart {
       runInShell: true,
     );
     print("Formatted Generated Files");
+  }
+
+  String modelsPubSpec([String version = "1.0.0"]) {
+    return """
+name: models
+description: generated models.
+version: ${version}
+# homepage: https://www.example.com
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+dependencies:
+ # equatable: 1.2.6
+  gql: ^0.13.0-nullsafety.2
+  http: any
+
+#dev_dependencies:
+    """;
   }
 }
