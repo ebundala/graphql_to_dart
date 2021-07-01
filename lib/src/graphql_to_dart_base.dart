@@ -7,10 +7,8 @@ import 'package:graphql_to_dart/src/constants/type_converters.dart';
 import 'package:graphql_to_dart/src/introspection_api_client/client.dart';
 import 'package:graphql_to_dart/src/models/config.dart';
 import 'package:graphql_to_dart/src/models/graphql_types.dart';
-//import 'package:graphql_to_dart/src/parsers/config_parser.dart';
 
 class GraphQlToDart {
-  //final String yamlFilePath;
   final Config config;
   late GraphQLSchema schema;
   bool generated = false;
@@ -81,7 +79,8 @@ class GraphQlToDart {
         libEntry.add('export "${k.split("/").last}";');
       }));
       libEntry.insertAll(0, ['library models;']);
-      File lib = File(FileConstants().modelsDirectory!.path + "models.dart");
+      File lib =
+          File(FileConstants().modelsDirectory!.path + "lib/models.dart");
       if (!(await lib.exists())) {
         await lib.create();
       }
