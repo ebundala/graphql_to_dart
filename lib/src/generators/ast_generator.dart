@@ -77,7 +77,7 @@ Future<String> inlineImportsRecursively(BuildStep buildStep) async {
   return importMap.values.join("\n\n\n");
 }
 
-bool generated = false;
+//bool generated = false;
 
 class AstGenerator implements Builder {
   //final DartFormatter _dartfmt = DartFormatter();
@@ -141,7 +141,6 @@ class AstGenerator implements Builder {
       scalars = _schema.scalarsAndEnums();
       inputs = _schema.inputsMap();
       types = _schema.objectsMap();
-      generated = true;
     }
     final package = buildStep.inputId.package;
     final outDIR =
@@ -162,7 +161,8 @@ class AstGenerator implements Builder {
     content.forEach((v) async {
       await saveFile(v[0], v[1]);
     });
-    await graphQlToDart.runFlutterFormat(outDIR);
+
+    // await graphQlToDart.runFlutterFormat(outDIR);
     // final allContent = await inlineImportsRecursively(buildStep);
     // // final doc = parseString(
     // //   allContent,

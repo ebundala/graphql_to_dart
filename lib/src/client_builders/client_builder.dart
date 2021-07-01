@@ -405,7 +405,7 @@ List<List<String>> buildBloc(
             await resultWrapper.observableQuery.close();
             }
             if(resultWrapper.isStream==true&&resultWrapper.stream!=null){
-              await resultWrapper.stream.close();
+             // await resultWrapper.stream.close();
             }
           }
           

@@ -58,10 +58,10 @@ class TypeBuilder {
         stringBuffer.writeln('import "package:gql/ast.dart" as ast;');
       }
       if (config.useEquatable) {
-        stringBuffer.writeln('import "package:equatable/equatable.dart";');
+        //stringBuffer.writeln('import "package:equatable/equatable.dart";');
       }
       if (config.requiredInputField && type.inputFields != null) {
-        stringBuffer.writeln('import "package:meta/meta.dart";');
+        // stringBuffer.writeln('import "package:meta/meta.dart";');
       }
       var imports = stringBuffer.toString();
       stringBuffer.clear();
@@ -82,9 +82,10 @@ class TypeBuilder {
     localFields.unique<String>((field) => field.type).forEach((field) {
       if (field.object == true && field.type != type.name) {
         if (config.dynamicImportPath) {
-          importBuffer.writeln(
-              "import 'package:${config.packageName}/${config.modelsDirectoryPath.replaceAll(r"lib/", "")}/${pascalToSnake(field.type)}.dart';"
-                  .replaceAll(r"//", r"/"));
+          // importBuffer.writeln(
+          //   "import 'package:${config.packageName}/${config.modelsDirectoryPath.replaceAll(r"lib/", "")}/${pascalToSnake(field.type)}.dart';"
+          //       .replaceAll(r"//", r"/"));
+          importBuffer.writeln("import '${pascalToSnake(field.type)}.dart';");
         } else {
           importBuffer.writeln("import '${pascalToSnake(field.type)}.dart';"
               .replaceAll(r"//", r"/"));
@@ -101,26 +102,28 @@ class TypeBuilder {
     StringBuffer toJsonBuilder = StringBuffer();
     toJsonBuilder.writeln("Map<String,dynamic> _data = {};");
     localFields.forEach((field) {
+      final nn = field.nonNull && !field.list ? "" : "!";
       if (config.toJsonExcludeNullField) {
-        toJsonBuilder.writeln("if(${_to$(field.name)}!=null)");
+        toJsonBuilder.writeln(
+            "${field.nonNull && !field.list ? "" : "if(${_to$(field.name)}!=null)"}");
       }
       if (field.list == true) {
         if (field.type == "DateTime") {
           toJsonBuilder.writeln(
-              "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}[index].toString());");
+              "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}![index].toString());");
         } else if (field.object == true) {
           toJsonBuilder.writeln(
-              "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}[index].toJson());");
+              "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}![index].toJson());");
         } else {
           toJsonBuilder
               .writeln("_data['${field.name}'] = ${_to$(field.name)};");
         }
       } else if (field.object == true) {
-        toJsonBuilder
-            .writeln("_data['${field.name}'] = ${_to$(field.name)}?.toJson();");
+        toJsonBuilder.writeln(
+            "_data['${field.name}'] = ${_to$(field.name)}$nn.toJson();");
       } else if (field.type == "DateTime") {
         toJsonBuilder.writeln(
-            "_data['${field.name}'] = ${_to$(field.name)}?.toString();");
+            "_data['${field.name}'] = ${_to$(field.name)}$nn.toString();");
       } else {
         toJsonBuilder.writeln("_data['${field.name}'] = ${_to$(field.name)};");
       }
@@ -145,14 +148,14 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       // }
       else if (field.object == true) {
         fromJsonBuilder.writeln(
-            "${_to$(field.name)}:json['${field.name}']!=null ? ${field.type}.fromJson(json['${field.name}']) : null,");
+            "${_to$(field.name)}:${field.nonNull ? "${field.type}.fromJson(json['${field.name}'])" : "json['${field.name}']!=null ? ${field.type}.fromJson(json['${field.name}']) : null"},");
       } else if (field.type == "DateTime") {
         fromJsonBuilder.writeln(
-            "${_to$(field.name)}:json['${field.name}']!=null ? DateTime.parse(json['${field.name}']) : null,");
+            "${_to$(field.name)}:${field.nonNull ? "DateTime.parse(json['${field.name}'])" : "json['${field.name}']!=null ? DateTime.parse(json['${field.name}']) : null"},");
       } else {
         if (field.type == 'double') {
           fromJsonBuilder.writeln(
-              "${_to$(field.name)}:json['${field.name}']?.toDouble(),");
+              "${_to$(field.name)}:${field.nonNull ? "json['${field.name}'].toDouble()" : "json['${field.name}']?.toDouble()"},");
         } else {
           fromJsonBuilder.writeln("${_to$(field.name)}:json['${field.name}'],");
         }
@@ -204,7 +207,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       if (!(await file.exists())) {
         await file.create();
       }
-      await file.writeAsString(stringBuffer.toString());
+      await file.writeAsString(v);
     });
     return null;
   }
@@ -243,8 +246,8 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     StringBuffer constructorBuffer = StringBuffer();
     for (int i = 0; i < localFields.length; i++) {
       var field = localFields[i];
-      if (config.requiredInputField && field.isInput && field.nonNull) {
-        constructorBuffer.write('@required ');
+      if (config.requiredInputField && /*field.isInput &&*/ field.nonNull) {
+        constructorBuffer.write('required ');
       }
       constructorBuffer.write("this.${_to$(field.name)}");
       if (i < localFields.length - 1) {
@@ -259,15 +262,20 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     var fields = localFields
         .where((element) => element.isInput == true)
         .map((e) {
+          final nn = e.nonNull ? "" : "!";
           if (e.type == TypeConverters().overrideType('Upload'))
-            return """if (${_to$(e.name)} != null) variables['\${field_name}_${e.name}'] = ${_to$(e.name)};""";
+            return """${e.nonNull && !e.list ? "" : "if(${_to$(e.name)} != null)"} {
+              variables['\${field_name}_${e.name}'] = ${_to$(e.name)};
+            }""";
           else if (e.list && e.object && !e.isScalar && !e.isEnum)
-            return """if (${_to$(e.name)} != null) 
-            ${_to$(e.name)}.map((e)=>e.getFilesVariables(field_name:'\${field_name}_${e.name}',variables:variables),);""";
+            return """if(${_to$(e.name)} != null){
+            ${_to$(e.name)}!.map((e)=>e.getFilesVariables(field_name:'\${field_name}_${e.name}',variables:variables),);
+            }""";
           else if (e.object && !e.isScalar && !e.isEnum)
             return """
-            if (${_to$(e.name)} != null)
-            ${_to$(e.name)}.getFilesVariables(field_name:'\${field_name}_${e.name}',variables:variables);
+            ${e.nonNull && !e.list ? "" : "if(${_to$(e.name)} != null)"}{
+            ${_to$(e.name)}${nn}.getFilesVariables(field_name:'\${field_name}_${e.name}',variables:variables);
+            }
             """;
           else
             return null;
@@ -276,7 +284,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         .join('\n');
     var fn = """
    Map<String, dynamic> getFilesVariables(
-      {@required String field_name, Map<String, dynamic> variables}) {
+      {required String field_name, Map<String, dynamic>? variables}) {
     if (variables == null) {
       variables = Map();
     }
@@ -291,7 +299,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addGetVariablesDefinitionsNodes() {
     final fn = r"""
      List<ast.VariableDefinitionNode> getVariableDefinitionsNodes({
-    @required Map<String, dynamic> variables,
+    required Map<String, dynamic> variables,
   }) {
     final List<ast.VariableDefinitionNode> vars = [];
     variables.forEach((key, value) {
@@ -313,6 +321,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     LocalField field,
     String fieldName,
   ) {
+    final nn = field.nonNull && !field.list ? "" : "!";
     // if (field.name == 'in') {
     //   field.name;
     // }
@@ -320,7 +329,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.EnumValueNode(name: ast.NameNode(value: ${_to$(field.name)})),
+          value: ast.EnumValueNode(name: ast.NameNode(value: ${_to$(field.name)}$nn)),
         )
       """;
     }
@@ -328,28 +337,28 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.ListValueNode(values:[...${_to$(field.name)}
+          value: ast.ListValueNode(values:[...${_to$(field.name)}!
           .map((e)=>${getScalarValueNode(field, 'e', fieldName)}))]))
       """;
     } else if (field.list && field.object && !field.isScalar) {
       return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.ListValueNode(values:[...${_to$(field.name)}
+          value: ast.ListValueNode(values:[...${_to$(field.name)}!
           .map((e)=>e.toValueNode(field_name: '\${field_name}_${fieldName}'))])
         )
       """;
     } else if (field.list && field.isScalar && !field.object) {
       return """ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.ListValueNode(values:[...${_to$(field.name)}
+          value: ast.ListValueNode(values:[...${_to$(field.name)}!
           .map((e)=>${getScalarValueNode(field, 'e', fieldName)})])
         )""";
     } else if (field.object && !field.list && !field.isScalar) {
       return """
        ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-         value: ${_to$(field.name)}.toValueNode(field_name: '\${field_name}_${fieldName}'),
+         value: ${_to$(field.name)}$nn.toValueNode(field_name: '\${field_name}_${fieldName}'),
          )
       """;
     } else if (field.isScalar) {
@@ -365,21 +374,21 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
           value: ast.StringValueNode(
-              value: ${_to$(field.name)}.toIso8601String(), isBlock: false),
+              value: ${_to$(field.name)}$nn.toIso8601String(), isBlock: false),
         )
        """;
       } else if (field.type == TypeConverters().overrideType('Int')) {
         return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.IntValueNode(value: '\${${_to$(field.name)}}'),
+          value: ast.IntValueNode(value: '\${${_to$(field.name)}$nn}'),
         )
       """;
       } else if (field.type == TypeConverters().overrideType('Float')) {
         return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.FloatValueNode(value: '\${${_to$(field.name)}}'),
+          value: ast.FloatValueNode(value: '\${${_to$(field.name)}$nn}'),
         )
       """;
       }
@@ -387,14 +396,14 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.BooleanValueNode(value: ${_to$(field.name)}),
+          value: ast.BooleanValueNode(value: ${_to$(field.name)}$nn),
         )
       """;
       } else {
         return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.${field.type}ValueNode(value: ${_to$(field.name)}, isBlock: false),
+          value: ast.${field.type}ValueNode(value: ${_to$(field.name)}$nn, isBlock: false),
         )
       """;
       }
@@ -402,6 +411,8 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   }
 
   String getScalarValueNode(LocalField field, String value, String fieldName) {
+    final nn = field.nonNull && !field.list ? "" : "!";
+
     if (field.type == TypeConverters().overrideType('Upload')) {
       return """
         ast.VariableNode(name: ast.NameNode(value: '\${name}_${fieldName}')
@@ -409,7 +420,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     } else if (field.type == TypeConverters().overrideType('DateTime')) {
       return """
          ast.StringValueNode(
-              value: ${value}.toIso8601String(), isBlock: false)
+              value: ${value}$nn.toIso8601String(), isBlock: false)
         
        """;
     } else if (field.type == TypeConverters().overrideType('Int')) {
@@ -439,13 +450,13 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addToValueNode() {
     var fields = localFields.map((e) {
       return """
-      if(${_to$(e.name)}!=null)
+      ${e.nonNull && e.list == false ? "" : "if(${_to$(e.name)}!=null)"}
        ${_getValueNodeType(e, '${e.name}')}
       """;
     }).join('\n,');
 
     final fn = """
-    ast.ObjectValueNode toValueNode({@required String field_name}) {
+    ast.ObjectValueNode toValueNode({required String field_name}) {
     return ast.ObjectValueNode(fields: [
       ${fields}
     ]);
@@ -552,7 +563,9 @@ class LocalField {
       this.isScalar = false});
 
   String toDeclarationStatement() {
-    return "final ${list ? 'List<${type}>' : '${type}'} ${_to$(name)};";
+    //return "final ${list ? 'List<${type}>' : '${type}'} ${_to$(name)};";
+    final nn = '${nonNull ? "" : "?"}';
+    return "final ${list ? 'List<${type}>?' : '${type}$nn'} ${_to$(name)};";
   }
 
   @override
