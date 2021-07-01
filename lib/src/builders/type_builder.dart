@@ -246,7 +246,8 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     StringBuffer constructorBuffer = StringBuffer();
     for (int i = 0; i < localFields.length; i++) {
       var field = localFields[i];
-      if (config.requiredInputField && /*field.isInput &&*/ field.nonNull) {
+      if (config.requiredInputField && /*field.isInput &&*/ field.nonNull &&
+          !field.list) {
         constructorBuffer.write('required ');
       }
       constructorBuffer.write("this.${_to$(field.name)}");
