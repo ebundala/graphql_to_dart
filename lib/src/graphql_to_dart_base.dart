@@ -46,6 +46,13 @@ class GraphQlToDart {
           !type.name.startsWith("__") &&
           !ignoreFields.contains(type.name.toLowerCase())) {
         print("Creating model from: ${type.name}");
+        //TODO modify type to make objects fields nullable;
+        type.fields = type.fields!.map<Field>((e) {
+          if (e.type.kind == "NON_NULL") {
+            e.type = e.type.ofType!;
+          }
+          return e;
+        }).toList();
         TypeBuilder builder = TypeBuilder(type, config);
         await builder.build();
         if (save) await builder.saveToFiles();
