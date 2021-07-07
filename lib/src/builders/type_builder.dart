@@ -226,7 +226,8 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   }
 
   _addEnumValues() {
-    // stringBuffer.writeln("import 'package:flutter/foundation.dart';");
+    //stringBuffer.writeln('import "package:gql/ast.dart" as ast;');
+
     stringBuffer.write("""
         enum ${type.name}{
           ${type.enumValues!.map((e) => _to$(e.name)).join(',\n')}
@@ -239,7 +240,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
             static ${type.name} fromJson(String json) {
               return ${type.name}.values.firstWhere((e) => e.toJson() == json);
             }
-          }
+            }
         """);
 
 //     stringBuffer.writeln('''

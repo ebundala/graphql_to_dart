@@ -152,10 +152,9 @@ class IntrospectionSchema {
     return _objects;
   }
 
-  List<String> scalarsAndEnums() {
+  List<String> scalarsList() {
     return [
       ...scalars.map<String>((e) => e.name.value).toList(),
-      // ...enums.map<String>((e) => e.name.value).toList()
     ];
   }
 
@@ -166,10 +165,12 @@ class IntrospectionSchema {
             e.name.value == "Mutation" ||
             e.name.value == "Subscription")
         .map<List<OperationInfo>>((e) {
+      //todo include enums to return types
       final v = OperationInfoVisitor(
           inputs: inputsMap(),
           opType: e.name.value,
-          scalars: scalarsAndEnums());
+          scalars: scalarsList(),
+          enums: enumsList());
       e.visitChildren(v);
       return v.accumulator;
     }).fold<List<OperationInfo>>([], (p, n) {
@@ -186,5 +187,9 @@ class IntrospectionSchema {
       ...objects,
       ...scalars
     ]);
+  }
+
+  List<String> enumsList() {
+    return [...enums.map<String>((e) => e.name.value).toList()];
   }
 }

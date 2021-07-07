@@ -85,6 +85,7 @@ class AstGenerator implements Builder {
   late Map<String, ObjectTypeDefinitionNode> types;
 
   late List<String> scalars;
+  late List<String> enums;
   late List<OperationInfo> info;
   //DocumentNode? schema;
   late GraphQlToDart graphQlToDart;
@@ -138,7 +139,8 @@ class AstGenerator implements Builder {
       // graphQlToDart.init();
       _schema = IntrospectionSchema.fromTypes(graphQlToDart.schema.types);
       info = _schema.operationInfo();
-      scalars = _schema.scalarsAndEnums();
+      scalars = _schema.scalarsList();
+      enums = _schema.enumsList();
       inputs = _schema.inputsMap();
       types = _schema.objectsMap();
     }
@@ -152,6 +154,7 @@ class AstGenerator implements Builder {
         info: info,
         types: types,
         scalars: scalars,
+        enums: enums,
         inputs: inputs,
         operationAst: operationAst,
         package: package,

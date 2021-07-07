@@ -210,11 +210,13 @@ List<List<String>> buildBloc(
     required String modelsPath,
     required String outDir,
     required List<String> scalars,
+    required List<String> enums,
     required String helperPath}) {
   final operations = getOperationInfoFromAst(
       types: types,
       document: operationAst,
       scalars: scalars,
+      enums: enums,
       info: info,
       inputs: inputs);
   List<List<String>> content = [];
@@ -507,6 +509,20 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
        vars.addAll({"${v.name}":${v.name}});
      }
       """;
+    } else if (v.isEnum) {
+      if (v.isList) {
+        return """
+     if(${v.name} != null){
+       vars.addAll({"${v.name}":${v.name}.map((e)=>e.toJson()).toList()});
+     }
+      """;
+      } else {
+        return """
+     if(${v.name} != null){
+       vars.addAll({"${v.name}":${v.name}.toJson()});
+     }
+      """;
+      }
     } else if (v.isList) {
       return """
          if(${v.name} != null){
