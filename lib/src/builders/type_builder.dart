@@ -29,7 +29,7 @@ class TypeBuilder {
       _addGetVariablesDefinitionsNodes();
       _addToValueNode();
     }
-    if (type.kind == 'ENUM') {
+    if (type.enumValues != null) {
       _addEnumValues();
     } else {
       _addConstructor();
@@ -80,7 +80,7 @@ class TypeBuilder {
   _addImports() {
     StringBuffer importBuffer = StringBuffer();
     localFields.unique<String>((field) => field.type).forEach((field) {
-      if (field.object == true && field.type != type.name) {
+      if ((field.object == true || field.isEnum) && field.type != type.name) {
         if (config.dynamicImportPath) {
           // importBuffer.writeln(
           //   "import 'package:${config.packageName}/${config.modelsDirectoryPath.replaceAll(r"lib/", "")}/${pascalToSnake(field.type)}.dart';"
@@ -111,14 +111,14 @@ class TypeBuilder {
         if (field.type == "DateTime") {
           toJsonBuilder.writeln(
               "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}![index].toString());");
-        } else if (field.object == true) {
+        } else if (field.object == true || field.isEnum == true) {
           toJsonBuilder.writeln(
               "_data['${field.name}'] = List.generate(${_to$(field.name)}?.length ?? 0, (index)=> ${_to$(field.name)}![index].toJson());");
         } else {
           toJsonBuilder
               .writeln("_data['${field.name}'] = ${_to$(field.name)};");
         }
-      } else if (field.object == true) {
+      } else if (field.object == true || field.isEnum == true) {
         toJsonBuilder.writeln(
             "_data['${field.name}'] = ${_to$(field.name)}$nn.toJson();");
       } else if (field.type == "DateTime") {
@@ -143,10 +143,10 @@ class TypeBuilder {
 ${_to$(field.name)}: json['${field.name}']!=null ?
 ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> ${field.type}.fromJson(json['${field.name}'][index]))" : field.type == "DateTime" ? "List.generate(json['${field.name}'].length, (index)=> DateTime.parse(json['${field.name}'][index]))" : "json['${field.name}'].map<${field.type}>((o)=>o.to${field.type}()).toList()"}: null,
         """);
-      } //else if (field.isEnum) {
-      //   // fromJsonBuilder.writeln("${field.name} = json['${field.name}'];");
-      // }
-      else if (field.object == true) {
+      } else if (field.isEnum == true) {
+        fromJsonBuilder.writeln(
+            "${_to$(field.name)}:${field.nonNull ? "${field.type}Ext.fromJson(json['${field.name}'])" : "json['${field.name}']!=null ? ${field.type}Ext.fromJson(json['${field.name}']) : null"},");
+      } else if (field.object == true) {
         fromJsonBuilder.writeln(
             "${_to$(field.name)}:${field.nonNull ? "${field.type}.fromJson(json['${field.name}'])" : "json['${field.name}']!=null ? ${field.type}.fromJson(json['${field.name}']) : null"},");
       } else if (field.type == "DateTime") {
@@ -203,7 +203,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   saveToFiles() async {
     outputs.forEach((k, v) async {
-      File file = File(FileConstants().modelsDirectory!.path + "/lib" + k);
+      File file = File(FileConstants().modelsDirectory!.path + "lib" + k);
       if (!(await file.exists())) {
         await file.create();
       }
@@ -227,8 +227,21 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   _addEnumValues() {
     // stringBuffer.writeln("import 'package:flutter/foundation.dart';");
-    stringBuffer.writeln(
-        'enum ${type.name}{\n${type.enumValues!.map((e) => _to$(e.name)).join(',\n')}\n}');
+    stringBuffer.write("""
+        enum ${type.name}{
+          ${type.enumValues!.map((e) => _to$(e.name)).join(',\n')}
+          }
+          extension ${type.name}Ext on  ${type.name}{
+            String toJson() {
+              return toString().split(".").last;
+            }
+
+            static ${type.name} fromJson(String json) {
+              return ${type.name}.values.firstWhere((e) => e.toJson() == json);
+            }
+          }
+        """);
+
 //     stringBuffer.writeln('''
 //     extension ${type.name}Index on ${type.name} {
 //   // Overload the [] getter to get the name of the fruit.
@@ -330,7 +343,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-          value: ast.EnumValueNode(name: ast.NameNode(value: ${_to$(field.name)}$nn)),
+          value: ast.EnumValueNode(name: ast.NameNode(value: ${_to$(field.name)}$nn.toJson())),
         )
       """;
     }
@@ -440,7 +453,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       """;
     } else if (field.isEnum) {
       return """
-      ast.EnumValueNode(name: ast.NameNode(value: '\${${value}}')
+      ast.EnumValueNode(name: ast.NameNode(value: '\${${value}.toJson()}')
       """;
     } else {
       return """
@@ -516,7 +529,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           list: list,
           nonNull: nonNull,
           isInput: isInput,
-          type: TypeConverters().overrideType('String'),
+          type: TypeConverters().overrideType(t.name),
           object: false,
           isEnum: true);
       localFields.add(localField);

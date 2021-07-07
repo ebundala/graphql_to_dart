@@ -155,7 +155,7 @@ class IntrospectionSchema {
   List<String> scalarsAndEnums() {
     return [
       ...scalars.map<String>((e) => e.name.value).toList(),
-      ...enums.map<String>((e) => e.name.value).toList()
+      // ...enums.map<String>((e) => e.name.value).toList()
     ];
   }
 
