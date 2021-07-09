@@ -529,12 +529,14 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
         var i=-1;
       var files= ${v.name}.map((e){
          i++;
-         return e.getFilesVariables(field_name: 'orderBy_\${i}');
+         return e.getFilesVariables(field_name: '${v.name}_\${i}');
        }).fold<Map<String, dynamic>>({}, (p, e){
         p.addAll(e);
         return p;
        });
         vars.addAll(files);
+        args.add(ArgumentInfo(name: '${v.name}', value: ${v.name}));
+
        }
         """;
     } else {
@@ -854,97 +856,105 @@ String buildArgumentsNormalizer() {
 
 class NormalizeArgumentsVisitor extends TransformingVisitor {
   final List<ArgumentInfo> args;
-  //Map<String, dynamic> variables;
   List<VariableDefinitionNode> definitions = [];
-  Map<String, ObjectValueNode> valueNodes = {};
+  Map<String, ValueNode> valueNodes = {};
+
   NormalizeArgumentsVisitor({this.args}) : super() {
     args.forEach((v) {
       final value = v.value;
-      Map<String, dynamic> vars = value?.getFilesVariables(field_name: v.name);
-      definitions
-          .addAll(value?.getVariableDefinitionsNodes(variables: vars) ?? []);
-      valueNodes[v.name] = value?.toValueNode(field_name: v.name);
+      Map<String, dynamic> vars;
+      if (value is List) {
+        var i = -1;
+        vars = value.map((e) {
+          i++;
+          return e.getFilesVariables(field_name: '${v.name}_${i}');
+        }).fold<Map<String, dynamic>>({}, (p, e) {
+          p.addAll(e);
+          return p;
+        });
+        valueNodes[v.name] = ListValueNode(
+          values: value
+              .map<ValueNode>(
+                (e) => e?.toValueNode(field_name: v.name),
+              )
+              .toList(),
+        );
+        definitions.addAll(
+          value
+              .map<List<VariableDefinitionNode>>(
+                  (e) => e?.getVariableDefinitionsNodes(variables: vars) ?? [])
+              .fold<List<VariableDefinitionNode>>(
+            [],
+            (p, n) {
+              p.addAll(n);
+              return p;
+            },
+          ).toList(),
+        );
+      } else {
+        vars = value?.getFilesVariables(field_name: v.name);
+        valueNodes[v.name] = value?.toValueNode(field_name: v.name);
+        definitions
+            .addAll(value?.getVariableDefinitionsNodes(variables: vars) ?? []);
+      }
     });
+
+   
   }
+  // @override
+  // FieldNode visitFieldNode(FieldNode node) {
+  //   final normalized = argsNodes.where((e) {
+  //     if(e.value is )
+  //     valueNodes[e.value.name.value] != null;
+  //   }).toList();
+  //   final newNode = FieldNode(
+  //     name: node.name,
+  //     alias: node.alias,
+  //     arguments: [
+  //       ...node.arguments
+  //           .where((e) => e.value
+  //               is! VariableNode /* valueNodes[e.value.name.value] == null */)
+  //           .toList(),
+  //     ],
+  //     directives: node.directives,
+  //     selectionSet: node.selectionSet,
+  //   );
+  //   return newNode;
+  // }
+
   @override
   OperationDefinitionNode visitOperationDefinitionNode(
       OperationDefinitionNode node) {
-    //add variables definitions
-    var field = node.selectionSet.selections.firstWhere(
-        (element) => (element as FieldNode)?.selectionSet != null,
-        orElse: () => null) as FieldNode;
-    List<ArgumentNode> argsNodes = [];
-    valueNodes.forEach((key, value) {
-      argsNodes.add(
-        ArgumentNode(
-          name: NameNode(value: key),
-          value: value,
-        ),
-      );
-    });
+  
 
-    
-      return OperationDefinitionNode(
-          directives: node.directives,
-          name: node.name,
-          selectionSet: SelectionSetNode(selections: [
-            ...node.selectionSet.selections
-                .where((element) =>
-                    (element as FieldNode).name.value != field?.name?.value)
-                .toList(),
-            FieldNode(
-                name: field.name,
-                alias: field.alias,
-                arguments: [
-                  ...field.arguments
-                      .where(
-                          (element) => valueNodes[element.name.value] == null)
-                      .toList(),
-                  ...argsNodes
-                ],
-                directives: field.directives,
-                selectionSet: field.selectionSet),
-          ]),
-          type: node.type,
-          variableDefinitions: [
-            ...node.variableDefinitions.where((element) {
-              return args.firstWhere(
-                      (e) => e.name == element.variable.name.value,
-                      orElse: () => null) ==
-                  null;
-            }).toList(),
-            ...definitions
-          ]);
+    return OperationDefinitionNode(
+        directives: node.directives,
+        name: node.name,
+        selectionSet: node.selectionSet,
+        type: node.type,
+        variableDefinitions: [
+          ...node.variableDefinitions.where((element) {
+            return args.firstWhere((e) => e.name == element.variable.name.value,
+                    orElse: () => null) ==
+                null;
+          }).toList(),
+          ...definitions
+        ]);
   }
 
-  // @override
-  // VariableDefinitionNode visitVariableDefinitionNode(
-  //     VariableDefinitionNode node) {
-  //   //remove variables definitions
-  //   var exist = args.firstWhere(
-  //       (element) => node.variable.name.value == element.name,
-  //       orElse: () => null);
-  //   if (exist != null)
-  //     return VariableDefinitionNode(
-  //       variable: VariableNode(
-  //           name: NameNode(value: 'ignored_${node.variable.name.value}')),
-  //       type: NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
-  //       defaultValue: DefaultValueNode(value: null),
-  //       directives: [],
-  //     );
-  //   return node;
-  // }
+  
 
-  // @override
-  // ArgumentNode visitArgumentNode(ArgumentNode node) {
-  //   //add arguments values
-  //   var exist = args.firstWhere((element) => node.name.value == element.name,
-  //       orElse: () => null);
-  //   if (exist != null) {
-  //     return ArgumentNode(name: node.name, value: valueNodes[node.name]);
-  //   }
-  //   return node;
-  // }
+  @override
+  ArgumentNode visitArgumentNode(ArgumentNode node) {
+    //add arguments values
+    if (node.value is VariableNode) {
+      final v = node.value as VariableNode;
+      final newArgValue = valueNodes[v.name.value];
+      if (newArgValue != null)
+        return ArgumentNode(name: node.name, value: newArgValue);
+    }
+    return node;
+  }
 }
   """;
 }
