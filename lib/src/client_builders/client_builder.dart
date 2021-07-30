@@ -331,7 +331,7 @@ List<List<String>> buildBloc(
               await closeResultWrapper();
               resultWrapper = await client.${i.name}(${buildOperationParams(i.variables)});
               //listen for changes 
-              resultWrapper.stream.listen((result) {
+              resultWrapper.subscription = resultWrapper.stream.listen((result) {
                 //reset events before starting to emit new ones
                 add(${libname}Reseted());
                 Map<String, dynamic> errors = {};
@@ -407,8 +407,8 @@ List<List<String>> buildBloc(
             if(resultWrapper.isObservable==true && resultWrapper.observableQuery!=null){
             await resultWrapper.observableQuery.close();
             }
-            if(resultWrapper.isStream==true&&resultWrapper.stream!=null){
-             // await resultWrapper.stream.close();
+            if(resultWrapper.isStream==true&&resultWrapper.stream!=null && resultWrapper.subscription!=null){
+             await resultWrapper.subscription.cancel();
             }
           }
           
@@ -633,6 +633,7 @@ String buildCommonGraphQLClientHelpers() {
   return """
 import 'package:gql/ast.dart';
 import 'package:graphql/client.dart';
+import 'dart:async';
 
 class OperationRuntimeInfo {
   final String operationName;
@@ -647,12 +648,14 @@ class OperationResult {
   final Map<String, dynamic> result;
   final Stream<QueryResult> stream;
   final ObservableQuery observableQuery;
+  StreamSubscription<QueryResult> subscription;
 
-  const OperationResult(
+   OperationResult(
       {this.isStream = false,
       this.observableQuery,
       this.result,
       this.stream,
+      this.subscription,
       this.isObservable = false});
 }
 

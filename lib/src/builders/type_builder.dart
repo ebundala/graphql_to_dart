@@ -234,26 +234,26 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           }
           extension ${type.name}Ext on  ${type.name}{
             String toJson() {
-              return toString().split(".").last;
+              //final v = toString().split(".").last;
+              switch(this){
+                ${type.enumValues!.map((e) => 'case ${type.name}.${_to$(e.name)}:\n return "${e.name}";').join('\n')}
+                default:
+                return '';
+              }
+              //return toString().split(".").last;
             }
 
             static ${type.name} fromJson(String json) {
-              return ${type.name}.values.firstWhere((e) => e.toJson() == json);
+
+               switch(json){
+                ${type.enumValues!.map((e) => 'case "${e.name}":\n return ${type.name}.${_to$(e.name)};').join('\n')}
+             default:
+                return ${type.name}.${_to$(type.enumValues![0].name)};
+              }
+              //return ${type.name}.values.firstWhere((e) => e.toJson() == json);
             }
             }
         """);
-
-//     stringBuffer.writeln('''
-//     extension ${type.name}Index on ${type.name} {
-//   // Overload the [] getter to get the name of the fruit.
-//   operator[](String key) => (name){
-//     switch(name) {
-//      ${type.enumValues.map((e) => "case \'${e.name}\': return ${type.name}.${e.name};" ).join('\n')}
-//       default:       throw RangeError("enum ${type.name} contains no value '\$name'");
-//     }
-//   }(key);
-// }
-//     ''');
   }
 
   _addConstructor() {
