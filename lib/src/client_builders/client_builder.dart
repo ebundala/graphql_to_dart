@@ -281,10 +281,10 @@ List<List<String>> buildBloc(
           if (hook != null) {
             yield* hook(this, event, ${libname}BlocHookStage.before);
           }
-         if (event is ${libname}Started) {
+         else if (event is ${libname}Started) {
               yield ${libname}Initial(data:null);
             }
-            if (event is ${libname}Excuted) {
+           else if (event is ${libname}Excuted) {
               //start main excution 
               yield* ${i.name}(event);
             } else if (event is ${libname}IsLoading) {
@@ -312,7 +312,7 @@ List<List<String>> buildBloc(
             }
             ${isList}
             
-
+          else
           if (hook != null) {
             yield* hook(this, event, ${libname}BlocHookStage.after);
           }
