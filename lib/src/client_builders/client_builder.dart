@@ -1,4 +1,5 @@
 import 'package:gql/ast.dart';
+import 'package:graphql_to_dart/src/builders/type_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/events_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_builder.dart';
 import 'package:graphql_to_dart/src/client_builders/states_definitions.dart';
@@ -456,7 +457,7 @@ buildInputsValidations(OperationAstInfo operation) {
       .where((v) => v.isNonNull)
       .map((v) {
         return v.fields.where((f) => f.isNonNull).map((f) {
-          var vf = "${v.name}?.${f.name}";
+          var vf = "${v.name}?.${to$(f.name)}";
           var test = f.isList || f.type == 'String'
               ? "event.${vf}?.isEmpty==true"
               : "event.${vf}==null";
