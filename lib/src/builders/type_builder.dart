@@ -299,7 +299,12 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
             }""";
           else if (e.list && e.object && !e.isScalar && !e.isEnum)
             return """if(${to$(e.name)} != null){
-            ${to$(e.name)}!.map((e)=>e.getFilesVariables(field_name:'\${field_name}_${e.name}',variables:variables),);
+              int i=-1;
+            ${to$(e.name)}!.forEach((e){
+              i++;
+              e.getFilesVariables(field_name:'\${field_name}_${e.name}_\$i',variables:variables);
+              }
+              );
             }""";
           else if (e.object && !e.isScalar && !e.isEnum)
             return """
@@ -351,6 +356,13 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     LocalField field,
     String fieldName,
   ) {
+    // var items = [];
+    // items.fold<List>([], (previousValue, el) {
+    //   var i = previousValue.length;
+    //   previousValue.add(el);
+    //   return previousValue;
+    // });
+
     final nn = field.nonNull && !field.list ? "" : "!";
     // if (field.name == 'in') {
     //   field.name;
@@ -363,27 +375,48 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         )
       """;
     }
+
     if (field.isEnum && field.list) {
       return """
-      ast.ObjectFieldNode(
+       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
           value: ast.ListValueNode(values:[...${to$(field.name)}!
-          .map((e)=>${getScalarValueNode(field, 'e', fieldName, true)}))]))
+          .fold([],(v,e){
+            int i = v.length;
+             return [...v,${getScalarValueNode(field, 'e', '${fieldName}_\$i', true)})];
+            })
+            ],
+            ),
+          )        
       """;
     } else if (field.list && field.object && !field.isScalar) {
       return """
-      ast.ObjectFieldNode(
+       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
           value: ast.ListValueNode(values:[...${to$(field.name)}!
-          .map((e)=>e.toValueNode(field_name: '\${field_name}_${fieldName}'))])
+          .fold([],(v,e){
+             int i = v.length;
+             return [ ...v,e.toValueNode(field_name: '\${field_name}_${fieldName}_\$i')];
+            
+            }
+          ,)
+        ])
         )
       """;
     } else if (field.list && field.isScalar && !field.object) {
-      return """ast.ObjectFieldNode(
+      return """
+      ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
           value: ast.ListValueNode(values:[...${to$(field.name)}!
-          .map((e)=>${getScalarValueNode(field, 'e', fieldName, true)})])
-        )""";
+          .fold([],(v,e){
+            int i = v.length;
+            return [...v,${getScalarValueNode(field, 'e', '${fieldName}_\$i', true)}];
+            }
+            )
+            ],
+          )
+        )        
+        """;
     } else if (field.object && !field.list && !field.isScalar) {
       return """
        ast.ObjectFieldNode(
