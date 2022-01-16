@@ -35,6 +35,7 @@ class TypeBuilder {
       _addConstructor();
       _addFromJson();
       _addToJson();
+      _addCopyWith();
       if (config.useEquatable) {
         var props = localFields
             .map((v) =>
@@ -42,7 +43,7 @@ class TypeBuilder {
             .join(",");
 
         stringBuffer.writeln('');
-        stringBuffer.writeln("List<Object> get props => [$props];");
+        stringBuffer.writeln("List<Object?> get props => [$props];");
       }
       String current = stringBuffer.toString();
       stringBuffer.clear();
@@ -58,7 +59,7 @@ class TypeBuilder {
         stringBuffer.writeln('import "package:gql/ast.dart" as ast;');
       }
       if (config.useEquatable) {
-        //stringBuffer.writeln('import "package:equatable/equatable.dart";');
+        stringBuffer.writeln('import "package:equatable/equatable.dart";');
       }
       if (config.requiredInputField && type.inputFields != null) {
         // stringBuffer.writeln('import "package:meta/meta.dart";');
@@ -132,6 +133,27 @@ class TypeBuilder {
     stringBuffer.writeln();
     stringBuffer.write(_wrapWith(
         toJsonBuilder.toString(), "Map<String,dynamic> toJson(){", "}"));
+  }
+
+  _addCopyWith() {
+    List copyWithArgs = [];
+    List copyWithAssign = [];
+    StringBuffer copyWith = StringBuffer();
+
+    localFields.forEach((field) {
+      copyWithArgs.add(field.toArgument());
+      copyWithAssign.add(field.toCopyWithStatement());
+    });
+
+    copyWith.writeln("${type.name} copyWith({");
+    copyWith.writeAll(copyWithArgs, ",");
+    copyWith.writeln("})");
+    copyWith.writeln("{");
+    copyWith.write("return ${type.name}(");
+    copyWith.writeAll(copyWithAssign, ",");
+    copyWith.write(");");
+    copyWith.writeln("}");
+    stringBuffer.write(copyWith.toString());
   }
 
   _addFromJson() {
@@ -630,6 +652,16 @@ class LocalField {
     //return "final ${list ? 'List<${type}>' : '${type}'} ${_to$(name)};";
     final nn = '${nonNull ? "" : "?"}';
     return "final ${list ? 'List<${type}>?' : '${type}$nn'} ${to$(name)};";
+  }
+
+  String toArgument() {
+    //return "final ${list ? 'List<${type}>' : '${type}'} ${_to$(name)};";
+    final nn = '?'; //'${nonNull ? "" : "?"}';
+    return "${list ? 'List<${type}>?' : '${type}$nn'} ${to$(name)}";
+  }
+
+  String toCopyWithStatement() {
+    return "${to$(name)}:${to$(name)}??this.${to$(name)}";
   }
 
   @override
