@@ -15,10 +15,11 @@ class TypeBuilder {
   final Type type;
   final Config config;
   final StringBuffer stringBuffer = StringBuffer();
+  final StringBuffer controllerBuffer = StringBuffer();
   List<LocalField> localFields = [];
   Map<String, String> outputs = {};
   TypeBuilder(this.type, this.config);
-
+  bool hasExtensions = false;
   Future build() async {
     if (type.fields != null) {
       _addFields();
@@ -39,7 +40,7 @@ class TypeBuilder {
       if (config.useEquatable) {
         var props = localFields
             .map((v) =>
-                "${v.list ? 'List.from(${to$(v.name)}??[])' : to$(v.name)}")
+                "${v.isList ? 'List.from(${to$(v.name)}??[])' : to$(v.name)}")
             .join(",");
 
         stringBuffer.writeln('');
@@ -66,10 +67,18 @@ class TypeBuilder {
       }
       var imports = stringBuffer.toString();
       stringBuffer.clear();
+
       current = _wrapWith(
           current,
           "${imports}class ${type.name} ${config.useEquatable ? "extends Equatable" : ""} {",
           "}");
+      if (type.inputFields == null) {
+        current = '''
+        ${current}
+        ${_addExtensions()}
+        ${_addController()}
+        ''';
+      }
       stringBuffer.write(current.toString());
       _addImports();
     }
@@ -78,10 +87,91 @@ class TypeBuilder {
     //await saveToFile();
   }
 
+  _addControllerValueChangeHandlers() {
+    localFields.forEach((v) {
+      if (!v.isList) {
+        if (v.isEnum || v.isObject) {
+          controllerBuffer.write("""
+          void on${v.name.pascalCase}Changed(${v.type} v) {
+            if (value?.${v.name} != v) {
+              value = value.copyWith(${v.name}: v);
+              if (${v.name}Changed != null) {
+                ${v.name}Changed(state);
+              }
+            }
+          }
+          """);
+        }
+      } else {
+        if (v.isObject) {
+          controllerBuffer.write("""
+          void on${v.name.pascalCase}Changed(${v.type} v) {
+                updated${v.name.pascalCase}[v.id] = v;
+                var i = value?.v?.indexWhere((e) => e.id == v.id);
+                var list = List<${v.type}>.from(value?.${v.name} ?? []);
+                if (i > 0) {
+                  list[i] = v;
+                } else {
+                  list.add(v);
+                  //TODO handle controllers
+                }
+                value = value.copyWith(${v.name}: list);
+                if (${v.name}Changed != null) {
+                  ${v.name}Changed(v);
+                }
+              }
+
+              void on${v.name.pascalCase}Removed(${v.type} v) {
+                if (!v.isNew) {
+                  deleted${v.name.pascalCase}[v.id] = v;
+                }
+                updated${v.name.pascalCase}.remove(v.id);
+                value = value.copyWith(
+                    ${v.name}:
+                        value?.${v.name}?.where((e) => e.id != v.id)?.toList() ??
+                            []);
+
+                if (${v.name}Removed != null) {
+                  ${v.name}Removed(v);
+                }
+              }
+          """);
+        }
+      }
+    });
+  }
+
+  String _addController() {
+    if (hasExtensions) {
+      _addControllerValueChangeHandlers();
+      return """class ${type.name}Controller extends ValueNotifier<${type.name}>{
+          ${controllerBuffer.toString()}
+        }""";
+    }
+    return "";
+  }
+
+  String _addExtensions() {
+    if (hasExtensions) {
+      return """
+        extension ${type.name}Ext on ${type.name} {
+            bool get isSaved {
+              return id?.isNotEmpty == true && id?.contains("new") != true;
+            }
+
+            bool get isNew {
+              return id?.isNotEmpty == true && id?.contains("new") == true;
+            }
+          }
+        """;
+    }
+    return "";
+  }
+
   _addImports() {
     StringBuffer importBuffer = StringBuffer();
     localFields.unique<String>((field) => field.type).forEach((field) {
-      if ((field.object == true || field.isEnum) && field.type != type.name) {
+      if ((field.isObject == true || field.isEnum) && field.type != type.name) {
         if (config.dynamicImportPath) {
           // importBuffer.writeln(
           //   "import 'package:${config.packageName}/${config.modelsDirectoryPath.replaceAll(r"lib/", "")}/${pascalToSnake(field.type)}.dart';"
@@ -93,6 +183,12 @@ class TypeBuilder {
         }
       }
     });
+    if (type.inputFields == null) {
+      importBuffer.write("""
+         import 'package:flutter/foundation.dart' show ValueNotifier;
+         import 'package:flutter/widgets.dart' show TextEditingController;
+          """);
+    }
     String current = stringBuffer.toString();
     current = _wrapWith(current, importBuffer.toString() + "\n", "");
     stringBuffer.clear();
@@ -103,22 +199,22 @@ class TypeBuilder {
     StringBuffer toJsonBuilder = StringBuffer();
     toJsonBuilder.writeln("Map<String,dynamic> _data = {};");
     localFields.forEach((field) {
-      final nn = field.nonNull && !field.list ? "" : "!";
+      final nn = field.nonNull && !field.isList ? "" : "!";
       if (config.toJsonExcludeNullField) {
         toJsonBuilder.writeln(
-            "${field.nonNull && !field.list ? "" : "if(${to$(field.name)}!=null)"}");
+            "${field.nonNull && !field.isList ? "" : "if(${to$(field.name)}!=null)"}");
       }
-      if (field.list == true) {
+      if (field.isList == true) {
         if (field.type == "DateTime") {
           toJsonBuilder.writeln(
               "_data['${field.name}'] = List.generate(${to$(field.name)}?.length ?? 0, (index)=> ${to$(field.name)}![index].toString());");
-        } else if (field.object == true || field.isEnum == true) {
+        } else if (field.isObject == true || field.isEnum == true) {
           toJsonBuilder.writeln(
               "_data['${field.name}'] = List.generate(${to$(field.name)}?.length ?? 0, (index)=> ${to$(field.name)}![index].toJson());");
         } else {
           toJsonBuilder.writeln("_data['${field.name}'] = ${to$(field.name)};");
         }
-      } else if (field.object == true || field.isEnum == true) {
+      } else if (field.isObject == true || field.isEnum == true) {
         toJsonBuilder.writeln(
             "_data['${field.name}'] = ${to$(field.name)}$nn.toJson();");
       } else if (field.type == "DateTime") {
@@ -159,13 +255,13 @@ class TypeBuilder {
   _addFromJson() {
     StringBuffer fromJsonBuilder = StringBuffer();
     localFields.forEach((field) {
-      if (field.list == true) {
+      if (field.isList == true) {
         fromJsonBuilder
             .write("${to$(field.name)}: json['${field.name}']!=null ?");
         if (field.isEnum) {
           fromJsonBuilder.write(
               "List.generate(json['${field.name}'].length, (index)=> ${field.type}Ext.fromJson(json['${field.name}'][index]))");
-        } else if (field.object) {
+        } else if (field.isObject) {
           fromJsonBuilder.write(
               "List.generate(json['${field.name}'].length, (index)=> ${field.type}.fromJson(json['${field.name}'][index]))");
         } else if (field.type == 'Datetime') {
@@ -183,7 +279,7 @@ class TypeBuilder {
       } else if (field.isEnum == true) {
         fromJsonBuilder.writeln(
             "${to$(field.name)}:${field.nonNull ? "${field.type}Ext.fromJson(json['${field.name}'])" : "json['${field.name}']!=null ? ${field.type}Ext.fromJson(json['${field.name}']) : null"},");
-      } else if (field.object == true) {
+      } else if (field.isObject == true) {
         fromJsonBuilder.writeln(
             "${to$(field.name)}:${field.nonNull ? "${field.type}.fromJson(json['${field.name}'])" : "json['${field.name}']!=null ? ${field.type}.fromJson(json['${field.name}']) : null"},");
       } else if (field.type == "DateTime") {
@@ -251,6 +347,9 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   _addFields() {
     type.fields!.forEach((field) {
+      if (!hasExtensions) {
+        hasExtensions = field.name == 'id';
+      }
       _typeOrdering(field.type, field.name);
     });
   }
@@ -295,19 +394,81 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   _addConstructor() {
     StringBuffer constructorBuffer = StringBuffer();
+    StringBuffer ctrBuffer = StringBuffer();
+    StringBuffer argumentsBuffer = StringBuffer();
+
     for (int i = 0; i < localFields.length; i++) {
       var field = localFields[i];
       if (config.requiredInputField && /*field.isInput &&*/ field.nonNull &&
-          !field.list) {
+          !field.isList) {
         constructorBuffer.write('required ');
       }
       constructorBuffer.write("this.${to$(field.name)}");
       if (i < localFields.length - 1) {
         constructorBuffer.write(",");
       }
+      if (!field.isInput) {
+        if (!field.isList) {
+          if (field.isScalar &&
+              ['int', 'double', 'String', 'DateTime'].contains(field.type)) {
+            var isNumber = field.type == 'int' || field.type == 'double';
+            var isDateTime = field.type == 'DateTime';
+            var parser = isNumber
+                ? '${field.type}.tryParse(${field.name}Controller.text)'
+                : isDateTime
+                    ? '${field.type}.tryParse(${field.name}Controller.text)'
+                    : '${field.name}Controller.text';
+            ctrBuffer.write('''
+            ${field.name}Controller = TextEditingController(text:"\${initialValue?.${field.name}}")
+              ..addListener(() {
+              value = value.copyWith(${field.name}: ${parser});
+            });
+            ''');
+          } else if (field.isObject) {
+            ctrBuffer.write('''
+              ${field.name}Controller = ${field.type}Controller(initialValue:initialValue?.${field.name});
+          ''');
+            argumentsBuffer.write('this.${field.name}Changed,');
+          } else if (field.isEnum) {
+            argumentsBuffer.write('this.${field.name}Changed,');
+          }
+        } else {
+          if (field.isScalar) {
+            ctrBuffer.write('''
+              if (initialValue?.${field.name}?.isNotEmpty == true) {
+                ${field.name}Controller.clear();
+                var values = initialValue?.${field.name}?.map<TextEditingController>>((e){
+                    return TextEditingController(text:"\${e}");
+                    });
+                ${field.name}Controller.addAll(values);
+              }
+          ''');
+          }
+          if (field.isObject) {
+            ctrBuffer.write('''
+              if (initialValue?.${field.name}?.isNotEmpty == true) {
+                ${field.name}Controller.clear();
+                var values = initialValue?.${field.name}?.map<MapEntry<String, ${field.type}Controller>>((e) =>
+                    MapEntry<String, ${field.type}Controller>(e.id, ${field.type}Controller(initialValue: e)));
+                ${field.name}Controller.addEntries(values);
+              }
+          ''');
+            argumentsBuffer
+                .write('this.${field.name}Changed,this.${field.name}Removed,');
+          }
+        }
+      }
     }
     stringBuffer.writeln(
         _wrapWith(constructorBuffer.toString(), "${type.name}({", "});"));
+    // Controllers section
+
+    controllerBuffer.write('''
+    final ${type.name} initialValue;
+    ${type.name}Controller({this.initialValue,${argumentsBuffer.toString()}}):super(initialValue){
+     ${ctrBuffer.toString()}
+    }
+    ''');
   }
 
   _addGetFilesVariables() {
@@ -316,10 +477,10 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         .map((e) {
           final nn = e.nonNull ? "" : "!";
           if (e.type == TypeConverters().overrideType('Upload'))
-            return """${e.nonNull && !e.list ? "" : "if(${to$(e.name)} != null)"} {
+            return """${e.nonNull && !e.isList ? "" : "if(${to$(e.name)} != null)"} {
               variables['\${field_name}_${e.name}'] = ${to$(e.name)};
             }""";
-          else if (e.list && e.object && !e.isScalar && !e.isEnum)
+          else if (e.isList && e.isObject && !e.isScalar && !e.isEnum)
             return """if(${to$(e.name)} != null){
               int i=-1;
             ${to$(e.name)}!.forEach((e){
@@ -328,9 +489,9 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
               }
               );
             }""";
-          else if (e.object && !e.isScalar && !e.isEnum)
+          else if (e.isObject && !e.isScalar && !e.isEnum)
             return """
-            ${e.nonNull && !e.list ? "" : "if(${to$(e.name)} != null)"}{
+            ${e.nonNull && !e.isList ? "" : "if(${to$(e.name)} != null)"}{
             ${to$(e.name)}${nn}.getFilesVariables(field_name:'\${field_name}_${e.name}',variables:variables);
             }
             """;
@@ -385,11 +546,11 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     //   return previousValue;
     // });
 
-    final nn = field.nonNull && !field.list ? "" : "!";
+    final nn = field.nonNull && !field.isList ? "" : "!";
     // if (field.name == 'in') {
     //   field.name;
     // }
-    if (field.isEnum && !field.list) {
+    if (field.isEnum && !field.isList) {
       return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
@@ -398,7 +559,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       """;
     }
 
-    if (field.isEnum && field.list) {
+    if (field.isEnum && field.isList) {
       return """
        ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
@@ -411,7 +572,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
             ),
           )        
       """;
-    } else if (field.list && field.object && !field.isScalar) {
+    } else if (field.isList && field.isObject && !field.isScalar) {
       return """
        ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
@@ -425,7 +586,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         ])
         )
       """;
-    } else if (field.list && field.isScalar && !field.object) {
+    } else if (field.isList && field.isScalar && !field.isObject) {
       return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
@@ -439,7 +600,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           )
         )        
         """;
-    } else if (field.object && !field.list && !field.isScalar) {
+    } else if (field.isObject && !field.isList && !field.isScalar) {
       return """
        ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
@@ -497,7 +658,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   String getScalarValueNode(LocalField field, String value, String fieldName,
       [inList = false]) {
-    final nn = field.nonNull && !field.list || inList ? "" : "!";
+    final nn = field.nonNull && !field.isList || inList ? "" : "!";
 
     if (field.type == TypeConverters().overrideType('Upload')) {
       return """
@@ -536,7 +697,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addToValueNode() {
     var fields = localFields.map((e) {
       return """
-      ${e.nonNull && e.list == false ? "" : "if(${to$(e.name)}!=null)"}
+      ${e.nonNull && e.isList == false ? "" : "if(${to$(e.name)}!=null)"}
        ${_getValueNodeType(e, '${e.name}')}
       """;
     }).join('\n,');
@@ -586,36 +747,37 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     if (t!.kind == scalar) {
       localField = LocalField(
           name: fieldName ?? '',
-          list: list,
+          isList: list,
           nonNull: nonNull,
           isInput: isInput,
           isScalar: true,
           type: TypeConverters().overrideType(t.name),
-          object: false,
+          isObject: false,
           isEnum: false);
       localFields.add(localField);
     } else if (t.kind == 'ENUM') {
       localField = LocalField(
           name: fieldName ?? "",
-          list: list,
+          isList: list,
           nonNull: nonNull,
           isInput: isInput,
           type: TypeConverters().overrideType(t.name),
-          object: false,
+          isObject: false,
           isEnum: true);
       localFields.add(localField);
     } else {
       localField = LocalField(
           name: fieldName ?? '',
-          list: list,
+          isList: list,
           nonNull: nonNull,
           type: TypeConverters().overrideType(t.name),
           isInput: isInput,
-          object: true,
+          isObject: true,
           isEnum: false);
       localFields.add(localField);
     }
     stringBuffer.writeln(localField.toDeclarationStatement());
+    controllerBuffer.writeln(localField.toControllerDeclarationStatement());
   }
 
   String _wrapWith(String input, String start, String end) {
@@ -630,10 +792,10 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
 class LocalField {
   final String name;
-  final bool list;
+  final bool isList;
   final bool nonNull;
   final String type;
-  final bool object;
+  final bool isObject;
   final bool isEnum;
   final bool isInput;
   final bool isScalar;
@@ -641,8 +803,8 @@ class LocalField {
   LocalField(
       {required this.name,
       required this.type,
-      this.list = false,
-      this.object = false,
+      this.isList = false,
+      this.isObject = false,
       this.isEnum = false,
       this.isInput = false,
       this.nonNull = false,
@@ -651,13 +813,47 @@ class LocalField {
   String toDeclarationStatement() {
     //return "final ${list ? 'List<${type}>' : '${type}'} ${_to$(name)};";
     final nn = '${nonNull ? "" : "?"}';
-    return "final ${list ? 'List<${type}>?' : '${type}$nn'} ${to$(name)};";
+    return "final ${isList ? 'List<${type}>?' : '${type}$nn'} ${to$(name)};";
+  }
+
+  String toControllerDeclarationStatement() {
+    if (!isList) {
+      if (isScalar) {
+        return 'TextEditingController ${to$(name)}Controller;\n';
+      } else if (isEnum) {
+        return 'final void Function(${type} value) ${to$(name)}Changed;';
+      } else if (isObject) {
+        return '''
+        ${type}Controller ${to$(name).camelCase}Controller;
+        final void Function(${type} value) ${to$(name)}Changed;
+        ''';
+      }
+    } else {
+      if (isScalar) {
+        return 'final List<TextEditingController> ${to$(name)}Controller=[];\n';
+      } else if (isEnum) {
+        //TODO probably will need deferent implimentation of onchange
+        return 'final void Function(List<${type}> value) ${to$(name)}Changed;\n';
+      } else if (isObject) {
+        return '''
+        final Map<String,${type}> updated${name.pascalCase}={};
+        final Map<String,${type}> deleted${type.pascalCase}={};
+        final void Function(${type} value) ${to$(name)}Changed;
+        final void Function(${type} value) ${to$(name)}Removed;
+        // ${type} controllers
+        final Map<String,${type}Controller> ${to$(name)}Controller={};
+        ''';
+      }
+    }
+    return '';
+    // final nn = '${nonNull ? "" : "?"}';
+    // return "final ${list ? 'List<${type}>?' : '${type}$nn'} ${to$(name)};";
   }
 
   String toArgument() {
     //return "final ${list ? 'List<${type}>' : '${type}'} ${_to$(name)};";
     final nn = '?'; //'${nonNull ? "" : "?"}';
-    return "${list ? 'List<${type}>?' : '${type}$nn'} ${to$(name)}";
+    return "${isList ? 'List<${type}>?' : '${type}$nn'} ${to$(name)}";
   }
 
   String toCopyWithStatement() {
@@ -672,7 +868,7 @@ class LocalField {
 }
 
 //helpers to rename fields starting with underscore/keywords
-to$(String name) {
+String to$(String name) {
   if (keywords[name] == true) {
     return "${name}\$";
   }
@@ -684,7 +880,7 @@ to$(String name) {
       r"$");
 }
 
-$to(String name) {
+String $to(String name) {
   if (name == "_all") {}
   var str = name.replaceAll(
       RegExp(
