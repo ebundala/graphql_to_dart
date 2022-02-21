@@ -76,6 +76,7 @@ class TypeBuilder {
         current = '''
         ${current}
         ${_addExtensions()}
+        ${_addSelectionSetDataClass()}
         ${_addController()}
         ''';
       }
@@ -92,12 +93,10 @@ class TypeBuilder {
       if (!v.isList) {
         if (v.isEnum || v.isObject) {
           controllerBuffer.write("""
-          void on${v.name.pascalCase}Changed(${v.type} v) {
-            if (value?.${v.name} != v) {
-              value = value.copyWith(${v.name}: v);
-              if (${v.name}Changed != null) {
-                ${v.name}Changed(state);
-              }
+          void on${to$(v.name).pascalCase}Changed(${v.type} v) {
+            if (value.${to$(v.name)} != v) {
+              value = value.copyWith(${to$(v.name)}: v);
+                ${to$(v.name)}Changed?.call(v);
             }
           }
           """);
@@ -105,35 +104,37 @@ class TypeBuilder {
       } else {
         if (v.isObject) {
           controllerBuffer.write("""
-          void on${v.name.pascalCase}Changed(${v.type} v) {
-                updated${v.name.pascalCase}[v.id] = v;
-                var i = value?.v?.indexWhere((e) => e.id == v.id);
-                var list = List<${v.type}>.from(value?.${v.name} ?? []);
-                if (i > 0) {
+          void on${to$(v.name).pascalCase}Changed(${v.type} v) {
+                updated${to$(v.name).pascalCase}[v.id!] = v;
+                var i = value.${to$(v.name)}?.indexWhere((e) => e.id == v.id)??-1;
+                var list = List<${v.type}>.from(value.${to$(v.name)} ?? []);
+                if (i >= 0) {
                   list[i] = v;
                 } else {
                   list.add(v);
-                  //TODO handle controllers
+                   var selection = getSelectionNodeData("${v.name}")?.selectionSet;
+                 ${to$(v.name)}Controller[v.id!] =
+                 ${v.type}Controller(initialValue: v, selectionSet: selection!);
                 }
-                value = value.copyWith(${v.name}: list);
-                if (${v.name}Changed != null) {
-                  ${v.name}Changed(v);
-                }
+                value = value.copyWith(${to$(v.name)}: list);
+                
+                  ${to$(v.name)}Changed?.call(v);
+                
               }
 
-              void on${v.name.pascalCase}Removed(${v.type} v) {
+              void on${to$(v.name).pascalCase}Removed(${v.type} v) {
                 if (!v.isNew) {
-                  deleted${v.name.pascalCase}[v.id] = v;
+                  deleted${to$(v.name).pascalCase}[v.id!] = v;
                 }
-                updated${v.name.pascalCase}.remove(v.id);
+                updated${to$(v.name).pascalCase}.remove(v.id!);
+               ${to$(v.name)}Controller.remove(v.id!);
                 value = value.copyWith(
-                    ${v.name}:
-                        value?.${v.name}?.where((e) => e.id != v.id)?.toList() ??
+                    ${to$(v.name)}:
+                        value.${to$(v.name)}?.where((e) => e.id != v.id)?.toList() ??
                             []);
 
-                if (${v.name}Removed != null) {
-                  ${v.name}Removed(v);
-                }
+                  ${to$(v.name)}Removed?.call(v);
+                
               }
           """);
         }
@@ -146,6 +147,22 @@ class TypeBuilder {
       _addControllerValueChangeHandlers();
       return """class ${type.name}Controller extends ValueNotifier<${type.name}>{
           ${controllerBuffer.toString()}
+          bool isInSelectionSet(String field){
+          return selections.containsKey(field);
+        }
+
+     SelectionNodeData? getSelectionNodeData(String field){
+          return selections[field];
+        }
+
+      Map<String,SelectionNodeData> initSelectionData(){
+          var sel = selectionSet.selections;
+          sel.forEach((el) {
+            var e = el as FieldNode;
+              selections[e.name.value]=SelectionNodeData(selected: true,selectionSet:e.selectionSet);
+            });
+            return selections;
+        }
         }""";
     }
     return "";
@@ -155,6 +172,9 @@ class TypeBuilder {
     if (hasExtensions) {
       return """
         extension ${type.name}Ext on ${type.name} {
+            bool get isInitialized{
+              return isNew || isSaved;
+            }
             bool get isSaved {
               return id?.isNotEmpty == true && id?.contains("new") != true;
             }
@@ -187,6 +207,7 @@ class TypeBuilder {
       importBuffer.write("""
          import 'package:flutter/foundation.dart' show ValueNotifier;
          import 'package:flutter/widgets.dart' show TextEditingController;
+         import 'package:gql/src/ast/ast.dart';
           """);
     }
     String current = stringBuffer.toString();
@@ -348,7 +369,8 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addFields() {
     type.fields!.forEach((field) {
       if (!hasExtensions) {
-        hasExtensions = field.name == 'id';
+        //TODO handle models with non id field such as device_id
+        hasExtensions = field.name == 'id' || field.name == 'device_id';
       }
       _typeOrdering(field.type, field.name);
     });
@@ -392,6 +414,16 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
         """);
   }
 
+  _addSelectionSetDataClass() {
+    return """
+         class SelectionNodeData{
+              final bool selected;
+              final SelectionSetNode? selectionSet;
+              SelectionNodeData({required this.selected,this.selectionSet});
+            }
+         """;
+  }
+
   _addConstructor() {
     StringBuffer constructorBuffer = StringBuffer();
     StringBuffer ctrBuffer = StringBuffer();
@@ -414,47 +446,67 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
             var isNumber = field.type == 'int' || field.type == 'double';
             var isDateTime = field.type == 'DateTime';
             var parser = isNumber
-                ? '${field.type}.tryParse(${field.name}Controller.text)'
+                ? "${field.type}.tryParse(${to$(field.name)}Controller?.text??'')"
                 : isDateTime
-                    ? '${field.type}.tryParse(${field.name}Controller.text)'
-                    : '${field.name}Controller.text';
+                    ? "${field.type}.tryParse(${to$(field.name)}Controller?.text??'')"
+                    : '${to$(field.name)}Controller?.text';
             ctrBuffer.write('''
-            ${field.name}Controller = TextEditingController(text:"\${initialValue?.${field.name}}")
-              ..addListener(() {
-              value = value.copyWith(${field.name}: ${parser});
-            });
+          if(isInSelectionSet('${field.name}')){
+              ${to$(field.name)}Controller = TextEditingController(text:"\${initialValue.${to$(field.name)}??''}")
+                ..addListener(() {
+                value = value.copyWith(${to$(field.name)}: ${parser});
+              });
+            }
             ''');
           } else if (field.isObject) {
             ctrBuffer.write('''
-              ${field.name}Controller = ${field.type}Controller(initialValue:initialValue?.${field.name});
+           if(isInSelectionSet('${field.name}')){
+             var selected = getSelectionNodeData('${field.name}')?.selectionSet;
+              ${to$(field.name)}Controller = ${field.type}Controller(initialValue:initialValue.${to$(field.name)}??${field.type}(),
+              selectionSet:selected!);
+              ${to$(field.name)}Controller?.addListener(() {
+                var v=${to$(field.name)}Controller?.value;
+                on${to$(field.name).pascalCase}Changed(v!);
+              });
+            }
           ''');
-            argumentsBuffer.write('this.${field.name}Changed,');
+            argumentsBuffer.write('this.${to$(field.name)}Changed,');
           } else if (field.isEnum) {
-            argumentsBuffer.write('this.${field.name}Changed,');
+            argumentsBuffer.write('this.${to$(field.name)}Changed,');
           }
         } else {
           if (field.isScalar) {
             ctrBuffer.write('''
-              if (initialValue?.${field.name}?.isNotEmpty == true) {
-                ${field.name}Controller.clear();
-                var values = initialValue?.${field.name}?.map<TextEditingController>>((e){
-                    return TextEditingController(text:"\${e}");
-                    });
-                ${field.name}Controller.addAll(values);
+            if(isInSelectionSet('${field.name}')){
+                if (initialValue.${to$(field.name)}?.isNotEmpty == true) {                  
+                  ${to$(field.name)}Controller.clear();
+                  var values = initialValue.${to$(field.name)}?.map<TextEditingController>>((e){
+                      return TextEditingController(text:"\${e}");
+                      });
+                  ${to$(field.name)}Controller.addAll(values);
+                }
               }
           ''');
           }
           if (field.isObject) {
             ctrBuffer.write('''
-              if (initialValue?.${field.name}?.isNotEmpty == true) {
-                ${field.name}Controller.clear();
-                var values = initialValue?.${field.name}?.map<MapEntry<String, ${field.type}Controller>>((e) =>
-                    MapEntry<String, ${field.type}Controller>(e.id, ${field.type}Controller(initialValue: e)));
-                ${field.name}Controller.addEntries(values);
-              }
+             if(isInSelectionSet('${field.name}')){
+                if (initialValue.${to$(field.name)}?.isNotEmpty == true) {
+                  var selection = getSelectionNodeData('${field.name}')?.selectionSet;
+                  ${to$(field.name)}Controller.clear();
+                  var values = initialValue.${to$(field.name)}?.map<MapEntry<String, ${field.type}Controller>>((e) {
+                          var controller = ${field.type}Controller(initialValue: e, selectionSet: selection!);
+                          controller.addListener((){
+                            on${to$(field.name).pascalCase}Changed(controller.value);
+                          });
+                    return MapEntry<String, ${field.type}Controller>(e.id!,controller);
+                    });
+                  ${to$(field.name)}Controller.addEntries(values??Iterable.empty());
+                }
+            }
           ''');
-            argumentsBuffer
-                .write('this.${field.name}Changed,this.${field.name}Removed,');
+            argumentsBuffer.write(
+                'this.${to$(field.name)}Changed,this.${to$(field.name)}Removed,');
           }
         }
       }
@@ -465,9 +517,12 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
     controllerBuffer.write('''
     final ${type.name} initialValue;
-    ${type.name}Controller({this.initialValue,${argumentsBuffer.toString()}}):super(initialValue){
+    final SelectionSetNode selectionSet;
+    final Map<String,SelectionNodeData> selections={};
+    ${type.name}Controller({required this.initialValue,required this.selectionSet,${argumentsBuffer.toString()}}):super(initialValue){
+     initSelectionData();
      ${ctrBuffer.toString()}
-    }
+    }    
     ''');
   }
 
@@ -819,13 +874,13 @@ class LocalField {
   String toControllerDeclarationStatement() {
     if (!isList) {
       if (isScalar) {
-        return 'TextEditingController ${to$(name)}Controller;\n';
+        return 'TextEditingController? ${to$(name)}Controller;\n';
       } else if (isEnum) {
-        return 'final void Function(${type} value) ${to$(name)}Changed;';
+        return 'void Function(${type} value)? ${to$(name)}Changed;';
       } else if (isObject) {
         return '''
-        ${type}Controller ${to$(name).camelCase}Controller;
-        final void Function(${type} value) ${to$(name)}Changed;
+        ${type}Controller? ${to$(name).camelCase}Controller;
+        void Function(${type} value)? ${to$(name)}Changed;
         ''';
       }
     } else {
@@ -833,13 +888,13 @@ class LocalField {
         return 'final List<TextEditingController> ${to$(name)}Controller=[];\n';
       } else if (isEnum) {
         //TODO probably will need deferent implimentation of onchange
-        return 'final void Function(List<${type}> value) ${to$(name)}Changed;\n';
+        return 'void Function(List<${type}> value)? ${to$(name)}Changed;\n';
       } else if (isObject) {
         return '''
-        final Map<String,${type}> updated${name.pascalCase}={};
-        final Map<String,${type}> deleted${type.pascalCase}={};
-        final void Function(${type} value) ${to$(name)}Changed;
-        final void Function(${type} value) ${to$(name)}Removed;
+        final Map<String,${type}> updated${to$(name).pascalCase}={};
+        final Map<String,${type}> deleted${to$(name).pascalCase}={};
+        void Function(${type} value)? ${to$(name)}Changed;
+        void Function(${type} value)? ${to$(name)}Removed;
         // ${type} controllers
         final Map<String,${type}Controller> ${to$(name)}Controller={};
         ''';
