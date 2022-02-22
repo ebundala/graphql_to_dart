@@ -76,7 +76,7 @@ class TypeBuilder {
         current = '''
         ${current}
         ${_addExtensions()}
-        ${_addSelectionSetDataClass()}
+       
         ${_addController()}
         ''';
       }
@@ -85,6 +85,7 @@ class TypeBuilder {
     }
     var path = "/${pascalToSnake(type.name)}.dart".replaceAll(r"//", r"/");
     outputs[path] = stringBuffer.toString();
+    outputs["/selection_node_data.dart"] = _addSelectionSetDataClass();
     //await saveToFile();
   }
 
@@ -175,12 +176,12 @@ class TypeBuilder {
             bool get isInitialized{
               return isNew || isSaved;
             }
-            bool get isSaved {
-              return id?.isNotEmpty == true && id?.contains("new") != true;
+            bool get isSaved {              
+              return id?.isNotEmpty == true && id?.contains("new") != true;             
             }
 
-            bool get isNew {
-              return id?.isNotEmpty == true && id?.contains("new") == true;
+            bool get isNew {              
+              return id?.isNotEmpty == true && id?.contains("new") == true;              
             }
           }
         """;
@@ -208,6 +209,7 @@ class TypeBuilder {
          import 'package:flutter/foundation.dart' show ValueNotifier;
          import 'package:flutter/widgets.dart' show TextEditingController;
          import 'package:gql/src/ast/ast.dart';
+         import  'selection_node_data.dart';
           """);
     }
     String current = stringBuffer.toString();
@@ -370,7 +372,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     type.fields!.forEach((field) {
       if (!hasExtensions) {
         //TODO handle models with non id field such as device_id
-        hasExtensions = field.name == 'id' || field.name == 'device_id';
+        hasExtensions = field.name == 'id' && field.type.name == 'String';
       }
       _typeOrdering(field.type, field.name);
     });
@@ -416,6 +418,8 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
   _addSelectionSetDataClass() {
     return """
+        import "package:gql/ast.dart";
+
          class SelectionNodeData{
               final bool selected;
               final SelectionSetNode? selectionSet;
@@ -887,7 +891,7 @@ class LocalField {
       if (isScalar) {
         return 'final List<TextEditingController> ${to$(name)}Controller=[];\n';
       } else if (isEnum) {
-        //TODO probably will need deferent implimentation of onchange
+        //TODO probably will need diferent implimentation of onchange
         return 'void Function(List<${type}> value)? ${to$(name)}Changed;\n';
       } else if (isObject) {
         return '''
