@@ -389,7 +389,11 @@ List<List<String>> buildBloc(
                   add(${libname}IsOptimistic(data: data));
                 } else if (result.isConcrete) {
                   //emit completed event
+                  if(data?.status==true){
                   add(${libname}IsConcrete(data: data));
+                  }else{
+                    add(${libname}Errored(data: data, message: data.message));
+                  }
                 }
               });
               //excute observable query;
