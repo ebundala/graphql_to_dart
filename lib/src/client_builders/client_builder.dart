@@ -343,9 +343,7 @@ List<List<String>> buildBloc(
                   if (result.exception.linkException != null) {
                     //link exception means complete failure possibly throw here
                     final exception = result.exception.linkException;
-              if (exception is ServerException) {
-                message = "Network error";
-              } else if (exception is RequestFormatException) {
+               if (exception is RequestFormatException) {
                 message = "Request format error";
               } else if (exception is ResponseFormatException) {
                 message = "Response format error";
@@ -353,6 +351,12 @@ List<List<String>> buildBloc(
                 message = "Context read error";
               } else if (exception is ContextWriteException) {
                 message = "Context write error";
+              }else if (exception is ServerException) {
+                message = exception.parsedResponse?.errors?.isNotEmpty == true
+                    ? exception.parsedResponse.errors.map((e) {
+                        return e.message;
+                      }).join('\\n')
+                    : "Network error";
               }
                    
                   } else if (result.exception.graphqlErrors?.isNotEmpty == true) {
