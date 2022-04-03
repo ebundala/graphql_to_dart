@@ -431,6 +431,8 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
   _addConstructor() {
     StringBuffer constructorBuffer = StringBuffer();
     StringBuffer ctrBuffer = StringBuffer();
+    StringBuffer ctrDisponseBuffer = StringBuffer();
+
     StringBuffer argumentsBuffer = StringBuffer();
 
     for (int i = 0; i < localFields.length; i++) {
@@ -462,6 +464,12 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
               });
             }
             ''');
+            ctrDisponseBuffer.write('''
+           if(isInSelectionSet('${field.name}')){
+              ${to$(field.name)}Controller?.dispose();
+               
+            }
+          ''');
           } else if (field.isObject) {
             ctrBuffer.write('''
            if(isInSelectionSet('${field.name}')){
@@ -472,6 +480,12 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
                 var v=${to$(field.name)}Controller?.value;
                 on${to$(field.name).pascalCase}Changed(v!);
               });
+            }
+          ''');
+            ctrDisponseBuffer.write('''
+           if(isInSelectionSet('${field.name}')){
+              ${to$(field.name)}Controller?.dispose();
+               
             }
           ''');
             argumentsBuffer.write('this.${to$(field.name)}Changed,');
@@ -491,6 +505,11 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
                 }
               }
           ''');
+            ctrDisponseBuffer.write('''
+           if(isInSelectionSet('${field.name}')){
+              ${to$(field.name)}Controller.values.map((v)=>v.dispose()).toList();               
+            }
+          ''');
           }
           if (field.isObject) {
             ctrBuffer.write('''
@@ -507,6 +526,11 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
                     });
                   ${to$(field.name)}Controller.addEntries(values??Iterable.empty());
                 }
+            }
+          ''');
+            ctrDisponseBuffer.write('''
+           if(isInSelectionSet('${field.name}')){
+              ${to$(field.name)}Controller.values.map((v)=>v.dispose()).toList(); 
             }
           ''');
             argumentsBuffer.write(
@@ -526,7 +550,12 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
     ${type.name}Controller({required this.initialValue,required this.selectionSet,${argumentsBuffer.toString()}}):super(initialValue){
      initSelectionData();
      ${ctrBuffer.toString()}
-    }    
+    }  
+    @override
+    dispose(){
+      ${ctrDisponseBuffer.toString()}
+      super.dispose();
+    }  
     ''');
   }
 

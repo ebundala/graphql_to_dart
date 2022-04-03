@@ -588,7 +588,8 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
         FetchMoreOptions(
          document:doc,
          variables:vars,
-          updateQuery: (p, n) {
+          updateQuery: (cached, n) {
+          var p = cached ?? observableQuery.latestResult?.data;
             if (n != null) {
             var data = n['${operation.operationName}'];
             if (p != null) {
