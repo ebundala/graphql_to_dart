@@ -306,7 +306,7 @@ List<List<String>> buildBloc(
               yield ${libname}Failure(data: event.data, message: event.message);
             } else if (event is ${libname}Errored) {
               //emit error case
-              yield ${libname}Error(data:state.data,message: event.message);
+              yield ${libname}Error(data:event.data,message: event.message);
             }
             else if (event is ${libname}Retried){              
                 ${i.name}Retry();
@@ -374,8 +374,8 @@ List<List<String>> buildBloc(
                   result.data.addAll(errors);
                   data = ${i.returnType}.fromJson(result.data);
                 } else if (errors.isNotEmpty) {
-                // errors['data'] = null;
-                  data = ${i.returnType}.fromJson(errors);
+                   var cachedData = loadFromCache()..addAll(errors);
+                  data = ${i.returnType}.fromJson(cachedData);
                 }
                 if (result.hasException) {
                   if (result.exception.linkException != null) {
@@ -426,6 +426,18 @@ List<List<String>> buildBloc(
           return (state is ${i.operationName.pascalCase}Initial)||(state is ${i.operationName.pascalCase}Error)?null:(state as dynamic)?.data;
 
         }
+        Map<String, dynamic> loadFromCache() {
+            var queryRequest = resultWrapper?.observableQuery?.options?.asRequest;
+            if (queryRequest != null) {
+              final data = client.readQuery(queryRequest);
+              if (data != null) {
+                var data1 = getDataFromField(
+                    resultWrapper.info.fieldName, QueryResult(data: data));
+                return data1;
+              }
+            }
+            return {};
+          }
         @override
         Future<void> close() async {
           await closeResultWrapper();
@@ -644,6 +656,7 @@ String buildCommonGraphQLClientHelpers() {
 import 'package:gql/ast.dart';
 import 'package:graphql/client.dart';
 import 'dart:async';
+import 'package:meta/meta.dart';
 
 class OperationRuntimeInfo {
   final String operationName;
@@ -653,6 +666,7 @@ class OperationRuntimeInfo {
 }
 
 class OperationResult {
+  final OperationRuntimeInfo info;
   final bool isStream;
   final bool isObservable;
   final Map<String, dynamic> result;
@@ -660,9 +674,10 @@ class OperationResult {
   final ObservableQuery observableQuery;
   StreamSubscription<QueryResult> subscription;
 
-   OperationResult(
+  OperationResult(
       {this.isStream = false,
       this.observableQuery,
+      @required this.info,
       this.result,
       this.stream,
       this.subscription,
@@ -725,28 +740,26 @@ Future<OperationResult> runOperation(GraphQLClient client,
         }
         return result;
       });
-      return OperationResult(isStream: true, stream: data);
+      return OperationResult(isStream: true, stream: data, info: info);
       break;
   }
   var data = getDataFromField(info.fieldName, result);
-  return OperationResult(result: data);
+  return OperationResult(result: data, info: info);
 }
 
-Future<OperationResult> runObservableOperation(
-  GraphQLClient client, {
-  DocumentNode document,
-  Map<String, dynamic> variables,
-  FetchPolicy fetchPolicy,
-  ErrorPolicy errorPolicy,
-  CacheRereadPolicy cacheRereadPolicy,
-  Context context,
-  Object optimisticResult,
-  Duration pollInterval,
-  bool fetchResults = false,
-  bool carryForwardDataOnException = true,
-  bool eagerlyFetchResults,
-  String operationName
-}) async {
+Future<OperationResult> runObservableOperation(GraphQLClient client,
+    {DocumentNode document,
+    Map<String, dynamic> variables,
+    FetchPolicy fetchPolicy,
+    ErrorPolicy errorPolicy,
+    CacheRereadPolicy cacheRereadPolicy,
+    Context context,
+    Object optimisticResult,
+    Duration pollInterval,
+    bool fetchResults = false,
+    bool carryForwardDataOnException = true,
+    bool eagerlyFetchResults,
+    String operationName}) async {
   var info = getOperationInfo(document);
 
   var result;
@@ -781,49 +794,48 @@ Future<OperationResult> runObservableOperation(
       break;
     case OperationType.subscription:
     default:
-      result = await client.subscribe(SubscriptionOptions(
-        document: document,
-        variables: variables,
-        fetchPolicy: fetchPolicy,
-        errorPolicy: errorPolicy,
-        cacheRereadPolicy: cacheRereadPolicy,
-        context: context,
-        optimisticResult: optimisticResult,
-      ),);
+      result = await client.subscribe(
+        SubscriptionOptions(
+          document: document,
+          variables: variables,
+          fetchPolicy: fetchPolicy,
+          errorPolicy: errorPolicy,
+          cacheRereadPolicy: cacheRereadPolicy,
+          context: context,
+          optimisticResult: optimisticResult,
+        ),
+      );
       break;
   }
 
-  if(result is ObservableQuery){
-     var stream = result.stream.map((res) {
+  if (result is ObservableQuery) {
+    var stream = result.stream.map((res) {
       var data = getDataFromField(operationName, res);
       res.data = data;
       return res;
     });
     return OperationResult(
-        isObservable: true, observableQuery: result, stream: stream);
-  }
-  else if(result is Stream<QueryResult>){
-     var stream = result.map((res) {
-        var data = getDataFromField(operationName, res);
+        info: info,
+        isObservable: true,
+        observableQuery: result,
+        stream: stream);
+  } else if (result is Stream<QueryResult>) {
+    var stream = result.map((res) {
+      var data = getDataFromField(operationName, res);
       res.data = data;
       return res;
-      });
-      return OperationResult(isStream: true, stream: stream,);
-  }else{
-        throw UnsupportedError("Operation is not supported");
+    });
+    return OperationResult(isStream: true, stream: stream, info: info);
+  } else {
+    throw UnsupportedError("Operation is not supported");
   }
 }
 
-Map<String, dynamic> getDataFromField(fieldName, QueryResult result) {
-  // if (!result.hasException&&) {
+Map<String, dynamic> getDataFromField(String fieldName, QueryResult result) {
+ 
   if (result.data != null) return result.data['\${fieldName}'];
   return null;
-  // } else {
-  //   //handle errors here
-  //   throw OperationException(
-  //       linkException: result.exception.linkException,
-  //       graphqlErrors: result.exception.graphqlErrors);
-  // }
+  
 }
 
 OperationRuntimeInfo getOperationInfo(DocumentNode document) {
