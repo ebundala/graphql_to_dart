@@ -96,7 +96,6 @@ class AstGenerator implements Builder {
 
   AstGenerator(this.options) {
     config = Config.fromJson(options.config);
-
     // final file = File(config.schemaPath);
     final helperStr = buildCommonGraphQLClientHelpers();
     final helperFile = "/lib/${config.helperPath}/$helperFileName";
@@ -214,9 +213,6 @@ class AstGenerator implements Builder {
     // );
   }
 }
-
-
- 
 
 // import 'package:build/build.dart';
 // import 'package:graphql/client.dart';

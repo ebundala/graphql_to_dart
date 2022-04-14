@@ -12,7 +12,7 @@ const Map<String, List<String>> events = {
     'Retried'
   ],
   "createOne": [
-     'Started',
+    'Started',
     'Excuted',
     'IsLoading',
     'IsOptimistic',
@@ -24,7 +24,7 @@ const Map<String, List<String>> events = {
     'Retried'
   ],
   "createMany": [
-     'Started',
+    'Started',
     'Excuted',
     'IsLoading',
     'IsOptimistic',
@@ -48,7 +48,7 @@ const Map<String, List<String>> events = {
     'Retried'
   ],
   "updateMany": [
-     'Started',
+    'Started',
     'Excuted',
     'IsLoading',
     'IsOptimistic',
@@ -96,7 +96,7 @@ const Map<String, List<String>> events = {
     'Retried'
   ],
   "findMany": [
-     'Started',
+    'Started',
     'Excuted',
     'IsLoading',
     'IsOptimistic',
