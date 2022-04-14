@@ -99,7 +99,7 @@ class EventsBuilder {
     return """
     class ${ReCase(operation.operationName).pascalCase}${e} extends ${base}{
       @override
-      List<Object>  get props=>[];
+      List<Object?>  get props=>[];
     }
     """;
   }
@@ -108,7 +108,7 @@ class EventsBuilder {
     return """
     abstract class ${base} extends Equatable{
        @override
-      List<Object> get props=>[];
+      List<Object?> get props=>[];
     }
     """;
   }
@@ -118,9 +118,9 @@ class EventsBuilder {
     return """
     class ${name} extends ${base}{
       final String message;
-      ${name}({@required this.message});
+      ${name}({required this.message});
        @override
-     List<Object>  get  props=>[message];
+     List<Object?>  get  props=>[message];
     }
     """;
   }
@@ -130,9 +130,9 @@ class EventsBuilder {
     return """
     class ${name} extends ${base}{
       final ${operation.returnType} data;
-      ${name}({@required this.data});
+      ${name}({required this.data});
        @override
-     List<Object>  get props=>[data];
+     List<Object?>  get props=>[data];
     }
     """;
   }
@@ -147,7 +147,7 @@ class EventsBuilder {
       ${variables.join('\n')}
       ${name}(${construct});
        @override
-      List<Object> get props=>[${props}];
+      List<Object?> get props=>[${props}];
     }
     """;
   }
@@ -157,9 +157,9 @@ class EventsBuilder {
     return """
     class ${name} extends ${base}{
       final ${operation.operationName.pascalCase}State data;
-      ${name}({@required this.data});
+      ${name}({required this.data});
        @override
-     List<Object>  get props=>[data];
+     List<Object?>  get props=>[data];
     }
     """;
   }
@@ -170,9 +170,9 @@ class EventsBuilder {
     class ${name} extends ${base}{
       final ${operation.returnType} data;
       final String message;
-      ${name}({@required this.data,this.message});
+      ${name}({required this.data,required this.message});
        @override
-     List<Object>  get props=>[data,message];
+     List<Object?>  get props=>[data,message];
     }
     """;
   }

@@ -83,7 +83,7 @@ class TypeBuilder {
       stringBuffer.write(current.toString());
       _addImports();
     }
-    var path = "/${pascalToSnake(type.name)}.dart".replaceAll(r"//", r"/");
+    var path = "/${pascalToSnake(type.name!)}.dart".replaceAll(r"//", r"/");
     outputs[path] = stringBuffer.toString();
     outputs["/selection_node_data.dart"] = _addSelectionSetDataClass();
     //await saveToFile();
@@ -131,7 +131,7 @@ class TypeBuilder {
                ${to$(v.name)}Controller.remove(v.id!);
                 value = value.copyWith(
                     ${to$(v.name)}:
-                        value.${to$(v.name)}?.where((e) => e.id != v.id)?.toList() ??
+                        value.${to$(v.name)}?.where((e) => e.id != v.id).toList() ??
                             []);
 
                   ${to$(v.name)}Removed?.call(v);
@@ -839,7 +839,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           nonNull: nonNull,
           isInput: isInput,
           isScalar: true,
-          type: TypeConverters().overrideType(t.name),
+          type: TypeConverters().overrideType(t.name!),
           isObject: false,
           isEnum: false);
       localFields.add(localField);
@@ -849,7 +849,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           isList: list,
           nonNull: nonNull,
           isInput: isInput,
-          type: TypeConverters().overrideType(t.name),
+          type: TypeConverters().overrideType(t.name!),
           isObject: false,
           isEnum: true);
       localFields.add(localField);
@@ -858,7 +858,7 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
           name: fieldName ?? '',
           isList: list,
           nonNull: nonNull,
-          type: TypeConverters().overrideType(t.name),
+          type: TypeConverters().overrideType(t.name!),
           isInput: isInput,
           isObject: true,
           isEnum: false);

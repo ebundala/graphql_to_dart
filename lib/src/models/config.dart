@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:graphql_to_dart/src/constants/files.dart';

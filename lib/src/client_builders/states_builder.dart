@@ -13,10 +13,11 @@ class StatesBuilder {
   List<String> genericOperation() {
     return states.map((e) {
       switch (e) {
+        case 'Initial':
+          return generic(e);
         case 'Error':
         // return classWithDataAndMessage(e);
-        case 'Initial':
-        // return generic(e);
+
         case 'Success':
         case 'Failure':
         case 'InProgress':
@@ -32,10 +33,9 @@ class StatesBuilder {
   List<String> listOperation() {
     return states.map((e) {
       switch (e) {
-        case 'Error':
-        // return classWithDataAndMessage(e);
         case 'Initial':
-        //  return generic(e);
+          return generic(e);
+        case 'Error':
         case 'Success':
         case 'Failure':
         case 'InProgress':
@@ -90,7 +90,7 @@ class StatesBuilder {
     return """
     class ${ReCase(operation.operationName).pascalCase}${e} extends ${base}{
       @override
-      List<Object>  get props=>[];
+      List<Object?>  get props=>[];
     }
     """;
   }
@@ -98,11 +98,11 @@ class StatesBuilder {
   String baseClass() {
     return """
     abstract class ${base} extends Equatable{
-       final ${operation.returnType} data;
-      final String message;
+       final ${operation.returnType}? data;
+      final String? message;
       ${base}({this.data,this.message});
        @override
-      List<Object> get props=>[data,message];
+      List<Object?> get props=>[data,message];
     }
     """;
   }
@@ -111,10 +111,10 @@ class StatesBuilder {
     final name = "${ReCase(operation.operationName).pascalCase}${e}";
     return """
     class ${name} extends ${base}{
-      final String message;
-      ${name}({@required this.message});
+      final String? message;
+      ${name}({this.message});
        @override
-     List<Object>  get  props=>[message];
+     List<Object?>  get  props=>[message];
     }
     """;
   }
@@ -124,10 +124,10 @@ class StatesBuilder {
     return """
     class ${name} extends ${base}{
       final ${operation.returnType} data;
-      final String message;
-      ${name}({@required this.data,this.message});
+      final String? message;
+      ${name}({required this.data,this.message});
        @override
-     List<Object>  get props=>[data,message];
+     List<Object?>  get props=>[data,message];
     }
     """;
   }
@@ -155,11 +155,11 @@ class StatesBuilder {
     return """
     class ${name} extends ${base}{
       ${variables.join('\n')}
-      final ${operation.returnType} data;
-      final String message;
+      final ${operation.returnType}? data;
+      final String? message;
       ${name}(${construct});
        @override
-      List<Object> get props=>[${props},message,data];
+      List<Object?> get props=>[${props},message,data];
     }
     """;
   }

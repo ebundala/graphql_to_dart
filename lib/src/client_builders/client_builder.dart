@@ -179,9 +179,10 @@ List<String> getClassVariables(OperationAstInfo operation,
     [String prefix = '', bool makeFinal = true]) {
   if (operation.variables.isEmpty) return [];
   return operation.variables.map((v) {
+    var isNullable = v.isNonNull ? "" : "?";
     var isFinal = "${makeFinal ? 'final' : ''}";
-    var isList = "${v.isList ? 'List<${v.type}>' : v.type}";
-    return "${isFinal} ${isList} ${prefix}${v.name};";
+    var isList = "${v.isList ? 'List<${v.type}>' : v.type}$isNullable";
+    return "$isFinal $isList ${prefix}${v.name};";
   }).toList();
 }
 
@@ -195,7 +196,7 @@ String buildConstructorArguments(
   }
   var vr = StringBuffer();
   var joinedVars = operation.variables.map((v) {
-    var isNonNull = "${v.isNonNull ? '@required' : ''}";
+    var isNonNull = "${v.isNonNull ? 'required' : ''}";
     return "${isNonNull} ${useThis ? 'this.' : ''}${prefix}${v.name}";
   }).join(',');
   vr.write(joinedVars);
@@ -227,17 +228,17 @@ List<List<String>> buildBloc(
     final states = buildStates(i);
     final ast = getOperationCodeFromAstNode(operationAst);
     //${package}/${modelsPath}
-    final imports = (getModelsImports(i, 'package:models')
-          ..insertAll(0, [
-            "import 'package:equatable/equatable.dart';",
-            "import 'package:gql/ast.dart';",
-            "import 'package:meta/meta.dart';",
-            "import 'package:graphql/client.dart';",
-            "import 'package:bloc/bloc.dart';",
-            "import 'package:${package}/${helperPath}/common_client_helpers.dart';",
-            "import '${i.name.snakeCase}_ast.dart' show document;"
-          ]))
-        .join('\n');
+    final imports = ([
+      ...[
+        "import 'package:equatable/equatable.dart';",
+        "import 'package:gql/ast.dart';",
+        "import 'package:graphql/client.dart';",
+        "import 'package:bloc/bloc.dart';",
+        "import 'package:${package}/${helperPath}/common_client_helpers.dart';"
+      ],
+      ...getModelsImports(i, 'package:models'),
+      "import '${i.name.snakeCase}_ast.dart' show document;"
+    ]).join('\n');
     final libname = i.operationName.pascalCase;
     final isList = i.isList
         ? """  
@@ -253,7 +254,9 @@ List<List<String>> buildBloc(
     final isListFn = i.isList
         ? """
     void ${i.name}LoadMore(${libname}MoreLoaded event) {
-      client.${i.name}LoadMore(resultWrapper.observableQuery,${buildOperationParams(i.variables)});
+      if(resultWrapper.observableQuery!=null){
+      client.${i.name}LoadMore(resultWrapper.observableQuery!,${buildOperationParams(i.variables)});
+      }
     }
     """
         : "";
@@ -274,16 +277,17 @@ List<List<String>> buildBloc(
       class ${libname}Bloc extends Bloc<${libname}Event, ${libname}State> {
            final GraphQLClient client;
           final Stream<${libname}State> Function(
-      ${libname}Bloc context, ${libname}Event event, ${libname}BlocHookStage stage) hook;
-      OperationResult resultWrapper;
-       ${libname}Bloc({@required this.client,this.hook}) : super(${libname}Initial(data:null));
+      ${libname}Bloc context, ${libname}Event event, ${libname}BlocHookStage stage)? hook;
+      late OperationResult resultWrapper;
+       ${libname}Bloc({required this.client,this.hook}) : super(${libname}Initial());
         @override
         Stream<${libname}State> mapEventToState(${libname}Event event) async* {
-          if (hook != null) {
-            yield* hook(this, event, ${libname}BlocHookStage.before);
-          }
-         else if (event is ${libname}Started) {
-              yield ${libname}Initial(data:null);
+        //   if (hook != null) {
+        //     yield* hook(this, event, ${libname}BlocHookStage.before);
+        //   }
+        //  else 
+         if (event is ${libname}Started) {
+              yield ${libname}Initial();
             }
            else if (event is ${libname}Excuted) {
               //start main excution 
@@ -313,13 +317,15 @@ List<List<String>> buildBloc(
             }
             ${isList}
             
-          else
-          if (hook != null) {
-            yield* hook(this, event, ${libname}BlocHookStage.after);
-          }
+          // else
+          // if (hook != null) {
+          //   yield* hook(this, event, ${libname}BlocHookStage.after);
+          // }
         }
         void ${i.name}Retry(){
-          client.${i.name}Retry(resultWrapper.observableQuery);
+          if(resultWrapper.observableQuery!=null){
+          client.${i.name}Retry(resultWrapper.observableQuery!);
+          }
         }
         ${isListFn}
 
@@ -332,7 +338,7 @@ List<List<String>> buildBloc(
               await closeResultWrapper();
               resultWrapper = await client.${i.name}(${buildOperationParams(i.variables)});
               //listen for changes 
-              resultWrapper.subscription = resultWrapper.stream.listen((result) {
+              resultWrapper.subscription = resultWrapper.stream?.listen((result) {
                 //reset events before starting to emit new ones
                 add(${libname}Reseted());
                 Map<String, dynamic> errors = {};
@@ -340,9 +346,9 @@ List<List<String>> buildBloc(
                 if (result.hasException) {
                   errors['status'] = false;
                   var message = 'Error';
-                  if (result.exception.linkException != null) {
+                  if (result.exception?.linkException != null) {
                     //link exception means complete failure possibly throw here
-                    final exception = result.exception.linkException;
+                    final exception = result.exception?.linkException;
                if (exception is RequestFormatException) {
                 message = "Request format error";
               } else if (exception is ResponseFormatException) {
@@ -353,73 +359,73 @@ List<List<String>> buildBloc(
                 message = "Context write error";
               }else if (exception is ServerException) {
                 message = exception.parsedResponse?.errors?.isNotEmpty == true
-                    ? exception.parsedResponse.errors.map((e) {
+                    ? exception.parsedResponse!.errors!.map((e) {
                         return e.message;
                       }).join('\\n')
                     : "Network error";
               }
                    
-                  } else if (result.exception.graphqlErrors?.isNotEmpty == true) {
+                  } else if (result.exception?.graphqlErrors.isNotEmpty == true) {
                     // failure but migth have data available
-                    message = result.exception.graphqlErrors.map((e) {
+                    message = result.exception!.graphqlErrors.map((e) {
                       return e.message;
                     }).join('\\n');
                   }
                   errors['message'] = message;
                 }
                 // convert result to data type expected by listeners
-                ${i.returnType} data;
+                ${i.returnType}? data;
                 if (result.data != null) {
                   //add errors encountered to result
-                  result.data.addAll(errors);
-                  data = ${i.returnType}.fromJson(result.data);
+                  result.data!.addAll(errors);
+                  data = ${i.returnType}.fromJson(result.data!);
                 } else if (errors.isNotEmpty) {
                    var cachedData = loadFromCache()..addAll(errors);
                   data = ${i.returnType}.fromJson(cachedData);
                 }
                 if (result.hasException) {
-                  if (result.exception.linkException != null) {
+                  if (result.exception?.linkException != null) {
                     //emit error event
-                    add(${libname}Errored(data: data, message: data.message));
-                  } else if (result.exception.graphqlErrors?.isNotEmpty == true) {
+                    add(${libname}Errored(data: data!, message: data.message!));
+                  } else if (result.exception?.graphqlErrors.isNotEmpty == true) {
                     //emit failure event
-                    add(${libname}Failed(data: data, message: data.message));
+                    add(${libname}Failed(data: data!, message: data.message!));
                   }
                 } else if (result.isLoading) {
                   //emit loading event
-                  add(${libname}IsLoading(data: data));
+                  add(${libname}IsLoading(data: data!));
                 } else if (result.isOptimistic) {
                   //emit optimistic event
-                  add(${libname}IsOptimistic(data: data));
+                  add(${libname}IsOptimistic(data: data!));
                 } else if (result.isConcrete) {
                   //emit completed event
                   if(data?.status==true){
-                  add(${libname}IsConcrete(data: data));
+                  add(${libname}IsConcrete(data: data!));
                   }else{
-                    add(${libname}Errored(data: data, message: data.message));
+                    add(${libname}Errored(data: data!, message: data.message!));
                   }
                 }
               });
               //excute observable query;
               if(resultWrapper.isObservable){
-              resultWrapper.observableQuery.fetchResults();
+              resultWrapper.observableQuery!.fetchResults();
               }
             } catch (e) {
               //emit complete failure state;
-              yield ${libname}Error(data:state.data,message: e.toString());
+              yield ${libname}Error(data:state.data!,message: e.toString());
             }
           }
         }
 
         closeResultWrapper() async {
-          if (resultWrapper != null) {
+         // if (resultWrapper != null) {
             if(resultWrapper.isObservable==true && resultWrapper.observableQuery!=null){
-            await resultWrapper.observableQuery.close();
+            await resultWrapper.observableQuery!.close();
             }
             if(resultWrapper.isStream==true&&resultWrapper.stream!=null && resultWrapper.subscription!=null){
-             await resultWrapper.subscription.cancel();
+             await resultWrapper.subscription!.cancel();
             }
-          }
+         // }
           
         }
        ${i.returnType} get getData{
@@ -427,13 +433,13 @@ List<List<String>> buildBloc(
 
         }
         Map<String, dynamic> loadFromCache() {
-            var queryRequest = resultWrapper?.observableQuery?.options?.asRequest;
+            var queryRequest = resultWrapper.observableQuery?.options.asRequest;
             if (queryRequest != null) {
               final data = client.readQuery(queryRequest);
               if (data != null) {
                 var data1 = getDataFromField(
-                    resultWrapper.info.fieldName, QueryResult(data: data));
-                return data1;
+                    resultWrapper.info.fieldName, QueryResult(data: data,source: QueryResultSource.cache));
+                return data1??{};
               }
             }
             return {};
@@ -476,10 +482,10 @@ buildInputsValidations(OperationAstInfo operation) {
   final validations = operation.variables
       .where((v) => v.isNonNull)
       .map((v) {
-        return v.fields.where((f) => f.isNonNull).map((f) {
-          var vf = "${v.name}?.${to$(f.name)}";
+        return v.fields.where((f) => f.isNonNull && f.isScalar).map((f) {
+          var vf = "${v.name}.${to$(f.name)}";
           var test = f.isList || f.type == 'String'
-              ? "event.${vf}?.isEmpty==true"
+              ? "event.${vf}.isEmpty==true"
               : "event.${vf}==null";
           var stateName =
               "${operation.operationName.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
@@ -517,6 +523,15 @@ List<String> getModelsImports(OperationAstInfo operation, String modelsPath) {
     ..add("import '${modelsPath}/${operation.returnType.snakeCase}.dart';");
 }
 
+String wrapWithNullCheck(String name, bool nullable, String content) {
+  return nullable
+      ? """
+     if($name!=null){
+       $content
+       }"""
+      : content;
+}
+
 String buildGraphqlClientExtension(OperationAstInfo operation) {
   var fn = StringBuffer();
 
@@ -524,29 +539,27 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
   fn.writeln(
       "Future<OperationResult> ${operation.name}(${buildFnArguments(operation.variables)}) async {");
   var variables = operation.variables.map((v) {
+    final isNullable = !v.isNonNull;
+
     if (v.isScalar) {
-      return """
-     if(${v.name} != null){
-       vars.addAll({"${v.name}":${v.name}});
-     }
-      """;
+      final content = """
+            vars.addAll({'${v.name}':${v.name}});
+          """;
+      return wrapWithNullCheck(v.name, isNullable, content);
     } else if (v.isEnum) {
       if (v.isList) {
-        return """
-     if(${v.name} != null){
-       vars.addAll({"${v.name}":${v.name}.map((e)=>e.toJson()).toList()});
-     }
-      """;
+        final content = """
+          vars.addAll({"${v.name}":${v.name}.map((e)=>e.toJson()).toList()});
+            """;
+        return wrapWithNullCheck(v.name, isNullable, content);
       } else {
-        return """
-     if(${v.name} != null){
-       vars.addAll({"${v.name}":${v.name}.toJson()});
-     }
-      """;
+        final content = """
+            vars.addAll({"${v.name}":${v.name}.toJson()});
+        """;
+        return wrapWithNullCheck(v.name, isNullable, content);
       }
     } else if (v.isList) {
-      return """
-         if(${v.name} != null){
+      final content = """         
         var i=-1;
       var files= ${v.name}.map((e){
          i++;
@@ -557,16 +570,14 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
        });
         vars.addAll(files);
         args.add(ArgumentInfo(name: '${v.name}', value: ${v.name}));
-
-       }
         """;
+      return wrapWithNullCheck(v.name, isNullable, content);
     } else {
-      return """
-    if(${v.name} != null){
+      final content = """    
     args.add(ArgumentInfo(name: '${v.name}', value: ${v.name}));
-      vars.addAll(${v.name}.getFilesVariables(field_name: '${v.name}'));
-     }
+      vars.addAll(${v.name}.getFilesVariables(field_name: '${v.name}'));     
     """;
+      return wrapWithNullCheck(v.name, isNullable, content);
     }
   }).join('\n');
 
@@ -634,9 +645,10 @@ String buildFnArguments(List<VariableInfo> variables) {
   if (variables.isNotEmpty) {
     var vr = StringBuffer();
     var joinedVars = variables.map((v) {
-      var isNonNull = "${v.isNonNull ? '@required' : ''}";
+      var isNonNull = "${v.isNonNull ? 'required' : ''}";
+      var isNullable = v.isNonNull ? "" : "?";
       var isList = "${v.isList ? 'List<${v.type}>' : v.type}";
-      return "${isNonNull} ${isList} ${v.name}";
+      return "${isNonNull} ${isList}$isNullable ${v.name}";
     }).join(',');
     vr.write(joinedVars);
     return wrapWith('{', vr, '}').toString();
@@ -653,31 +665,33 @@ StringBuffer wrapWith(String begin, StringBuffer content, String end) {
 
 String buildCommonGraphQLClientHelpers() {
   return """
+import 'dart:async';
 import 'package:gql/ast.dart';
 import 'package:graphql/client.dart';
-import 'dart:async';
-import 'package:meta/meta.dart';
 
 class OperationRuntimeInfo {
   final String operationName;
   final String fieldName;
   final OperationType type;
-  const OperationRuntimeInfo({this.operationName, this.fieldName, this.type});
+  const OperationRuntimeInfo(
+      {required this.operationName,
+      required this.fieldName,
+      required this.type});
 }
 
 class OperationResult {
   final OperationRuntimeInfo info;
   final bool isStream;
   final bool isObservable;
-  final Map<String, dynamic> result;
-  final Stream<QueryResult> stream;
-  final ObservableQuery observableQuery;
-  StreamSubscription<QueryResult> subscription;
+  final Map<String, dynamic>? result;
+  final Stream<QueryResult>? stream;
+  final ObservableQuery? observableQuery;
+  StreamSubscription<QueryResult>? subscription;
 
   OperationResult(
       {this.isStream = false,
       this.observableQuery,
-      @required this.info,
+      required this.info,
       this.result,
       this.stream,
       this.subscription,
@@ -685,20 +699,20 @@ class OperationResult {
 }
 
 Future<OperationResult> runOperation(GraphQLClient client,
-    {DocumentNode document,
-    Map<String, dynamic> variables,
-    FetchPolicy fetchPolicy,
-    ErrorPolicy errorPolicy,
-    CacheRereadPolicy cacheRereadPolicy,
-    Context context,
-    Object optimisticResult,
-    void Function(dynamic) onCompleted,
-    void Function(GraphQLDataProxy, QueryResult) update,
-    void Function(OperationException) onError}) async {
+    {required DocumentNode document,
+    Map<String, dynamic> variables = const {},
+    FetchPolicy? fetchPolicy,
+    ErrorPolicy? errorPolicy,
+    CacheRereadPolicy? cacheRereadPolicy,
+    Context? context,
+    Object? optimisticResult,
+    FutureOr<void> Function(dynamic)? onCompleted,
+    FutureOr<void> Function(GraphQLDataProxy, QueryResult?)? update,
+    FutureOr<void> Function(OperationException?)? onError}) async {
   var info = getOperationInfo(document);
 
   var result;
-  switch (info.type) {
+  switch (info!.type) {
     case OperationType.query:
       result = await client.query(QueryOptions(
         document: document,
@@ -741,29 +755,29 @@ Future<OperationResult> runOperation(GraphQLClient client,
         return result;
       });
       return OperationResult(isStream: true, stream: data, info: info);
-      break;
+     
   }
   var data = getDataFromField(info.fieldName, result);
   return OperationResult(result: data, info: info);
 }
 
 Future<OperationResult> runObservableOperation(GraphQLClient client,
-    {DocumentNode document,
-    Map<String, dynamic> variables,
-    FetchPolicy fetchPolicy,
-    ErrorPolicy errorPolicy,
-    CacheRereadPolicy cacheRereadPolicy,
-    Context context,
-    Object optimisticResult,
-    Duration pollInterval,
+    {required DocumentNode document,
+    Map<String, dynamic> variables = const {},
+    FetchPolicy? fetchPolicy,
+    ErrorPolicy? errorPolicy,
+    CacheRereadPolicy? cacheRereadPolicy,
+    Context? context,
+    Object? optimisticResult,
+    Duration? pollInterval,
     bool fetchResults = false,
     bool carryForwardDataOnException = true,
-    bool eagerlyFetchResults,
-    String operationName}) async {
+    bool? eagerlyFetchResults,
+    required String operationName}) async {
   var info = getOperationInfo(document);
 
   var result;
-  switch (info.type) {
+  switch (info!.type) {
     case OperationType.query:
       result = client.watchQuery(WatchQueryOptions(
           document: document,
@@ -831,38 +845,33 @@ Future<OperationResult> runObservableOperation(GraphQLClient client,
   }
 }
 
-Map<String, dynamic> getDataFromField(String fieldName, QueryResult result) {
- 
-  if (result.data != null) return result.data['\${fieldName}'];
-  return null;
-  
+Map<String, dynamic>? getDataFromField(String fieldName, QueryResult result) {
+  return result.data?['\$fieldName'];  
 }
 
-OperationRuntimeInfo getOperationInfo(DocumentNode document) {
+OperationRuntimeInfo? getOperationInfo(DocumentNode document) {
   var defs = document.definitions;
-  if (defs?.isNotEmpty == true) {
-    var predicate = (DefinitionNode v) {
+  if (defs.isNotEmpty == true) {
+    bool predicate(DefinitionNode v) {
       if (v is OperationDefinitionNode) {
-        if (v.selectionSet != null) {
           return true;
-        }
       }
       return false;
     };
-    OperationDefinitionNode op = defs.firstWhere(predicate);
+    var op = defs.firstWhere(predicate) as OperationDefinitionNode;
     var type = op.type;
-    var name = op?.name?.value;
-    FieldNode field = op.selectionSet?.selections?.firstWhere((v) {
+    var name = op.name?.value;
+    var field = op.selectionSet.selections.firstWhere((v) {
       if (v is FieldNode) {
         if (v.selectionSet != null) {
           return true;
         }
       }
       return false;
-    });
-    var fieldName = field?.name?.value;
+    }) as FieldNode;
+    var fieldName = field.name.value;
     return OperationRuntimeInfo(
-        fieldName: fieldName, operationName: name, type: type);
+        fieldName: fieldName, operationName: name!, type: type);
   }
   return null;
 }
@@ -876,7 +885,7 @@ String buildArgumentsNormalizer() {
   class ArgumentInfo {
   final String name;
   final dynamic value;
-  ArgumentInfo({this.name, this.value});
+  ArgumentInfo({required this.name, this.value});
 }
 
 class NormalizeArgumentsVisitor extends TransformingVisitor {
@@ -884,15 +893,16 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
   List<VariableDefinitionNode> definitions = [];
   Map<String, ValueNode> valueNodes = {};
 
-  NormalizeArgumentsVisitor({this.args}) : super() {
-    args.forEach((v) {
+  NormalizeArgumentsVisitor({required this.args}) : super() {
+    for (var k = 0; k < args.length; k++) {
+      final v = args.elementAt(k);
       final value = v.value;
       Map<String, dynamic> vars;
       if (value is List) {
         var i = -1;
         vars = value.map((e) {
           i++;
-          return e.getFilesVariables(field_name: '${v.name}_${i}');
+          return e.getFilesVariables(field_name: '${v.name}_$i');
         }).fold<Map<String, dynamic>>({}, (p, e) {
           p.addAll(e);
           return p;
@@ -922,9 +932,7 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
         definitions
             .addAll(value?.getVariableDefinitionsNodes(variables: vars) ?? []);
       }
-    });
-
-   
+    }
   }
   // @override
   // FieldNode visitFieldNode(FieldNode node) {
@@ -950,8 +958,6 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
   @override
   OperationDefinitionNode visitOperationDefinitionNode(
       OperationDefinitionNode node) {
-  
-
     return OperationDefinitionNode(
         directives: node.directives,
         name: node.name,
@@ -959,15 +965,15 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
         type: node.type,
         variableDefinitions: [
           ...node.variableDefinitions.where((element) {
-            return args.firstWhere((e) => e.name == element.variable.name.value,
-                    orElse: () => null) ==
-                null;
+            return args
+                    .firstWhere((e) => e.name == element.variable.name.value,
+                        orElse: () => ArgumentInfo(name: "__notfound"))
+                    .name ==
+                "__notfound";
           }).toList(),
           ...definitions
         ]);
   }
-
-  
 
   @override
   ArgumentNode visitArgumentNode(ArgumentNode node) {
@@ -975,8 +981,9 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
     if (node.value is VariableNode) {
       final v = node.value as VariableNode;
       final newArgValue = valueNodes[v.name.value];
-      if (newArgValue != null)
+      if (newArgValue != null) {
         return ArgumentNode(name: node.name, value: newArgValue);
+      }
     }
     return node;
   }

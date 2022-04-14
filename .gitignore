@@ -15,3 +15,4 @@ analysis_options.yaml
 .idea/
 example
 exampleschema.ast.dart
+.vscode/launch.json
