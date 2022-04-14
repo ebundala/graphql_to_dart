@@ -34,14 +34,13 @@ class Config {
     requiredInputField =
         map['required_input_field'].toString() == 'false' ? false : true;
     packageName = map['package_name'].toString();
-    ;
+
     typeOverride = map['type_override'];
     schemaPath = map['schema_path'].toString();
-    ;
+
     helperPath = map['helper_path'].toString();
-    ;
+
     modelsImportPath = map["models_import_path"].toString();
-    ;
   }
   Future<ValidationResult> validate() async {
 //    File queriesFile = File(queriesFilePath);

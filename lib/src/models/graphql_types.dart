@@ -33,7 +33,9 @@ class GraphQLSchema {
 
 class Type {
   String kind;
-  String name;
+
+  String? name;
+
   Type? ofType;
   List<Field>? fields;
   List<InputValue>? inputFields;
@@ -52,7 +54,9 @@ class Type {
 
   static Type fromJson(Map<String, dynamic> json) {
     String _kind = json['kind'];
-    String _name = json['name'];
+
+    String? _name = json['name'];
+
     Type? _ofType;
     List<Field>? _fields;
     List<InputValue>? _inputFields;

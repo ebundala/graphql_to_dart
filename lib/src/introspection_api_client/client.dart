@@ -23,6 +23,7 @@ class LocalGraphQLClient {
         await client.query(QueryOptions(document: gql(Queries.types)));
     if (queryResult.hasException) throw queryResult.exception.toString();
     schema = queryResult.data!["__schema"];
+
     return GraphQLSchema.fromJson(queryResult.data!["__schema"]);
   }
 }
