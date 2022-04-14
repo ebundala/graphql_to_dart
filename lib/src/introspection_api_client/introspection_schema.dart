@@ -43,14 +43,18 @@ class IntrospectionSchema {
       } else
         return NamedTypeNode(
             name: NameNode(
+
               value: type.name!,
+
             ),
             isNonNull: nonNullable);
     }
 
     final inputs = types.where((e) => e.kind == "INPUT_OBJECT").map((e) {
       return InputObjectTypeDefinitionNode(
+
           name: NameNode(value: e.name!),
+
           fields: e.inputFields!
               .map<InputValueDefinitionNode>(
                 (f) => InputValueDefinitionNode(
@@ -63,13 +67,17 @@ class IntrospectionSchema {
 
     final scalars = types.where((e) => e.kind == "SCALAR").map((e) {
       return ScalarTypeDefinitionNode(
+
         name: NameNode(value: e.name!),
+
       );
     }).toList();
 
     final enums = types.where((e) => e.kind == "ENUM").map((e) {
       return EnumTypeDefinitionNode(
+
         name: NameNode(value: e.name!),
+
         values: e.enumValues!.map(
           (e) {
             return EnumValueDefinitionNode(
@@ -81,7 +89,9 @@ class IntrospectionSchema {
     }).toList();
     final objects = types.where((e) => e.kind == "OBJECT").map((e) {
       return ObjectTypeDefinitionNode(
+
         name: NameNode(value: e.name!),
+
         interfaces: e.interfaces!
             .map<NamedTypeNode>((i) => getNodeType(i) as NamedTypeNode)
             .toList(),
@@ -102,7 +112,9 @@ class IntrospectionSchema {
     }).toList();
     final interfaces = types.where((e) => e.kind == "INTERFACE").map((e) {
       return InterfaceTypeDefinitionNode(
+
         name: NameNode(value: e.name!),
+
         fields: e.fields!.map(
           (e) {
             return FieldDefinitionNode(
@@ -120,7 +132,9 @@ class IntrospectionSchema {
     }).toList();
     final unions = types.where((e) => e.kind == "UNION").map((e) {
       return UnionTypeDefinitionNode(
+
         name: NameNode(value: e.name!),
+
         types: e.possibleTypes!
             .map((i) => getNodeType(i) as NamedTypeNode)
             .toList(),
@@ -152,9 +166,11 @@ class IntrospectionSchema {
     return _objects;
   }
 
+
   List<String> scalarsList() {
     return [
       ...scalars.map<String>((e) => e.name.value).toList(),
+
     ];
   }
 
@@ -165,12 +181,14 @@ class IntrospectionSchema {
             e.name.value == "Mutation" ||
             e.name.value == "Subscription")
         .map<List<OperationInfo>>((e) {
+
       //todo include enums to return types
       final v = OperationInfoVisitor(
           inputs: inputsMap(),
           opType: e.name.value,
           scalars: scalarsList(),
           enums: enumsList());
+
       e.visitChildren(v);
       return v.accumulator;
     }).fold<List<OperationInfo>>([], (p, n) {
@@ -189,7 +207,9 @@ class IntrospectionSchema {
     ]);
   }
 
+
   List<String> enumsList() {
     return [...enums.map<String>((e) => e.name.value).toList()];
   }
+
 }

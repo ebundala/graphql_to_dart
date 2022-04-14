@@ -228,6 +228,7 @@ List<List<String>> buildBloc(
     final states = buildStates(i);
     final ast = getOperationCodeFromAstNode(operationAst);
     //${package}/${modelsPath}
+
     final imports = ([
       ...[
         "import 'package:equatable/equatable.dart';",
@@ -239,6 +240,7 @@ List<List<String>> buildBloc(
       ...getModelsImports(i, 'package:models'),
       "import '${i.name.snakeCase}_ast.dart' show document;"
     ]).join('\n');
+
     final libname = i.operationName.pascalCase;
     final isList = i.isList
         ? """  
@@ -408,7 +410,9 @@ List<List<String>> buildBloc(
               });
               //excute observable query;
               if(resultWrapper.isObservable){
+
               resultWrapper.observableQuery!.fetchResults();
+
               }
             } catch (e) {
               //emit complete failure state;
@@ -418,6 +422,7 @@ List<List<String>> buildBloc(
         }
 
         closeResultWrapper() async {
+
          // if (resultWrapper != null) {
             if(resultWrapper.isObservable==true && resultWrapper.observableQuery!=null){
             await resultWrapper.observableQuery!.close();
@@ -426,6 +431,7 @@ List<List<String>> buildBloc(
              await resultWrapper.subscription!.cancel();
             }
          // }
+
           
         }
        ${i.returnType} get getData{
@@ -761,6 +767,7 @@ Future<OperationResult> runOperation(GraphQLClient client,
   return OperationResult(result: data, info: info);
 }
 
+
 Future<OperationResult> runObservableOperation(GraphQLClient client,
     {required DocumentNode document,
     Map<String, dynamic> variables = const {},
@@ -778,6 +785,7 @@ Future<OperationResult> runObservableOperation(GraphQLClient client,
 
   var result;
   switch (info!.type) {
+
     case OperationType.query:
       result = client.watchQuery(WatchQueryOptions(
           document: document,
@@ -808,6 +816,7 @@ Future<OperationResult> runObservableOperation(GraphQLClient client,
       break;
     case OperationType.subscription:
     default:
+
       result = await client.subscribe(
         SubscriptionOptions(
           document: document,
@@ -824,11 +833,13 @@ Future<OperationResult> runObservableOperation(GraphQLClient client,
 
   if (result is ObservableQuery) {
     var stream = result.stream.map((res) {
+
       var data = getDataFromField(operationName, res);
       res.data = data;
       return res;
     });
     return OperationResult(
+
         info: info,
         isObservable: true,
         observableQuery: result,
@@ -842,6 +853,7 @@ Future<OperationResult> runObservableOperation(GraphQLClient client,
     return OperationResult(isStream: true, stream: stream, info: info);
   } else {
     throw UnsupportedError("Operation is not supported");
+
   }
 }
 

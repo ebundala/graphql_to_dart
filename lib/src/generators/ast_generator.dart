@@ -98,6 +98,7 @@ class AstGenerator implements Builder {
     config = Config.fromJson(options.config);
     // final file = File(config.schemaPath);
 
+
     final helperStr = buildCommonGraphQLClientHelpers();
     final helperFile = "/lib/${config.helperPath}/$helperFileName";
     saveFile(helperFile, helperStr);
@@ -139,8 +140,10 @@ class AstGenerator implements Builder {
       // graphQlToDart.init();
       _schema = IntrospectionSchema.fromTypes(graphQlToDart.schema.types);
       info = _schema.operationInfo();
+
       scalars = _schema.scalarsList();
       enums = _schema.enumsList();
+
       inputs = _schema.inputsMap();
       types = _schema.objectsMap();
     }
@@ -214,6 +217,9 @@ class AstGenerator implements Builder {
     // );
   }
 }
+
+
+ 
 
 // import 'package:build/build.dart';
 // import 'package:graphql/client.dart';
