@@ -256,8 +256,8 @@ List<List<String>> buildBloc(
     final isListFn = i.isList
         ? """
     void ${i.name}LoadMore(${libname}MoreLoaded event) {
-      if(resultWrapper.observableQuery!=null){
-      client.${i.name}LoadMore(resultWrapper.observableQuery!,${buildOperationParams(i.variables)});
+      if(resultWrapper?.observableQuery!=null){
+      client.${i.name}LoadMore(resultWrapper!.observableQuery!,${buildOperationParams(i.variables)});
       }
     }
     """
@@ -280,7 +280,7 @@ List<List<String>> buildBloc(
            final GraphQLClient client;
           final Stream<${libname}State> Function(
       ${libname}Bloc context, ${libname}Event event, ${libname}BlocHookStage stage)? hook;
-      late OperationResult resultWrapper;
+      OperationResult? resultWrapper;
        ${libname}Bloc({required this.client,this.hook}) : super(${libname}Initial());
         @override
         Stream<${libname}State> mapEventToState(${libname}Event event) async* {
@@ -296,8 +296,9 @@ List<List<String>> buildBloc(
               yield* ${i.name}(event);
             } else if (event is ${libname}IsLoading) {
               // emit loading state
-              ${isloadingMoreEvent}
+              ${isloadingMoreEvent}{
               yield ${libname}InProgress(data: event.data);
+              }
             } else if (event is ${libname}IsOptimistic) {
               // emit optimistic result state
               yield ${libname}Optimistic(data: event.data);
@@ -325,8 +326,8 @@ List<List<String>> buildBloc(
           // }
         }
         void ${i.name}Retry(){
-          if(resultWrapper.observableQuery!=null){
-          client.${i.name}Retry(resultWrapper.observableQuery!);
+          if(resultWrapper?.observableQuery!=null){
+          client.${i.name}Retry(resultWrapper!.observableQuery!);
           }
         }
         ${isListFn}
@@ -340,7 +341,7 @@ List<List<String>> buildBloc(
               await closeResultWrapper();
               resultWrapper = await client.${i.name}(${buildOperationParams(i.variables)});
               //listen for changes 
-              resultWrapper.subscription = resultWrapper.stream?.listen((result) {
+              resultWrapper!.subscription = resultWrapper!.stream?.listen((result) {
                 //reset events before starting to emit new ones
                 add(${libname}Reseted());
                 Map<String, dynamic> errors = {};
@@ -376,7 +377,7 @@ List<List<String>> buildBloc(
                   errors['message'] = message;
                 }
                 // convert result to data type expected by listeners
-                ${i.returnType}? data;
+                var data = ${i.returnType}();
                 if (result.data != null) {
                   //add errors encountered to result
                   result.data!.addAll(errors);
@@ -388,30 +389,30 @@ List<List<String>> buildBloc(
                 if (result.hasException) {
                   if (result.exception?.linkException != null) {
                     //emit error event
-                    add(${libname}Errored(data: data!, message: data.message!));
+                    add(${libname}Errored(data: data, message: data.message!));
                   } else if (result.exception?.graphqlErrors.isNotEmpty == true) {
                     //emit failure event
-                    add(${libname}Failed(data: data!, message: data.message!));
+                    add(${libname}Failed(data: data, message: data.message!));
                   }
                 } else if (result.isLoading) {
                   //emit loading event
-                  add(${libname}IsLoading(data: data!));
+                  add(${libname}IsLoading(data: data));
                 } else if (result.isOptimistic) {
                   //emit optimistic event
-                  add(${libname}IsOptimistic(data: data!));
+                  add(${libname}IsOptimistic(data: data));
                 } else if (result.isConcrete) {
                   //emit completed event
-                  if(data?.status==true){
-                  add(${libname}IsConcrete(data: data!));
+                  if(data.status==true){
+                  add(${libname}IsConcrete(data: data));
                   }else{
-                    add(${libname}Errored(data: data!, message: data.message!));
+                    add(${libname}Errored(data: data, message: data.message!));
                   }
                 }
               });
               //excute observable query;
-              if(resultWrapper.isObservable){
+              if(resultWrapper!.isObservable){
 
-              resultWrapper.observableQuery!.fetchResults();
+              resultWrapper!.observableQuery!.fetchResults();
 
               }
             } catch (e) {
@@ -424,11 +425,11 @@ List<List<String>> buildBloc(
         closeResultWrapper() async {
 
          // if (resultWrapper != null) {
-            if(resultWrapper.isObservable==true && resultWrapper.observableQuery!=null){
-            await resultWrapper.observableQuery!.close();
+            if(resultWrapper?.isObservable==true && resultWrapper?.observableQuery!=null){
+            await resultWrapper!.observableQuery!.close();
             }
-            if(resultWrapper.isStream==true&&resultWrapper.stream!=null && resultWrapper.subscription!=null){
-             await resultWrapper.subscription!.cancel();
+            if(resultWrapper?.isStream==true&&resultWrapper?.stream!=null && resultWrapper?.subscription!=null){
+             await resultWrapper!.subscription!.cancel();
             }
          // }
 
@@ -439,12 +440,12 @@ List<List<String>> buildBloc(
 
         }
         Map<String, dynamic> loadFromCache() {
-            var queryRequest = resultWrapper.observableQuery?.options.asRequest;
+            var queryRequest = resultWrapper?.observableQuery?.options.asRequest;
             if (queryRequest != null) {
               final data = client.readQuery(queryRequest);
               if (data != null) {
                 var data1 = getDataFromField(
-                    resultWrapper.info.fieldName, QueryResult(data: data,source: QueryResultSource.cache));
+                    resultWrapper!.info.fieldName, QueryResult(data: data,source: QueryResultSource.cache));
                 return data1??{};
               }
             }
@@ -488,7 +489,9 @@ buildInputsValidations(OperationAstInfo operation) {
   final validations = operation.variables
       .where((v) => v.isNonNull)
       .map((v) {
-        return v.fields.where((f) => f.isNonNull && f.isScalar).map((f) {
+        return v.fields
+            .where((f) => f.isNonNull && f.isScalar && f.type == 'String')
+            .map((f) {
           var vf = "${v.name}.${to$(f.name)}";
           var test = f.isList || f.type == 'String'
               ? "event.${vf}.isEmpty==true"
@@ -569,7 +572,7 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
         var i=-1;
       var files= ${v.name}.map((e){
          i++;
-         return e.getFilesVariables(field_name: '${v.name}_\${i}');
+         return e.getFilesVariables(field_name: '${v.name}_\$i');
        }).fold<Map<String, dynamic>>({}, (p, e){
         p.addAll(e);
         return p;
@@ -601,8 +604,9 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
   fn.write("""
   //refetch fn
     void ${operation.name}Retry(ObservableQuery observableQuery) {
-      if (observableQuery.isRefetchSafe)
+      if (observableQuery.isRefetchSafe==true){
         observableQuery.refetch();
+        }
     }
   """);
   if (operation.isList) {

@@ -37,15 +37,12 @@ class GraphQlToDart {
     LocalGraphQLClient localGraphQLClient = LocalGraphQLClient();
     localGraphQLClient.init(config);
 
-
     schema = await localGraphQLClient.fetchTypes();
-
 
     TypeConverters converters = TypeConverters();
     converters.overrideTypes(config.typeOverride);
     final Map<String, String> outputs = {};
     await Future.forEach(schema.types, (Type type) async {
-
       var reserved = true;
       if (type.name != null) {
         reserved = type.name?.startsWith("__") == true;
@@ -55,9 +52,7 @@ class GraphQlToDart {
           type.name != null &&
           !reserved &&
           !ignoreFields.contains(type.name?.toLowerCase())) {
-
         print("Creating model from: ${type.name}");
-        //TODO modify type to make objects fields nullable;
         type.fields = type.fields!.map<Field>((e) {
           if (e.type.kind == "NON_NULL") {
             e.type = e.type.ofType!;
@@ -80,9 +75,7 @@ class GraphQlToDart {
       }
       if (type.kind == 'ENUM' &&
           type.fields == null &&
-
           !reserved &&
-
           type.inputFields == null) {
         print("Creating enum model from: ${type.name}");
         TypeBuilder builder = TypeBuilder(type, config);
