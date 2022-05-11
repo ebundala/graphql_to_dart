@@ -241,13 +241,17 @@ class TypeBuilder {
         if (field.type == "DateTime") {
           toJsonBuilder.writeln(
               "_data['${field.name}'] = List.generate(${to$(field.name)}?.length ?? 0, (index)=> ${to$(field.name)}![index].toString());");
-        } else if (field.isObject == true || field.isEnum == true) {
+        } else if (field.isObject == true ||
+            field.isEnum == true ||
+            config.customScalarImplementationPaths?[field.type] != null) {
           toJsonBuilder.writeln(
               "_data['${field.name}'] = List.generate(${to$(field.name)}?.length ?? 0, (index)=> ${to$(field.name)}![index].toJson());");
         } else {
           toJsonBuilder.writeln("_data['${field.name}'] = ${to$(field.name)};");
         }
-      } else if (field.isObject == true || field.isEnum == true) {
+      } else if (field.isObject == true ||
+          field.isEnum == true ||
+          config.customScalarImplementationPaths?[field.type] != null) {
         toJsonBuilder.writeln(
             "_data['${field.name}'] = ${to$(field.name)}$nn.toJson();");
       } else if (field.type == "DateTime") {
@@ -301,8 +305,13 @@ class TypeBuilder {
           fromJsonBuilder.write(
               "List.generate(json['${field.name}'].length, (index)=> DateTime.parse(json['${field.name}'][index]))");
         } else {
-          fromJsonBuilder.write(
-              "List.generate(json['${field.name}'].length, (index)=> json['${field.name}'][index] as ${field.type}) ");
+          if (config.customScalarImplementationPaths?[field.type] != null) {
+            fromJsonBuilder.write(
+                "List.generate(json['${field.name}'].length, (index)=> ${field.type}.fromJson(json['${field.name}'][index])) ");
+          } else {
+            fromJsonBuilder.write(
+                "List.generate(json['${field.name}'].length, (index)=> json['${field.name}'][index] as ${field.type}) ");
+          }
         }
         fromJsonBuilder.write(":null,");
 //         fromJsonBuilder.write("""
@@ -312,7 +321,8 @@ class TypeBuilder {
       } else if (field.isEnum == true) {
         fromJsonBuilder.writeln(
             "${to$(field.name)}:${field.nonNull ? "${field.type}Ext.fromJson(json['${field.name}'])" : "json['${field.name}']!=null ? ${field.type}Ext.fromJson(json['${field.name}']) : null"},");
-      } else if (field.isObject == true) {
+      } else if (field.isObject == true ||
+          config.customScalarImplementationPaths?[field.type] != null) {
         fromJsonBuilder.writeln(
             "${to$(field.name)}:${field.nonNull ? "${field.type}.fromJson(json['${field.name}'])" : "json['${field.name}']!=null ? ${field.type}.fromJson(json['${field.name}']) : null"},");
       } else if (field.type == "DateTime") {
