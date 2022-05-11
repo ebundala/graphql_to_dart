@@ -43,18 +43,14 @@ class IntrospectionSchema {
       } else
         return NamedTypeNode(
             name: NameNode(
-
               value: type.name!,
-
             ),
             isNonNull: nonNullable);
     }
 
     final inputs = types.where((e) => e.kind == "INPUT_OBJECT").map((e) {
       return InputObjectTypeDefinitionNode(
-
           name: NameNode(value: e.name!),
-
           fields: e.inputFields!
               .map<InputValueDefinitionNode>(
                 (f) => InputValueDefinitionNode(
@@ -67,17 +63,13 @@ class IntrospectionSchema {
 
     final scalars = types.where((e) => e.kind == "SCALAR").map((e) {
       return ScalarTypeDefinitionNode(
-
         name: NameNode(value: e.name!),
-
       );
     }).toList();
 
     final enums = types.where((e) => e.kind == "ENUM").map((e) {
       return EnumTypeDefinitionNode(
-
         name: NameNode(value: e.name!),
-
         values: e.enumValues!.map(
           (e) {
             return EnumValueDefinitionNode(
@@ -89,9 +81,7 @@ class IntrospectionSchema {
     }).toList();
     final objects = types.where((e) => e.kind == "OBJECT").map((e) {
       return ObjectTypeDefinitionNode(
-
         name: NameNode(value: e.name!),
-
         interfaces: e.interfaces!
             .map<NamedTypeNode>((i) => getNodeType(i) as NamedTypeNode)
             .toList(),
@@ -112,9 +102,7 @@ class IntrospectionSchema {
     }).toList();
     final interfaces = types.where((e) => e.kind == "INTERFACE").map((e) {
       return InterfaceTypeDefinitionNode(
-
         name: NameNode(value: e.name!),
-
         fields: e.fields!.map(
           (e) {
             return FieldDefinitionNode(
@@ -132,9 +120,7 @@ class IntrospectionSchema {
     }).toList();
     final unions = types.where((e) => e.kind == "UNION").map((e) {
       return UnionTypeDefinitionNode(
-
         name: NameNode(value: e.name!),
-
         types: e.possibleTypes!
             .map((i) => getNodeType(i) as NamedTypeNode)
             .toList(),
@@ -151,27 +137,21 @@ class IntrospectionSchema {
   }
 
   Map<String, InputObjectTypeDefinitionNode> inputsMap() {
-    var _inputs = <String, InputObjectTypeDefinitionNode>{};
-    inputs.forEach((e) {
-      _inputs[e.name.value] = e;
-    });
-    return _inputs;
+    // var _inputs = <String, InputObjectTypeDefinitionNode>{};
+    // inputs.forEach((e) {
+    //   _inputs[e.name.value] = e;
+    // });
+    // return _inputs;
+    return Map.fromIterable(inputs, key: (e) => e.name.value, value: (e) => e);
   }
 
   Map<String, ObjectTypeDefinitionNode> objectsMap() {
-    var _objects = <String, ObjectTypeDefinitionNode>{};
-    objects.forEach((e) {
-      _objects[e.name.value] = e;
-    });
-    return _objects;
-  }
-
-
-  List<String> scalarsList() {
-    return [
-      ...scalars.map<String>((e) => e.name.value).toList(),
-
-    ];
+    // var _objects = <String, ObjectTypeDefinitionNode>{};
+    // objects.forEach((e) {
+    //   _objects[e.name.value] = e;
+    // });
+    // return _objects;
+    return Map.fromIterable(objects, key: (e) => e.name.value, value: (e) => e);
   }
 
   List<OperationInfo> operationInfo() {
@@ -181,13 +161,12 @@ class IntrospectionSchema {
             e.name.value == "Mutation" ||
             e.name.value == "Subscription")
         .map<List<OperationInfo>>((e) {
-
       //todo include enums to return types
       final v = OperationInfoVisitor(
           inputs: inputsMap(),
           opType: e.name.value,
-          scalars: scalarsList(),
-          enums: enumsList());
+          scalars: scalarsMap(),
+          enums: enumsMap());
 
       e.visitChildren(v);
       return v.accumulator;
@@ -207,9 +186,15 @@ class IntrospectionSchema {
     ]);
   }
 
-
-  List<String> enumsList() {
-    return [...enums.map<String>((e) => e.name.value).toList()];
+  Map<String, ScalarTypeDefinitionNode> scalarsMap() {
+    // return [
+    //   ...scalars.map<String>((e) => e.name.value).toList(),
+    // ];
+    return Map.fromIterable(scalars, key: (e) => e.name.value, value: (e) => e);
   }
 
+  Map<String, EnumTypeDefinitionNode> enumsMap() {
+    //return [...enums.map<String>((e) => e.name.value).toList()];
+    return Map.fromIterable(enums, key: (e) => e.name.value, value: (e) => e);
+  }
 }

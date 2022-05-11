@@ -6,6 +6,7 @@ import 'package:graphql_to_dart/src/client_builders/states_definitions.dart';
 import "package:code_builder/code_builder.dart";
 import 'package:graphql_to_dart/src/builders/from_node.dart';
 import 'package:recase/recase.dart';
+import 'package:yaml/src/yaml_node.dart';
 import '../../graphql_to_dart.dart';
 import './events_definitions.dart';
 
@@ -107,10 +108,10 @@ String buildStates(OperationAstInfo operation) {
 
 Map<String, List<String>> getEventsMapping(
     OperationAstInfo operation, Map<String, List<String>> events) {
-  var operationName = operation.operationName;
+  var name = operation.name;
   Map<String, List<String>> ev = {};
   events.forEach((k, v) {
-    if (operationName.contains(k)) {
+    if (name.contains(k)) {
       ev.addAll({k: v});
     }
   });
@@ -206,14 +207,12 @@ String buildConstructorArguments(
 List<List<String>> buildBloc(
     {required List<OperationInfo> info,
     required DocumentNode operationAst,
-    required String package,
     required Map<String, InputObjectTypeDefinitionNode> inputs,
     required Map<String, ObjectTypeDefinitionNode> types,
-    required String modelsPath,
     required String outDir,
-    required List<String> scalars,
-    required List<String> enums,
-    required String helperPath}) {
+    required Map<String, ScalarTypeDefinitionNode> scalars,
+    required Map<String, EnumTypeDefinitionNode> enums,
+    required Config config}) {
   final operations = getOperationInfoFromAst(
       types: types,
       document: operationAst,
@@ -227,7 +226,13 @@ List<List<String>> buildBloc(
     final events = buildEvents(i);
     final states = buildStates(i);
     final ast = getOperationCodeFromAstNode(operationAst);
-    //${package}/${modelsPath}
+
+    final String package = config.packageName;
+    final String modelsPath = config.modelsImportPath;
+    final String helperPath = config.helperPath;
+    final String helperFileName = config.helperFilename;
+    final YamlMap? customScalarsPaths = config.customScalarImplementationPaths;
+    final String modelsPackage = config.modelsPackage;
 
     final imports = ([
       ...[
@@ -235,13 +240,17 @@ List<List<String>> buildBloc(
         "import 'package:gql/ast.dart';",
         "import 'package:graphql/client.dart';",
         "import 'package:bloc/bloc.dart';",
-        "import 'package:${package}/${helperPath}/common_client_helpers.dart';"
+        "import 'package:${package}/${helperPath}/$helperFileName';"
       ],
-      ...getModelsImports(i, 'package:models'),
+      ...getModelsImports(
+          operation: i,
+          modelsPath: modelsPath,
+          modelsPackage: modelsPackage,
+          customScalarPaths: customScalarsPaths),
       "import '${i.name.snakeCase}_ast.dart' show document;"
     ]).join('\n');
 
-    final libname = i.operationName.pascalCase;
+    final libname = i.name.pascalCase;
     final isList = i.isList
         ? """  
             else if (event is ${libname}MoreLoaded){      
@@ -436,7 +445,7 @@ List<List<String>> buildBloc(
           
         }
        ${i.returnType} get getData{
-          return (state is ${i.operationName.pascalCase}Initial)||(state is ${i.operationName.pascalCase}Error)?null:(state as dynamic)?.data;
+          return (state is ${i.name.pascalCase}Initial)||(state is ${i.name.pascalCase}Error)?null:(state as dynamic)?.data;
 
         }
         Map<String, dynamic> loadFromCache() {
@@ -497,7 +506,7 @@ buildInputsValidations(OperationAstInfo operation) {
               ? "event.${vf}.isEmpty==true"
               : "event.${vf}==null";
           var stateName =
-              "${operation.operationName.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
+              "${operation.name.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
           return """
       if(${test}){
         yield ${stateName}ValidationError('${f.name} is required',getData,${reAssignedInputs(operation.variables)});
@@ -521,15 +530,33 @@ String fileName(String operationName, String name, [String ext = '.dart']) {
   return "/${operationName}_$name$ext";
 }
 
-List<String> getModelsImports(OperationAstInfo operation, String modelsPath) {
+List<String> getModelsImports(
+    {required OperationAstInfo operation,
+    required String modelsPath,
+    YamlMap? customScalarPaths,
+    required String modelsPackage}) {
   return operation.variables.fold<List<String>>([], (v, i) {
-    var scalars = ['int', 'double', 'String', 'bool', 'DateTime'];
-
-    if (!i.isScalar || scalars.where((e) => e == i.type).length == 0)
-      v.add("import '${modelsPath}/${i.type.snakeCase}.dart';");
+    // var scalars = ['int', 'double', 'String', 'bool', 'DateTime'];
+    // scalars.where((e) => e == i.type).length == 0
+    final isCustom = i.scalarInfo?.isCustom == true;
+    if (!i.isScalar || isCustom) {
+      var path = "";
+      if (i.isScalar &&
+          customScalarPaths?[i.scalarInfo!.type].isNotEmpty == true) {
+        path =
+            "import 'package:${modelsPackage}/${customScalarPaths![i.scalarInfo!.type]}';";
+      } else {
+        path =
+            "import 'package:${modelsPackage}${modelsPath}${i.type.snakeCase}.dart';";
+      }
+      if (!v.contains(path) && path.isNotEmpty) {
+        v.add(path);
+      }
+    }
     return v;
   })
-    ..add("import '${modelsPath}/${operation.returnType.snakeCase}.dart';");
+    ..add(
+        "import 'package:${modelsPackage}${modelsPath}${operation.returnType.snakeCase}.dart';");
 }
 
 String wrapWithNullCheck(String name, bool nullable, String content) {
@@ -550,7 +577,7 @@ String buildGraphqlClientExtension(OperationAstInfo operation) {
   var variables = operation.variables.map((v) {
     final isNullable = !v.isNonNull;
 
-    if (v.isScalar) {
+    if (v.isScalar && v.scalarInfo!.isCustom == false) {
       final content = """
             vars.addAll({'${v.name}':${v.name}});
           """;
@@ -974,23 +1001,34 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
   @override
   OperationDefinitionNode visitOperationDefinitionNode(
       OperationDefinitionNode node) {
+    final defs = node.variableDefinitions.where((element) {
+      return args
+              .firstWhere((e) => e.name == element.variable.name.value,
+                  orElse: () => ArgumentInfo(name: "__notfound"))
+              .name ==
+          "__notfound";
+    }).toList();
     return OperationDefinitionNode(
         directives: node.directives,
         name: node.name,
         selectionSet: node.selectionSet,
         type: node.type,
-        variableDefinitions: [
-          ...node.variableDefinitions.where((element) {
-            return args
-                    .firstWhere((e) => e.name == element.variable.name.value,
-                        orElse: () => ArgumentInfo(name: "__notfound"))
-                    .name ==
-                "__notfound";
-          }).toList(),
-          ...definitions
-        ]);
+        variableDefinitions: [...defs, ...definitions]);
   }
 
+  @override
+  ObjectFieldNode visitObjectFieldNode(ObjectFieldNode node) {
+    if (node.value is VariableNode) {
+      final v = node.value as VariableNode;
+      final newArgValue = valueNodes[v.name.value];
+      if (newArgValue != null) {
+        return super.visitObjectFieldNode(
+            ObjectFieldNode(name: node.name, value: newArgValue));
+      }
+    }
+    return super.visitObjectFieldNode(node);
+  }
+  
   @override
   ArgumentNode visitArgumentNode(ArgumentNode node) {
     //add arguments values
@@ -998,11 +1036,53 @@ class NormalizeArgumentsVisitor extends TransformingVisitor {
       final v = node.value as VariableNode;
       final newArgValue = valueNodes[v.name.value];
       if (newArgValue != null) {
-        return ArgumentNode(name: node.name, value: newArgValue);
+        return super.visitArgumentNode(
+            ArgumentNode(name: node.name, value: newArgValue));
       }
     }
-    return node;
+    return super.visitArgumentNode(node);
   }
 }
   """;
+}
+
+String buildGraphqlCustomTypesBaseClass() {
+  return """
+import "package:equatable/equatable.dart";
+import 'package:gql/ast.dart' as ast;
+
+abstract class GraphQLCustomType<T> extends Equatable {
+  static GraphQLCustomType<T> fromJson<T>(Map<dynamic, dynamic> json) {
+    throw UnimplementedError();
+  }
+
+  Map<String, dynamic> toJson() {
+    throw UnimplementedError();
+  }
+
+  T copyWith(args) {
+    throw UnimplementedError();
+  }
+
+  Map<String, dynamic> getFilesVariables(
+      {required String field_name, Map<String, dynamic>? variables}) {
+    if (variables == null) {
+      variables = Map();
+    }
+    return variables;
+  }
+
+  List<ast.VariableDefinitionNode> getVariableDefinitionsNodes({
+    required Map<String, dynamic> variables,
+  }) {
+    final List<ast.VariableDefinitionNode> vars = [];
+    return vars;
+  }
+
+  ast.ValueNode toValueNode({required String field_name}) {
+    throw UnimplementedError();
+  }
+}
+
+""";
 }

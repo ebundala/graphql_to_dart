@@ -194,7 +194,15 @@ class TypeBuilder {
   _addImports() {
     StringBuffer importBuffer = StringBuffer();
     localFields.unique<String>((field) => field.type).forEach((field) {
-      if ((field.isObject == true || field.isEnum) && field.type != type.name) {
+      if (field.isScalar &&
+          (config.customScalarImplementationPaths?[field.type] as String?)
+                  ?.isNotEmpty ==
+              true) {
+        final path = config.customScalarImplementationPaths?[field.type];
+
+        importBuffer.writeln("import '${path}';");
+      } else if ((field.isObject == true || field.isEnum) &&
+          field.type != type.name) {
         if (config.dynamicImportPath) {
           // importBuffer.writeln(
           //   "import 'package:${config.packageName}/${config.modelsDirectoryPath.replaceAll(r"lib/", "")}/${pascalToSnake(field.type)}.dart';"
@@ -747,22 +755,34 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
 
         )
       """;
-      }
-      if (field.type == TypeConverters().overrideType('Boolean')) {
+      } else if (field.type == TypeConverters().overrideType('String')) {
         return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
 
-          value: ast.BooleanValueNode(value: ${to$(field.name)}$nn),
+          value: ast.StringValueNode(value: '\${${to$(field.name)}$nn}',isBlock:false),
 
         )
       """;
-      } else {
+      } else if (field.type == TypeConverters().overrideType('Boolean')) {
         return """
       ast.ObjectFieldNode(
           name: ast.NameNode(value: '${field.name}'),
-
-          value: ast.${field.type}ValueNode(value: ${to$(field.name)}$nn, isBlock: false),
+          value: ast.BooleanValueNode(value: ${to$(field.name)}$nn),
+        )
+      """;
+      } else {
+        if (config.customScalarImplementationPaths?[field.type] != null) {
+          return """
+      ast.ObjectFieldNode(
+          name: ast.NameNode(value: '${field.name}'),
+          value: ${to$(field.name)}$nn.toValueNode(field_name: '\${field_name}_${fieldName}'),
+        )""";
+        }
+        return """
+      ast.ObjectFieldNode(
+          name: ast.NameNode(value: '${field.name}'),
+          value: ast.NullValueNode(),
 
         )
       """;
@@ -793,7 +813,11 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
        ast.FloatValueNode(value: '\${${value}}')
       """;
     }
-    if (field.type == TypeConverters().overrideType('Boolean')) {
+    if (field.type == TypeConverters().overrideType('String')) {
+      return """
+          ast.StringValueNode(value: ${value},isBlock:false)
+      """;
+    } else if (field.type == TypeConverters().overrideType('Boolean')) {
       return """
       ast.BooleanValueNode(value: ${value})
       """;
@@ -802,8 +826,13 @@ ${field.object == true ? "List.generate(json['${field.name}'].length, (index)=> 
       ast.EnumValueNode(name: ast.NameNode(value: '\${${value}.toJson()}')
       """;
     } else {
+      if (config.customScalarImplementationPaths?[field.type] != null) {
+        return """      
+          ${to$(field.name)}$nn.toValueNode(field_name: '\${field_name}_${fieldName}'),
+        )""";
+      }
       return """
-       ast.${field.type}ValueNode(value: '\${${value}}', isBlock: false)
+       ast.NullValueNode()
       """;
     }
   }

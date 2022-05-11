@@ -21,16 +21,17 @@ Map<String, ObjectTypeDefinitionNode> getTypesMapping(DocumentNode node) {
   });
 }
 
-List<String> getScalarsAndEnums(DocumentNode document) {
-  var sc = ScalarInfoVisitor();
+List<ScalarInfo> getScalarsAndEnums(
+    DocumentNode document, List<String> coreScalars) {
+  var sc = ScalarInfoVisitor(coreTypes: coreScalars);
   document.visitChildren(sc);
-  var scalars = ['Int', 'Float', 'String', 'ID', ...sc.accumulator];
-  return scalars;
+  // var scalars = ['Int', 'Float', 'String', 'ID', ...sc.accumulator];
+  return sc.accumulator;
 }
 
 class OperationDefVisitor extends AccumulatingVisitor<OperationInfo> {
-  final List<String> scalars;
-  final List<String> enums;
+  final Map<String, ScalarTypeDefinitionNode> scalars;
+  final Map<String, EnumTypeDefinitionNode> enums;
   final Map<String, InputObjectTypeDefinitionNode> inputs;
   OperationDefVisitor(
       {required this.inputs, required this.scalars, required this.enums});
@@ -52,8 +53,8 @@ class OperationDefVisitor extends AccumulatingVisitor<OperationInfo> {
 
 class OperationInfoVisitor extends AccumulatingVisitor<OperationInfo> {
   final String opType;
-  final List<String> scalars;
-  final List<String> enums;
+  final Map<String, ScalarTypeDefinitionNode> scalars;
+  final Map<String, EnumTypeDefinitionNode> enums;
   final Map<String, InputObjectTypeDefinitionNode> inputs;
   OperationInfoVisitor({
     required this.inputs,
@@ -115,24 +116,39 @@ bool isNonNull(TypeNode node) {
   return false;
 }
 
-bool isScalar(String type, List<String> scalars) {
-  return scalars.contains(type);
+bool isScalar(String type, Map<String, ScalarTypeDefinitionNode> scalars) {
+  return scalars.containsKey(type);
 }
 
-bool isEnum(String type, List<String> enums) {
-  return enums.contains(type);
+bool isEnum(String type, Map<String, EnumTypeDefinitionNode> enums) {
+  return enums.containsKey(type);
 }
 
-class ScalarInfoVisitor extends AccumulatingVisitor<String> {
+class ScalarInfoVisitor extends AccumulatingVisitor<ScalarInfo> {
+  final List<String> coreTypes;
+  ScalarInfoVisitor(
+      {required this.coreTypes,
+      List<SimpleVisitor<List<ScalarInfo>>> visitors = const []})
+      : super(visitors: visitors);
   @override
   void visitScalarTypeDefinitionNode(ScalarTypeDefinitionNode node) {
-    accumulator.add(node.name.value);
+    accumulator.add(ScalarInfo(
+        type: node.name.value,
+        isCustom: isCustom(node.name.value),
+        isEnum: false));
     super.visitScalarTypeDefinitionNode(node);
+  }
+
+  bool isCustom(String type) {
+    return !coreTypes.contains(type);
   }
 
   @override
   void visitEnumTypeDefinitionNode(EnumTypeDefinitionNode node) {
-    accumulator.add(node.name.value);
+    accumulator.add(ScalarInfo(
+        type: node.name.value,
+        isCustom: isCustom(node.name.value),
+        isEnum: true));
     super.visitEnumTypeDefinitionNode(node);
   }
 }
@@ -158,7 +174,7 @@ class InputInfoVisitor
 }
 
 class ArgsInfoVisitor extends AccumulatingVisitor<ArgsInfo> {
-  final List<String> scalars;
+  final Map<String, ScalarTypeDefinitionNode> scalars;
   final Map<String, InputObjectTypeDefinitionNode> inputs;
 
   ArgsInfoVisitor({required this.scalars, required this.inputs});
@@ -188,7 +204,7 @@ class ArgsInfoVisitor extends AccumulatingVisitor<ArgsInfo> {
 }
 
 class ArgFieldInfoVisitor extends AccumulatingVisitor<ArgFieldInfo> {
-  final List<String> scalars;
+  final Map<String, ScalarTypeDefinitionNode> scalars;
 
   ArgFieldInfoVisitor(this.scalars);
   @override
@@ -286,6 +302,7 @@ class VariableInfo {
   final bool isEnum;
   final bool isList;
   final String type;
+  ScalarInfo? scalarInfo;
   final List<ArgFieldInfo> fields;
 
   VariableInfo(
@@ -295,14 +312,23 @@ class VariableInfo {
       required this.isEnum,
       required this.isList,
       required this.type,
-      required this.fields});
+      required this.fields,
+      this.scalarInfo});
+}
+
+class ScalarInfo {
+  final bool isCustom;
+  final String type;
+  final bool isEnum;
+  ScalarInfo(
+      {required this.isCustom, required this.type, required this.isEnum});
 }
 
 class OperationDefinitionASTVisitor
     extends AccumulatingVisitor<OperationAstInfo> {
   final List<OperationInfo> schemaInfo;
-  final List<String> scalars;
-  final List<String> enums;
+  final Map<String, ScalarTypeDefinitionNode> scalars;
+  final Map<String, EnumTypeDefinitionNode> enums;
   final Map<String, InputObjectTypeDefinitionNode> inputs;
   final Map<String, ObjectTypeDefinitionNode> types;
 
@@ -372,8 +398,8 @@ class OperationDefinitionASTVisitor
 }
 
 class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
-  final List<String> scalars;
-  final List<String> enums;
+  final Map<String, ScalarTypeDefinitionNode> scalars;
+  final Map<String, EnumTypeDefinitionNode> enums;
   final Map<String, InputObjectTypeDefinitionNode> inputs;
   VariableVisitor(
       {required this.inputs, required this.scalars, required this.enums});
@@ -386,7 +412,14 @@ class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
     var _isEnum = isEnum(type, enums);
     var _isNonNull = isNonNull(node.type);
     var _isList = isList(node.type);
-
+    var scalarInfo;
+    if (_isScalar) {
+      final v = ScalarInfoVisitor(
+          coreTypes: ['Int', 'Float', 'String', 'ID', 'bool']);
+      DocumentNode(definitions: [scalars[type] as DefinitionNode])
+          .visitChildren(v);
+      scalarInfo = v.accumulator[0];
+    }
     type = convertScalarsToDartTypes(_isScalar, type);
 
     var fv = ArgFieldInfoVisitor(scalars);
@@ -399,6 +432,7 @@ class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
         isNonNull: _isNonNull,
         isEnum: _isEnum,
         type: type,
+        scalarInfo: scalarInfo,
         fields: fv.accumulator));
     super.visitVariableDefinitionNode(node);
   }
@@ -406,8 +440,8 @@ class VariableVisitor extends AccumulatingVisitor<VariableInfo> {
 
 List<OperationAstInfo> getOperationInfoFromAst({
   required DocumentNode document,
-  required List<String> scalars,
-  required List<String> enums,
+  required Map<String, ScalarTypeDefinitionNode> scalars,
+  required Map<String, EnumTypeDefinitionNode> enums,
   required List<OperationInfo> info,
   required Map<String, InputObjectTypeDefinitionNode> inputs,
   required Map<String, ObjectTypeDefinitionNode> types,

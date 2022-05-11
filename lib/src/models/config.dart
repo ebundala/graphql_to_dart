@@ -19,6 +19,10 @@ class Config {
   late String schemaPath;
   late String helperPath;
   late String modelsImportPath;
+  late String modelsPackage;
+  late String helperFilename;
+  late String graphqlCustomTypeMixinFilename;
+  YamlMap? customScalarImplementationPaths;
   Config();
   Config.fromJson(Map map) {
     graphQLEndpoint = map['graphql_endpoint'].toString();
@@ -41,6 +45,12 @@ class Config {
     helperPath = map['helper_path'].toString();
 
     modelsImportPath = map["models_import_path"].toString();
+    modelsPackage = map["models_package"];
+    customScalarImplementationPaths = map['custom_scalar_implementation_paths'];
+    helperFilename = map['helper_filename'] ?? 'common_client_helpers.dart';
+    graphqlCustomTypeMixinFilename =
+        map['graphql_custom_type_mixin_filename'] ??
+            'graphql_custom_type_mixin.dart';
   }
   Future<ValidationResult> validate() async {
 //    File queriesFile = File(queriesFilePath);

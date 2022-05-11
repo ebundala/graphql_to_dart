@@ -84,24 +84,26 @@ class AstGenerator implements Builder {
   late Map<String, InputObjectTypeDefinitionNode> inputs;
   late Map<String, ObjectTypeDefinitionNode> types;
 
-  late List<String> scalars;
-  late List<String> enums;
+  late Map<String, ScalarTypeDefinitionNode> scalars;
+  late Map<String, EnumTypeDefinitionNode> enums;
   late List<OperationInfo> info;
   //DocumentNode? schema;
   late GraphQlToDart graphQlToDart;
   final BuilderOptions options;
   late IntrospectionSchema _schema;
-  static const helperFileName = "common_client_helpers.dart";
   late Config config;
 
   AstGenerator(this.options) {
     config = Config.fromJson(options.config);
     // final file = File(config.schemaPath);
 
-
     final helperStr = buildCommonGraphQLClientHelpers();
-    final helperFile = "/lib/${config.helperPath}/$helperFileName";
+    final customTypesMixinStr = buildGraphqlCustomTypesBaseClass();
+    final helperFile = "/lib/${config.helperPath}/${config.helperFilename}";
+    final customTypeMixinFile =
+        "/${config.modelsDirectoryPath}lib/${config.graphqlCustomTypeMixinFilename}";
     saveFile(helperFile, helperStr);
+    saveFile(customTypeMixinFile, customTypesMixinStr);
     graphQlToDart = GraphQlToDart(config);
     graphQlToDart.init();
     // if (file.existsSync()) {
@@ -141,13 +143,13 @@ class AstGenerator implements Builder {
       _schema = IntrospectionSchema.fromTypes(graphQlToDart.schema.types);
       info = _schema.operationInfo();
 
-      scalars = _schema.scalarsList();
-      enums = _schema.enumsList();
+      scalars = _schema.scalarsMap();
+      enums = _schema.enumsMap();
 
       inputs = _schema.inputsMap();
       types = _schema.objectsMap();
     }
-    final package = buildStep.inputId.package;
+    //final package = buildStep.inputId.package;
     final outDIR =
         p.normalize(p.joinAll(buildStep.inputId.pathSegments..removeLast()));
     final str = await buildStep.readAsString(buildStep.inputId);
@@ -160,10 +162,14 @@ class AstGenerator implements Builder {
         enums: enums,
         inputs: inputs,
         operationAst: operationAst,
-        package: package,
         outDir: outDIR,
-        modelsPath: config.modelsImportPath,
-        helperPath: config.helperPath);
+        config: config
+        // package: package,
+        // modelsPath: config.modelsImportPath,
+        // modelsPackage: config.modelsPackage,
+        // helperPath: config.helperPath,
+        // customScalarsPaths: config.customScalarImplementationPaths,
+        );
     content.forEach((v) async {
       await saveFile(v[0], v[1]);
     });

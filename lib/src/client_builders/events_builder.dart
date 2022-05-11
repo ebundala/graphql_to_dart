@@ -7,7 +7,7 @@ class EventsBuilder {
   final List<String> events;
   late String base;
   EventsBuilder({required this.operation, required this.events}) {
-    base = "${operation.operationName.pascalCase}Event";
+    base = "${operation.name.pascalCase}Event";
   }
   List<String> genericOperation() {
     return events.map((e) {
@@ -97,7 +97,7 @@ class EventsBuilder {
 
   String generic(String e) {
     return """
-    class ${ReCase(operation.operationName).pascalCase}${e} extends ${base}{
+    class ${ReCase(operation.name).pascalCase}${e} extends ${base}{
       @override
       List<Object?>  get props=>[];
     }
@@ -114,7 +114,7 @@ class EventsBuilder {
   }
 
   String classWithMessage(String e) {
-    final name = "${ReCase(operation.operationName).pascalCase}${e}";
+    final name = "${ReCase(operation.name).pascalCase}${e}";
     return """
     class ${name} extends ${base}{
       final String message;
@@ -126,7 +126,7 @@ class EventsBuilder {
   }
 
   String classWithData(e) {
-    final name = "${ReCase(operation.operationName).pascalCase}${e}";
+    final name = "${ReCase(operation.name).pascalCase}${e}";
     return """
     class ${name} extends ${base}{
       final ${operation.returnType} data;
@@ -140,7 +140,7 @@ class EventsBuilder {
   String classWithVariables(e) {
     final variables = getClassVariables(operation);
     final construct = buildConstructorArguments(operation);
-    final name = '${ReCase(operation.operationName).pascalCase}${e}';
+    final name = '${ReCase(operation.name).pascalCase}${e}';
     final props = getPropsList(operation.variables).join(',');
     return """
     class ${name} extends ${base}{
@@ -153,10 +153,10 @@ class EventsBuilder {
   }
 
   String classWithStateData(String e) {
-    final name = "${operation.operationName.pascalCase}${e}";
+    final name = "${operation.name.pascalCase}${e}";
     return """
     class ${name} extends ${base}{
-      final ${operation.operationName.pascalCase}State data;
+      final ${operation.name.pascalCase}State data;
       ${name}({required this.data});
        @override
      List<Object?>  get props=>[data];
@@ -165,7 +165,7 @@ class EventsBuilder {
   }
 
   String classWithDataAndMessage(String e) {
-    final name = "${operation.operationName.pascalCase}${e}";
+    final name = "${operation.name.pascalCase}${e}";
     return """
     class ${name} extends ${base}{
       final ${operation.returnType} data;

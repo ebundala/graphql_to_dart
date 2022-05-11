@@ -7,7 +7,7 @@ class StatesBuilder {
   final List<String> states;
   late String base;
   StatesBuilder({required this.operation, required this.states}) {
-    base = "${ReCase(operation.operationName).pascalCase}State";
+    base = "${ReCase(operation.name).pascalCase}State";
   }
 
   List<String> genericOperation() {
@@ -88,7 +88,7 @@ class StatesBuilder {
 
   String generic(String e) {
     return """
-    class ${ReCase(operation.operationName).pascalCase}${e} extends ${base}{
+    class ${ReCase(operation.name).pascalCase}${e} extends ${base}{
       @override
       List<Object?>  get props=>[];
     }
@@ -108,7 +108,7 @@ class StatesBuilder {
   }
 
   String classWithMessage(String e) {
-    final name = "${ReCase(operation.operationName).pascalCase}${e}";
+    final name = "${ReCase(operation.name).pascalCase}${e}";
     return """
     class ${name} extends ${base}{
       final String? message;
@@ -120,7 +120,7 @@ class StatesBuilder {
   }
 
   String classWithDataAndMessage(e) {
-    final name = "${ReCase(operation.operationName).pascalCase}${e}";
+    final name = "${ReCase(operation.name).pascalCase}${e}";
     return """
     class ${name} extends ${base}{
       final ${operation.returnType} data;
@@ -149,7 +149,7 @@ class StatesBuilder {
     final construct =
         "this.message, this.data,${buildConstructorArguments(operation, r"$")}";
 
-    final name = '${ReCase(operation.operationName).pascalCase}${e}';
+    final name = '${ReCase(operation.name).pascalCase}${e}';
     final props =
         getPropsList(operation.variables).map((v) => "\$$v").join(',');
     return """
