@@ -21,7 +21,7 @@ class Config {
   late String modelsImportPath;
   late String modelsPackage;
   late String helperFilename;
-  late String graphqlCustomTypeMixinFilename;
+  late String graphqlCustomTypeBaseFilename;
   YamlMap? customScalarImplementationPaths;
   Config();
   Config.fromJson(Map map) {
@@ -48,9 +48,8 @@ class Config {
     modelsPackage = map["models_package"];
     customScalarImplementationPaths = map['custom_scalar_implementation_paths'];
     helperFilename = map['helper_filename'] ?? 'common_client_helpers.dart';
-    graphqlCustomTypeMixinFilename =
-        map['graphql_custom_type_mixin_filename'] ??
-            'graphql_custom_type_mixin.dart';
+    graphqlCustomTypeBaseFilename = map['graphql_custom_type_base_filename'] ??
+        'graphql_custom_type_base.dart';
   }
   Future<ValidationResult> validate() async {
 //    File queriesFile = File(queriesFilePath);

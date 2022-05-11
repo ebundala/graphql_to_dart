@@ -95,28 +95,16 @@ class AstGenerator implements Builder {
 
   AstGenerator(this.options) {
     config = Config.fromJson(options.config);
-    // final file = File(config.schemaPath);
 
     final helperStr = buildCommonGraphQLClientHelpers();
     final customTypesMixinStr = buildGraphqlCustomTypesBaseClass();
     final helperFile = "/lib/${config.helperPath}/${config.helperFilename}";
     final customTypeMixinFile =
-        "/${config.modelsDirectoryPath}lib/${config.graphqlCustomTypeMixinFilename}";
+        "/${config.modelsDirectoryPath}lib/${config.graphqlCustomTypeBaseFilename}";
     saveFile(helperFile, helperStr);
     saveFile(customTypeMixinFile, customTypesMixinStr);
     graphQlToDart = GraphQlToDart(config);
     graphQlToDart.init();
-    // if (file.existsSync()) {
-    //   var schemaStr = file.readAsStringSync();
-    //   schema = gql(schemaStr);
-    //   _schema = IntrospectionSchema.fromDocumentNode(schema);
-    //   // inputs = getInputsDef(schema);
-    //   // scalars = getScalarsAndEnums(schema);
-    //   // info = getOperationsInfo(schema);
-    //   // types = getTypesMapping(schema);
-    // } else {
-    //   throw Exception("Schema not found");
-    // }
   }
   saveFile(
     String fileName,

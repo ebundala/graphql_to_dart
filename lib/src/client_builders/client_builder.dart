@@ -1052,11 +1052,11 @@ import "package:equatable/equatable.dart";
 import 'package:gql/ast.dart' as ast;
 
 abstract class GraphQLCustomType<T> extends Equatable {
-  static GraphQLCustomType<T> fromJson<T>(Map<dynamic, dynamic> json) {
+  static GraphQLCustomType fromJson(Map<dynamic, dynamic> json) {
     throw UnimplementedError();
   }
 
-  Map<String, dynamic> toJson() {
+  dynamic toJson() {
     throw UnimplementedError();
   }
 
