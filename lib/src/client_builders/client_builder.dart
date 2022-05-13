@@ -255,11 +255,11 @@ List<List<String>> buildBloc(
     final isList = i.isList
         ? """  
             else if (event is ${libname}MoreLoaded){      
-              yield ${libname}LoadMoreInProgress(data:getData);
+              return ${libname}LoadMoreInProgress(data:getData);
                 ${i.name}LoadMore(event);
             }
              else if (event is ${libname}StreamEnded){
-                yield ${libname}AllDataLoaded(data:getData);
+                return ${libname}AllDataLoaded(data:getData);
             }
     """
         : "";
@@ -291,39 +291,46 @@ List<List<String>> buildBloc(
           final Stream<${libname}State> Function(
       ${libname}Bloc context, ${libname}Event event, ${libname}BlocHookStage stage)? hook;
       OperationResult? resultWrapper;
-       ${libname}Bloc({required this.client,this.hook}) : super(${libname}Initial());
-        @override
-        Stream<${libname}State> mapEventToState(${libname}Event event) async* {
+       ${libname}Bloc({required this.client,this.hook}) : super(${libname}Initial()){
+         on<${libname}Event>((event, emit) async {
+      final st = await mapEventToState(event);
+            if (st != null) {
+              emit(st);
+            }
+          });
+       }
+        
+        Future<${libname}State?> mapEventToState(${libname}Event event) async {
         //   if (hook != null) {
-        //     yield* hook(this, event, ${libname}BlocHookStage.before);
+        //     return hook(this, event, ${libname}BlocHookStage.before);
         //   }
         //  else 
          if (event is ${libname}Started) {
-              yield ${libname}Initial();
+              return ${libname}Initial();
             }
            else if (event is ${libname}Excuted) {
               //start main excution 
-              yield* ${i.name}(event);
+              return await ${i.name}(event);
             } else if (event is ${libname}IsLoading) {
               // emit loading state
               ${isloadingMoreEvent}{
-              yield ${libname}InProgress(data: event.data);
+              return ${libname}InProgress(data: event.data);
               }
             } else if (event is ${libname}IsOptimistic) {
               // emit optimistic result state
-              yield ${libname}Optimistic(data: event.data);
+              return ${libname}Optimistic(data: event.data);
             } else if (event is ${libname}IsConcrete) {
               // emit completed result
-              yield ${libname}Success(data: event.data);
+              return ${libname}Success(data: event.data);
             } else if (event is ${libname}Refreshed) {
               //emit dataset changed
-              yield event.data;
+              return event.data;
             } else if (event is ${libname}Failed) {
               // emit failure state
-              yield ${libname}Failure(data: event.data, message: event.message);
+              return ${libname}Failure(data: event.data, message: event.message);
             } else if (event is ${libname}Errored) {
               //emit error case
-              yield ${libname}Error(data:event.data,message: event.message);
+              return ${libname}Error(data:event.data,message: event.message);
             }
             else if (event is ${libname}Retried){              
                 ${i.name}Retry();
@@ -332,8 +339,9 @@ List<List<String>> buildBloc(
             
           // else
           // if (hook != null) {
-          //   yield* hook(this, event, ${libname}BlocHookStage.after);
+          //   return hook(this, event, ${libname}BlocHookStage.after);
           // }
+          return null;
         }
         void ${i.name}Retry(){
           if(resultWrapper?.observableQuery!=null){
@@ -342,7 +350,7 @@ List<List<String>> buildBloc(
         }
         ${isListFn}
 
-        Stream<${libname}State> ${i.name}(${libname}Excuted event) async* {
+        Future<${libname}State?> ${i.name}(${libname}Excuted event) async {
           
           //validate all required fields of required args and emit relevant events
            ${buildInputsValidations(i)}
@@ -427,9 +435,10 @@ List<List<String>> buildBloc(
               }
             } catch (e) {
               //emit complete failure state;
-              yield ${libname}Error(data:state.data!,message: e.toString());
+              return ${libname}Error(data:state.data!,message: e.toString());
             }
           }
+          return null;
         }
 
         closeResultWrapper() async {
@@ -455,7 +464,7 @@ List<List<String>> buildBloc(
               final data = client.readQuery(queryRequest);
               if (data != null) {
                 var data1 = getDataFromField(
-                    resultWrapper!.info.fieldName, QueryResult(data: data,source: QueryResultSource.cache));
+                    resultWrapper!.info.fieldName, QueryResult(data: data,source: QueryResultSource.cache,options: resultWrapper!.observableQuery!.options));
                 return data1??{};
               }
             }
@@ -510,7 +519,7 @@ buildInputsValidations(OperationAstInfo operation) {
               "${operation.name.pascalCase}${v.name.pascalCase}${f.name.pascalCase}";
           return """
       if(${test}){
-        yield ${stateName}ValidationError('${f.name} is required',getData,${reAssignedInputs(operation.variables)});
+        return ${stateName}ValidationError('${f.name} is required',getData,${reAssignedInputs(operation.variables)});
       }
       """;
         }).join('\n else ');

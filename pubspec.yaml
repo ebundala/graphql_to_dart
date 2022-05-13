@@ -7,8 +7,8 @@ environment:
 
 dependencies:
   yaml: ^3.1.0
-  graphql: 5.0.0-nullsafety.4
-  gql: ^0.13.0-nullsafety.2
+  graphql: ^5.1.1
+  gql: ^0.13.1
   build: ^2.0.1
   source_gen: ^1.0.0
   recase: ^4.0.0
