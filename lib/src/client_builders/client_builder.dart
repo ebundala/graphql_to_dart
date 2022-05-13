@@ -108,7 +108,8 @@ String buildStates(OperationAstInfo operation) {
 
 Map<String, List<String>> getEventsMapping(
     OperationAstInfo operation, Map<String, List<String>> events) {
-  var name = operation.name;
+  var name = operation.operationName;
+
   Map<String, List<String>> ev = {};
   events.forEach((k, v) {
     if (name.contains(k)) {
